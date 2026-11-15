@@ -1,5 +1,9 @@
 export type Side = "Heads" | "Tails";
 
+export type BattleFormat = string;
+
+export type BattleMode = string;
+
 export interface Item {
   name: string;
   value: number;
@@ -36,11 +40,37 @@ export interface Match {
   tax_total: number;
 }
 
+/**
+ * Case definition used by the case/battle system.
+ * Extra properties are allowed so this stays compatible with
+ * the existing case data in the project.
+ */
+export interface CaseDef {
+  [key: string]: any;
+}
+
+/**
+ * A case battle.
+ * Extra properties are allowed because the existing battle
+ * components may use additional fields.
+ */
+export interface CaseBattle {
+  [key: string]: any;
+}
+
+/**
+ * Admin player information.
+ */
+export interface AdminPlayer {
+  [key: string]: any;
+}
+
 export interface Snapshot {
   coins: number;
   inventory: InvItem[];
   profit: number;
   totalWagered: number;
+  isAdmin: boolean;
 }
 
 export interface LeaderboardEntry {
