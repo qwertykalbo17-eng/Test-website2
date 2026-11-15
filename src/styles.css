@@ -1,0 +1,1881 @@
+:root {
+  --bg: #0d0f14;
+  --surface: #151821;
+  --surface-2: #1b1f2a;
+  --surface-3: #232836;
+  --border: #272c38;
+  --text: #f2f4f8;
+  --muted: #8f96a5;
+  --accent: #00f5b4;
+  --accent-strong: #00d89d;
+  --accent-ink: #04130d;
+  --gem: #4cc9ff;
+  --danger: #ff5c6c;
+  --win: #00f5b4;
+  --radius: 12px;
+  --shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  background: radial-gradient(900px 400px at 50% -100px, rgba(0, 245, 180, 0.08), transparent), var(--bg);
+  min-height: 100vh;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  line-height: 1.2;
+}
+h1 {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+h2 {
+  font-size: 17px;
+  font-weight: 700;
+}
+h3 {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+img {
+  display: block;
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 14px;
+}
+.text-win {
+  color: var(--win);
+}
+.text-danger {
+  color: var(--danger);
+}
+.text-accent {
+  color: var(--accent);
+}
+
+.splash {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+}
+
+/* ---------- Buttons & inputs ---------- */
+
+.btn {
+  font: inherit;
+  font-weight: 600;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 10px 18px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, transform 0.05s, opacity 0.15s;
+}
+.btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.btn--primary {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+.btn--primary:hover:not(:disabled) {
+  background: var(--accent-strong);
+}
+.btn--ghost {
+  background: var(--surface-2);
+  border-color: var(--border);
+  color: var(--text);
+}
+.btn--ghost:hover:not(:disabled) {
+  background: var(--surface-3);
+}
+.btn--sm {
+  padding: 7px 12px;
+  font-size: 13px;
+}
+.btn--block {
+  width: 100%;
+}
+
+.link {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  font-weight: 600;
+  color: var(--accent);
+  cursor: pointer;
+}
+.link:hover {
+  text-decoration: underline;
+}
+
+.input {
+  font: inherit;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.input:focus {
+  border-color: var(--accent);
+}
+.input--select {
+  min-width: 190px;
+}
+.input--qty {
+  width: 84px;
+  text-align: center;
+}
+
+.icon-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+.icon-btn:hover {
+  background: var(--surface-3);
+  color: var(--text);
+}
+
+/* ---------- Brand & navbar ---------- */
+
+.brand {
+  font-weight: 800;
+  font-size: 20px;
+  letter-spacing: -0.02em;
+}
+.brand span {
+  color: var(--accent);
+}
+.brand--lg {
+  font-size: 32px;
+  text-align: center;
+}
+
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(13, 15, 20, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+.navbar__inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+.navbar__links {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+  overflow-x: auto;
+}
+.nav-link {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  color: var(--muted);
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  padding: 9px 14px;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+}
+.nav-link:hover:not(:disabled) {
+  color: var(--text);
+  background: var(--surface-2);
+}
+.nav-link.is-active {
+  color: var(--accent);
+  background: rgba(0, 245, 180, 0.1);
+}
+.nav-link.is-disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.navbar__user {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.navbar__name {
+  font-weight: 600;
+}
+.profit-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  font-weight: 700;
+  font-size: 14px;
+}
+.profit-chip__label {
+  color: var(--muted);
+  font-weight: 500;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+.profit-chip.is-up {
+  color: var(--win);
+}
+.profit-chip.is-down {
+  color: var(--danger);
+}
+
+/* ---------- Layout ---------- */
+
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 32px 24px 80px;
+}
+
+.hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+.hero__actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+.panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.empty {
+  text-align: center;
+  color: var(--muted);
+  padding: 32px 12px;
+  background: var(--surface-2);
+  border-radius: 10px;
+}
+.empty--sm {
+  padding: 12px;
+  font-size: 13px;
+}
+
+/* ---------- Recent results & matches ---------- */
+
+.recent {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-height: 44px;
+  align-items: center;
+}
+.recent img {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  transition: transform 0.15s;
+}
+.recent img:hover {
+  transform: scale(1.12);
+}
+
+.matches {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.match {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 24px;
+  padding: 14px 18px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  transition: border-color 0.15s, transform 0.15s;
+}
+.match:hover {
+  border-color: rgba(0, 245, 180, 0.4);
+  transform: translateY(-1px);
+}
+.match__items {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.match__items img {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+  background: var(--surface);
+  border-radius: 10px;
+  padding: 4px;
+}
+.match__value {
+  text-align: right;
+}
+.match__total {
+  font-weight: 800;
+  font-size: 18px;
+  color: var(--gem);
+}
+.match__action {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.coin {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* ---------- Modal ---------- */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(5, 6, 10, 0.8);
+  backdrop-filter: blur(4px);
+  animation: fade 0.15s ease;
+}
+.modal {
+  width: min(560px, 100%);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  animation: pop 0.18s ease;
+}
+.modal--wide {
+  width: min(960px, 100%);
+}
+.modal__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  min-height: 56px;
+}
+.modal__body {
+  padding: 20px;
+  overflow-y: auto;
+}
+.modal__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.modal__summary {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 16px;
+}
+.modal__actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.toolbar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.toolbar .input:first-child {
+  flex: 1;
+}
+.notice {
+  background: rgba(76, 201, 255, 0.08);
+  border: 1px solid rgba(76, 201, 255, 0.25);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  font-size: 14px;
+}
+.form-error {
+  color: var(--danger);
+  margin: 10px 0 0;
+  font-size: 14px;
+  text-align: right;
+}
+
+.side-picker {
+  display: flex;
+  gap: 8px;
+}
+.side-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: inherit;
+  font-weight: 600;
+  color: var(--muted);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 6px 14px 6px 8px;
+  cursor: pointer;
+}
+.side-btn img {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+}
+.side-btn.is-active {
+  color: var(--text);
+  border-color: var(--accent);
+  background: rgba(0, 245, 180, 0.08);
+}
+.side-btn:disabled:not(.is-active) {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* ---------- Item grid ---------- */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 10px;
+  max-height: 46vh;
+  overflow-y: auto;
+  padding: 2px;
+}
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 8px;
+  background: var(--surface-2);
+  border: 2px solid transparent;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: transform 0.12s, border-color 0.12s, background 0.12s;
+}
+.card:hover {
+  transform: translateY(-2px);
+  background: var(--surface-3);
+}
+.card.is-selected {
+  border-color: var(--accent);
+  background: rgba(0, 245, 180, 0.08);
+}
+.card img {
+  width: 84px;
+  height: 84px;
+  object-fit: contain;
+}
+.card__name {
+  width: 100%;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.card__value {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--gem);
+}
+
+/* ---------- Battle ---------- */
+
+.battle__top {
+  display: grid;
+  grid-template-columns: 1fr 180px 1fr;
+  gap: 20px;
+  align-items: center;
+}
+.fighter {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.avatar {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 34px;
+  font-weight: 800;
+  background: var(--surface-3);
+  border: 3px solid var(--accent);
+}
+.avatar--bot {
+  border-color: var(--danger);
+}
+.fighter__side {
+  position: absolute;
+  top: -6px;
+  right: calc(50% - 62px);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.6));
+}
+.fighter__name {
+  font-weight: 700;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-height: 160px;
+  justify-content: center;
+}
+.stage__video,
+.stage__result {
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 0 40px rgba(0, 245, 180, 0.2);
+}
+.stage__text {
+  margin: 0;
+  font-weight: 600;
+  color: var(--muted);
+}
+.stage__text--big {
+  font-size: 17px;
+  font-weight: 800;
+  text-align: center;
+}
+.battle__hash {
+  margin: 14px 0;
+  text-align: center;
+  font-size: 12px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.battle__cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.bet-col__head {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.bet-col__head b {
+  font-size: 15px;
+  color: var(--accent);
+  text-transform: none;
+}
+.bet-col__list {
+  max-height: 260px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.bet-row {
+  display: grid;
+  grid-template-columns: 44px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.bet-row img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+.bet-row__name {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bet-row b {
+  color: var(--gem);
+  font-size: 14px;
+}
+.battle__footer {
+  margin-top: 18px;
+  display: flex;
+  justify-content: center;
+}
+
+/* ---------- Leaderboard ---------- */
+
+.table {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.table__row {
+  display: grid;
+  grid-template-columns: 80px 1.4fr 1fr 1fr;
+  gap: 12px;
+  align-items: center;
+  padding: 14px 18px;
+  font-weight: 600;
+  border-top: 1px solid var(--border);
+}
+.table__row:first-child {
+  border-top: 0;
+}
+.table__row:not(.table__row--head):hover {
+  background: var(--surface-2);
+}
+.table__row--head {
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.table__rank {
+  font-size: 20px;
+}
+
+/* ---------- Auth ---------- */
+
+.auth {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+.auth__card {
+  width: min(400px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 36px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+}
+.auth__sub {
+  margin: 0 0 6px;
+  text-align: center;
+  color: var(--muted);
+}
+.auth__error {
+  margin: 0;
+  color: var(--danger);
+  font-size: 14px;
+}
+.auth__switch {
+  margin: 4px 0 0;
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.field .input {
+  font-weight: 400;
+}
+
+/* ---------- Animations & responsive ---------- */
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+}
+
+@media (max-width: 800px) {
+  .navbar__inner {
+    flex-wrap: wrap;
+    gap: 10px 16px;
+    padding: 10px 16px;
+  }
+  .navbar__links {
+    order: 3;
+    width: 100%;
+    flex: none;
+  }
+  .container {
+    padding: 20px 16px 60px;
+  }
+  .match {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .match__value {
+    text-align: left;
+  }
+  .battle__top {
+    grid-template-columns: 1fr 1fr;
+  }
+  .stage {
+    grid-column: 1 / -1;
+    order: -1;
+  }
+  .battle__cols {
+    grid-template-columns: 1fr;
+  }
+  .table__row {
+    grid-template-columns: 52px 1fr 1fr 1fr;
+    padding: 12px 10px;
+    gap: 6px;
+    font-size: 13px;
+  }
+  .toolbar {
+    flex-direction: column;
+  }
+}
+
+.navbar__left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.profit-chip.is-neutral {
+  color: var(--gem);
+}
+.notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.profit-chip.is-button {
+  font: inherit;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.profit-chip.is-button:hover {
+  border-color: var(--gem);
+  background: var(--surface-3);
+}
+.card--static {
+  cursor: default;
+}
+.card--static:hover {
+  transform: none;
+  background: var(--surface-2);
+}
+.hist-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+.hist {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto auto;
+  align-items: center;
+  gap: 20px;
+  padding: 10px 16px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.hist__players {
+  display: flex;
+  gap: 8px;
+}
+.hist-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  font-weight: 800;
+  background: var(--surface-3);
+  border: 3px solid var(--border);
+}
+.hist-avatar.is-winner {
+  border-color: var(--accent);
+}
+.hist-avatar.is-loser {
+  opacity: 0.55;
+}
+.hist__items {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.hist__items img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  border-radius: 50%;
+  background: var(--surface);
+  padding: 4px;
+}
+.hist__value {
+  text-align: right;
+}
+.hist__total {
+  font-weight: 800;
+  color: var(--gem);
+}
+
+@media (max-width: 800px) {
+  .hist {
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+  }
+  .hist__items {
+    grid-column: 1 / -1;
+  }
+}
+
+.match__extra {
+  width: 52.5px;
+  height: 52.5px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.06);
+  color: #aeb5c7;
+  font-size: 14px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* =========================================================
+   THEMES
+   Change ACTIVE_THEME in App.tsx:
+   "normal" | "halloween" | "christmas"
+   ========================================================= */
+
+/* ---------- Halloween ---------- */
+
+:root[data-theme="halloween"] {
+  --bg: #100b14;
+  --surface: #18111f;
+  --surface-2: #211629;
+  --surface-3: #2c1d36;
+
+  --border: #44304d;
+
+  --text: #f7f1fa;
+  --muted: #a99bad;
+
+  --accent: #ff8a00;
+  --accent-strong: #ff6a00;
+  --accent-ink: #1a0d00;
+
+  --gem: #b76cff;
+
+  --danger: #ff4d5f;
+  --win: #ff9d2e;
+
+  --radius: 12px;
+}
+
+/* Halloween background glow */
+:root[data-theme="halloween"] body {
+  background:
+    radial-gradient(
+      900px 400px at 50% -100px,
+      rgba(255, 138, 0, 0.14),
+      transparent
+    ),
+    var(--bg);
+}
+
+/* Halloween navbar */
+:root[data-theme="halloween"] .navbar {
+  background: rgba(16, 11, 20, 0.88);
+}
+
+/* Halloween active navigation */
+:root[data-theme="halloween"] .nav-link.is-active {
+  color: var(--accent);
+  background: rgba(255, 138, 0, 0.12);
+}
+
+/* Halloween match hover */
+:root[data-theme="halloween"] .match:hover {
+  border-color: rgba(255, 138, 0, 0.5);
+}
+
+/* Halloween selected items */
+:root[data-theme="halloween"] .card.is-selected {
+  border-color: var(--accent);
+  background: rgba(255, 138, 0, 0.1);
+}
+
+
+/* ---------- Christmas ---------- */
+
+:root[data-theme="christmas"] {
+  --bg: #08120e;
+  --surface: #0d1b15;
+  --surface-2: #12251c;
+  --surface-3: #183326;
+
+  --border: #28513c;
+
+  --text: #f5fff8;
+  --muted: #9bb4a6;
+
+  --accent: #e63946;
+  --accent-strong: #c92f3b;
+  --accent-ink: #fff5f5;
+
+  --gem: #5cc8ff;
+
+  --danger: #ff5964;
+  --win: #4ade80;
+
+  --radius: 12px;
+}
+
+/* Christmas background glow */
+:root[data-theme="christmas"] body {
+  background:
+    radial-gradient(
+      900px 400px at 50% -100px,
+      rgba(220, 40, 55, 0.12),
+      transparent
+    ),
+    var(--bg);
+}
+
+/* Christmas navbar */
+:root[data-theme="christmas"] .navbar {
+  background: rgba(8, 18, 14, 0.88);
+}
+
+/* Christmas active navigation */
+:root[data-theme="christmas"] .nav-link.is-active {
+  color: #e63946;
+  background: rgba(230, 57, 70, 0.12);
+}
+
+/* Christmas match hover */
+:root[data-theme="christmas"] .match:hover {
+  border-color: rgba(230, 57, 70, 0.5);
+}
+
+/* Christmas selected items */
+:root[data-theme="christmas"] .card.is-selected {
+  border-color: #e63946;
+  background: rgba(230, 57, 70, 0.1);
+}
+
+/* =========================================================
+   CHRISTMAS THEME
+   ========================================================= */
+
+:root[data-theme="christmas"] {
+  --bg: #06120d;
+  --surface: #0b1b13;
+  --surface-2: #10271b;
+  --surface-3: #173522;
+
+  --border: #28563d;
+
+  --text: #f7fff9;
+  --muted: #a6bcae;
+
+  --accent: #e63946;
+  --accent-strong: #c92f3b;
+  --accent-ink: #fff;
+
+  --gem: #66d9ff;
+
+  --danger: #ff5964;
+  --win: #4ade80;
+
+  --radius: 12px;
+}
+
+
+/* ---------- Christmas background ---------- */
+
+:root[data-theme="christmas"] body {
+  background:
+    radial-gradient(
+      800px 400px at 50% -100px,
+      rgba(220, 30, 50, 0.15),
+      transparent
+    ),
+    radial-gradient(
+      700px 350px at 0% 30%,
+      rgba(20, 150, 80, 0.08),
+      transparent
+    ),
+    var(--bg);
+}
+
+
+/* ---------- Christmas navbar ---------- */
+
+:root[data-theme="christmas"] .navbar {
+  background: rgba(6, 18, 13, 0.9);
+  border-bottom-color: rgba(230, 57, 70, 0.35);
+}
+
+
+/* ---------- Christmas active navigation ---------- */
+
+:root[data-theme="christmas"] .nav-link.is-active {
+  color: #ff5964;
+  background: rgba(230, 57, 70, 0.12);
+}
+
+
+/* ---------- Christmas buttons ---------- */
+
+:root[data-theme="christmas"] .btn--primary {
+  background: #e63946;
+  color: #fff;
+  box-shadow:
+    0 0 15px rgba(230, 57, 70, 0.2);
+}
+
+:root[data-theme="christmas"] .btn--primary:hover:not(:disabled) {
+  background: #c92f3b;
+}
+
+
+/* ---------- Christmas panels ---------- */
+
+:root[data-theme="christmas"] .panel {
+  border-color: rgba(55, 120, 80, 0.45);
+  box-shadow:
+    0 8px 35px rgba(0, 0, 0, 0.25);
+}
+
+
+/* ---------- Christmas matches ---------- */
+
+:root[data-theme="christmas"] .match:hover {
+  border-color: rgba(230, 57, 70, 0.6);
+  box-shadow:
+    0 0 20px rgba(230, 57, 70, 0.08);
+}
+
+
+/* ---------- Christmas cards ---------- */
+
+:root[data-theme="christmas"] .card.is-selected {
+  border-color: #e63946;
+  background: rgba(230, 57, 70, 0.1);
+}
+
+
+/* =========================================================
+   CHRISTMAS LIGHTS
+   ========================================================= */
+
+.christmas-lights {
+  display: none;
+}
+
+:root[data-theme="christmas"] .christmas-lights {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+
+  height: 28px;
+
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-start;
+
+  z-index: 200;
+
+  pointer-events: none;
+}
+
+.christmas-lights span {
+  position: relative;
+
+  width: 9px;
+  height: 9px;
+
+  margin-top: 3px;
+
+  border-radius: 50%;
+
+  background: #e63946;
+
+  box-shadow:
+    0 0 8px currentColor,
+    0 0 16px currentColor;
+
+  animation: christmasLight 1.8s infinite alternate;
+}
+
+/* Different Christmas light colors */
+
+.christmas-lights span:nth-child(3n) {
+  background: #4ade80;
+  color: #4ade80;
+}
+
+.christmas-lights span:nth-child(3n + 1) {
+  background: #e63946;
+  color: #e63946;
+}
+
+.christmas-lights span:nth-child(3n + 2) {
+  background: #ffd166;
+  color: #ffd166;
+}
+
+.christmas-lights span:nth-child(2n) {
+  animation-delay: 0.5s;
+}
+
+@keyframes christmasLight {
+  from {
+    opacity: 0.45;
+    transform: scale(0.8);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}
+
+
+/* =========================================================
+   CHRISTMAS GARLAND
+   ========================================================= */
+
+.christmas-garland {
+  display: none;
+}
+
+:root[data-theme="christmas"] .christmas-garland {
+  position: fixed;
+
+  top: 28px;
+  left: 50%;
+
+  transform: translateX(-50%);
+
+  z-index: 150;
+
+  display: flex;
+  align-items: center;
+  gap: 28px;
+
+  font-size: 22px;
+
+  opacity: 0.85;
+
+  pointer-events: none;
+}
+
+.christmas-garland span {
+  display: inline-block;
+
+  animation: christmasFloat 3s ease-in-out infinite;
+}
+
+.christmas-garland span:nth-child(2) {
+  animation-delay: 0.5s;
+}
+
+.christmas-garland span:nth-child(3) {
+  animation-delay: 1s;
+}
+
+.christmas-garland span:nth-child(4) {
+  animation-delay: 1.5s;
+}
+
+.christmas-garland span:nth-child(5) {
+  animation-delay: 2s;
+}
+
+@keyframes christmasFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(4px);
+  }
+}
+
+
+/* =========================================================
+   FALLING SNOW
+   ========================================================= */
+
+.snowfall {
+  display: none;
+}
+
+:root[data-theme="christmas"] .snowfall {
+  display: block;
+
+  position: fixed;
+
+  inset: 0;
+
+  z-index: 120;
+
+  pointer-events: none;
+
+  overflow: hidden;
+}
+
+.snowflake {
+  position: absolute;
+
+  top: -30px;
+
+  color: rgba(255, 255, 255, 0.9);
+
+  text-shadow:
+    0 0 5px rgba(255, 255, 255, 0.8),
+    0 0 12px rgba(150, 220, 255, 0.5);
+
+  animation-name: snowFall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+@keyframes snowFall {
+  0% {
+    transform:
+      translate3d(0, -30px, 0)
+      rotate(0deg);
+    opacity: 0;
+  }
+
+  10% {
+    opacity: 0.9;
+  }
+
+  50% {
+    transform:
+      translate3d(35px, 50vh, 0)
+      rotate(180deg);
+  }
+
+  100% {
+    transform:
+      translate3d(-25px, 110vh, 0)
+      rotate(360deg);
+    opacity: 0.2;
+  }
+}
+
+
+/* =========================================================
+   CHRISTMAS CORNER DECORATIONS
+   ========================================================= */
+
+.christmas-corner {
+  display: none;
+}
+
+:root[data-theme="christmas"] .christmas-corner {
+  display: block;
+
+  position: fixed;
+
+  bottom: 18px;
+
+  z-index: 130;
+
+  font-size: 58px;
+
+  pointer-events: none;
+
+  filter:
+    drop-shadow(0 5px 12px rgba(0, 0, 0, 0.4));
+
+  animation: christmasCornerFloat 4s ease-in-out infinite;
+}
+
+.christmas-corner--left {
+  left: 18px;
+}
+
+.christmas-corner--right {
+  right: 18px;
+
+  animation-delay: 1s;
+}
+
+@keyframes christmasCornerFloat {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+
+  50% {
+    transform: translateY(-8px) rotate(2deg);
+  }
+}
+
+
+/* =========================================================
+   CHRISTMAS GEM / VALUE EFFECTS
+   ========================================================= */
+
+:root[data-theme="christmas"] .match__total,
+:root[data-theme="christmas"] .card__value {
+  text-shadow:
+    0 0 10px rgba(102, 217, 255, 0.25);
+}
+
+
+/* =========================================================
+   CHRISTMAS MODALS
+   ========================================================= */
+
+:root[data-theme="christmas"] .modal {
+  border-color: rgba(55, 120, 80, 0.55);
+
+  box-shadow:
+    0 15px 60px rgba(0, 0, 0, 0.55),
+    0 0 35px rgba(230, 57, 70, 0.08);
+}
+
+
+/* =========================================================
+   CHRISTMAS MOBILE
+   ========================================================= */
+
+@media (max-width: 800px) {
+  :root[data-theme="christmas"] .christmas-garland {
+    gap: 12px;
+    font-size: 17px;
+  }
+
+  :root[data-theme="christmas"] .christmas-corner {
+    font-size: 40px;
+    bottom: 10px;
+  }
+
+  :root[data-theme="christmas"] .christmas-corner--left {
+    left: 8px;
+  }
+
+  :root[data-theme="christmas"] .christmas-corner--right {
+    right: 8px;
+  }
+}
+
+/* =========================================================
+   HALLOWEEN DECORATIONS
+   No emoji - pure CSS decoration
+   ========================================================= */
+
+.halloween-fog {
+  display: none;
+}
+
+:root[data-theme="halloween"] .halloween-fog {
+  display: block;
+  position: fixed;
+  left: -20%;
+  width: 140%;
+  height: 260px;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0.16;
+  filter: blur(35px);
+  background:
+    radial-gradient(
+      ellipse at center,
+      rgba(160, 90, 255, 0.35),
+      transparent 65%
+    );
+}
+
+.halloween-fog--one {
+  bottom: 5%;
+  animation: halloweenFogMove 16s ease-in-out infinite alternate;
+}
+
+.halloween-fog--two {
+  bottom: 25%;
+  opacity: 0.1 !important;
+  animation: halloweenFogMove 22s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes halloweenFogMove {
+  from {
+    transform: translateX(-5%);
+  }
+
+  to {
+    transform: translateX(5%);
+  }
+}
+
+
+/* =========================================================
+   HALLOWEEN MOON
+   ========================================================= */
+
+.halloween-moon {
+  display: none;
+}
+
+:root[data-theme="halloween"] .halloween-moon {
+  display: block;
+  position: fixed;
+  top: 75px;
+  right: 55px;
+  width: 85px;
+  height: 85px;
+  border-radius: 50%;
+  background:
+    radial-gradient(
+      circle at 35% 30%,
+      #fff3b0 0%,
+      #ffd66b 45%,
+      #ff9f1c 100%
+    );
+  box-shadow:
+    0 0 25px rgba(255, 166, 0, 0.45),
+    0 0 70px rgba(255, 120, 0, 0.18);
+  opacity: 0.8;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.halloween-moon__glow {
+  position: absolute;
+  inset: -20px;
+  border-radius: 50%;
+  background: rgba(255, 140, 0, 0.08);
+  filter: blur(15px);
+}
+
+
+/* =========================================================
+   SPIDER WEBS
+   ========================================================= */
+
+.halloween-web {
+  display: none;
+}
+
+:root[data-theme="halloween"] .halloween-web {
+  display: block;
+  position: fixed;
+  width: 150px;
+  height: 150px;
+  pointer-events: none;
+  z-index: 3;
+  opacity: 0.35;
+}
+
+/* Vertical lines */
+:root[data-theme="halloween"] .halloween-web::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      45deg,
+      transparent 48.5%,
+      rgba(220, 210, 230, 0.7) 49%,
+      rgba(220, 210, 230, 0.7) 50%,
+      transparent 50.5%
+    ),
+    linear-gradient(
+      -45deg,
+      transparent 48.5%,
+      rgba(220, 210, 230, 0.7) 49%,
+      rgba(220, 210, 230, 0.7) 50%,
+      transparent 50.5%
+    ),
+    linear-gradient(
+      90deg,
+      transparent 49%,
+      rgba(220, 210, 230, 0.5) 49.5%,
+      rgba(220, 210, 230, 0.5) 50.5%,
+      transparent 51%
+    ),
+    linear-gradient(
+      0deg,
+      transparent 49%,
+      rgba(220, 210, 230, 0.5) 49.5%,
+      rgba(220, 210, 230, 0.5) 50.5%,
+      transparent 51%
+    );
+}
+
+/* Curved-looking rings */
+:root[data-theme="halloween"] .halloween-web::after {
+  content: "";
+  position: absolute;
+  inset: 15px;
+  border: 1px solid rgba(220, 210, 230, 0.5);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 15px rgba(220, 210, 230, 0.08),
+    0 0 0 30px rgba(220, 210, 230, 0.06),
+    0 0 0 45px rgba(220, 210, 230, 0.05);
+}
+
+.halloween-web--tl {
+  top: 0;
+  left: 0;
+}
+
+.halloween-web--tr {
+  top: 0;
+  right: 0;
+  transform: scaleX(-1);
+}
+
+.halloween-web--bl {
+  bottom: 0;
+  left: 0;
+  transform: scaleY(-1);
+}
+
+.halloween-web--br {
+  bottom: 0;
+  right: 0;
+  transform: scale(-1);
+}
+
+
+/* =========================================================
+   FLYING BATS
+   ========================================================= */
+
+.halloween-bats {
+  display: none;
+}
+
+:root[data-theme="halloween"] .halloween-bats {
+  display: block;
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.halloween-bat {
+  position: absolute;
+  left: -80px;
+  width: 26px;
+  height: 12px;
+  opacity: 0.45;
+
+  animation-name: halloweenBatFlight;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+/* Bat body */
+.halloween-bat::before {
+  content: "";
+  position: absolute;
+  left: 9px;
+  top: 3px;
+  width: 8px;
+  height: 10px;
+  border-radius: 50% 50% 40% 40%;
+  background: #08050b;
+}
+
+/* Bat wings */
+.halloween-bat::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 26px;
+  height: 12px;
+  background:
+    linear-gradient(
+      145deg,
+      transparent 35%,
+      #08050b 36%,
+      #08050b 62%,
+      transparent 63%
+    ),
+    linear-gradient(
+      215deg,
+      transparent 35%,
+      #08050b 36%,
+      #08050b 62%,
+      transparent 63%
+    );
+}
+
+@keyframes halloweenBatFlight {
+  0% {
+    transform: translateX(-100px) translateY(0) scale(0.7);
+    opacity: 0;
+  }
+
+  10% {
+    opacity: 0.45;
+  }
+
+  50% {
+    transform: translateX(55vw) translateY(-35px) scale(1);
+  }
+
+  100% {
+    transform: translateX(110vw) translateY(20px) scale(0.8);
+    opacity: 0;
+  }
+}
+
+
+/* =========================================================
+   HALLOWEEN GROUND GLOW
+   ========================================================= */
+
+.halloween-ground-glow {
+  display: none;
+}
+
+:root[data-theme="halloween"] .halloween-ground-glow {
+  display: block;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 180px;
+  pointer-events: none;
+  z-index: 1;
+
+  background:
+    linear-gradient(
+      to top,
+      rgba(255, 95, 0, 0.08),
+      transparent
+    );
+
+  box-shadow:
+    inset 0 -30px 80px rgba(255, 90, 0, 0.04);
+}
+
+
+/* =========================================================
+   HALLOWEEN UI
+   ========================================================= */
+
+:root[data-theme="halloween"] .navbar {
+  border-bottom-color: rgba(255, 138, 0, 0.3);
+  box-shadow:
+    0 4px 25px rgba(255, 90, 0, 0.06);
+}
+
+:root[data-theme="halloween"] .panel {
+  border-color: rgba(255, 138, 0, 0.18);
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+:root[data-theme="halloween"] .match {
+  border-color: rgba(255, 138, 0, 0.15);
+  box-shadow:
+    0 5px 25px rgba(0, 0, 0, 0.18);
+}
+
+:root[data-theme="halloween"] .match:hover {
+  border-color: rgba(255, 138, 0, 0.65);
+  box-shadow:
+    0 0 25px rgba(255, 100, 0, 0.1);
+}
+
+:root[data-theme="halloween"] .btn--primary {
+  background:
+    linear-gradient(
+      135deg,
+      #ff9d00,
+      #ff6500
+    );
+
+  color: #160b00;
+
+  box-shadow:
+    0 0 18px rgba(255, 110, 0, 0.2);
+}
+
+:root[data-theme="halloween"] .btn--primary:hover:not(:disabled) {
+  background:
+    linear-gradient(
+      135deg,
+      #ffad24,
+      #ff7514
+    );
+
+  box-shadow:
+    0 0 25px rgba(255, 110, 0, 0.35);
+}
+
+:root[data-theme="halloween"] .match__total,
+:root[data-theme="halloween"] .card__value {
+  text-shadow:
+    0 0 12px rgba(183, 108, 255, 0.25);
+}
+
+:root[data-theme="halloween"] .card.is-selected {
+  border-color: #ff8a00;
+  background: rgba(255, 138, 0, 0.1);
+  box-shadow:
+    0 0 18px rgba(255, 138, 0, 0.08);
+}
+
+
+/* =========================================================
+   HALLOWEEN MODALS
+   ========================================================= */
+
+:root[data-theme="halloween"] .modal {
+  border-color: rgba(255, 138, 0, 0.35);
+
+  box-shadow:
+    0 20px 70px rgba(0, 0, 0, 0.65),
+    0 0 35px rgba(255, 90, 0, 0.08);
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 800px) {
+  :root[data-theme="halloween"] .halloween-moon {
+    width: 55px;
+    height: 55px;
+    top: 65px;
+    right: 20px;
+  }
+
+  :root[data-theme="halloween"] .halloween-web {
+    width: 100px;
+    height: 100px;
+    opacity: 0.25;
+  }
+
+  :root[data-theme="halloween"] .halloween-bat {
+    transform: scale(0.7);
+  }
+}
