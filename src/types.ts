@@ -1,8 +1,8 @@
 export type Side = "Heads" | "Tails";
 
-export type BattleFormat = string;
+export type BattleFormat = "1v1" | "1v1v1" | "2v2";
 
-export type BattleMode = string;
+export type BattleMode = "normal" | "crazy";
 
 export interface Item {
   name: string;
@@ -40,29 +40,62 @@ export interface Match {
   tax_total: number;
 }
 
-/**
- * Case definition used by the case/battle system.
- * Extra properties are allowed so this stays compatible with
- * the existing case data in the project.
- */
+/** An item that can be dropped from a case. */
+export interface CaseItem extends Item {
+  chance: number;
+}
+
+/** A case definition used by the admin panel and case battles. */
 export interface CaseDef {
-  [key: string]: any;
+  id: string;
+  name: string;
+  image: string;
+  price: number;
+  active: boolean;
+  items: CaseItem[];
 }
 
-/**
- * A case battle.
- * Extra properties are allowed because the existing battle
- * components may use additional fields.
- */
+/** A player slot inside a case battle. */
+export interface BattlePlayer {
+  user_id: string;
+  name: string;
+  is_bot: boolean;
+}
+
+/** One round of a case battle. Each slot receives one item. */
+export type BattleRound = Item[];
+
+/** Result of a completed case battle. */
+export interface CaseBattleResult {
+  winner_slots: number[];
+  rounds: BattleRound[];
+  items_won: number;
+  team_totals: number[];
+}
+
+/** A case battle. */
 export interface CaseBattle {
-  [key: string]: any;
+  id: string;
+  status: "open" | "finished" | "cancelled";
+  creator_id: string;
+  mode: BattleMode;
+  format: BattleFormat;
+  cost: number;
+  slots: number;
+  cases: CaseDef[];
+  players: Array<BattlePlayer | null>;
+  result: CaseBattleResult | null;
+  created_at: string;
+  finished_at: string | null;
 }
 
-/**
- * Admin player information.
- */
+/** Player information returned to the admin panel. */
 export interface AdminPlayer {
-  [key: string]: any;
+  id: string;
+  username: string;
+  coins: number;
+  profit: number;
+  is_admin: boolean;
 }
 
 export interface Snapshot {
