@@ -52,7 +52,8 @@ export default function Navbar({
             </button>
             <button
               className={`nav-link ${page === "battles" ? "is-active" : ""}`}
-              onClick={() => onNavigate("battles")}
+              disabled
+              style={{ cursor: "not-allowed", opacity: 0.5 }}
             >
               📦 Case Battles
             </button>
@@ -113,7 +114,11 @@ export default function Navbar({
           <span className="tabbar__icon">🪙</span>
           <span>Coinflip</span>
         </button>
-        <button className={`tabbar__item ${page === "battles" ? "is-active" : ""}`} onClick={() => onNavigate("battles")}>
+        <button
+          className={`tabbar__item ${page === "battles" ? "is-active" : ""}`}
+          disabled
+          style={{ cursor: "not-allowed", opacity: 0.5 }}
+        >
           <span className="tabbar__icon">📦</span>
           <span>Battles</span>
         </button>
