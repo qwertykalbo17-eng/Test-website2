@@ -513,3 +513,10 @@
   .cbv__pull { min-height: 96px; }
   .editor__row { flex-wrap: wrap; }
 }
+
+/* match info: empty right-hand player */
+.hist-avatar.is-waiting {
+  background: var(--surface-3);
+  color: var(--muted);
+  border: 2px dashed var(--border);
+}

@@ -10,14 +10,14 @@ interface Props {
   busy: boolean;
   onJoin: (match: Match) => void;
   onCallBot: (match: Match) => void;
-  onCancel: (match: Match) => void;
+  onView: (match: Match) => void;
 }
 
 const DONE_VISIBLE_MS = 2 * 60 * 1000;
 const MAX_DONE = 15;
 
-export default function MatchList({ open, recent, userId, busy, onJoin, onCallBot, onCancel }: Props) {
-  const MAX_VISIBLE_ITEMS = 3;
+export default function MatchList({ open, recent, userId, busy, onJoin, onCallBot, onView }: Props) {
+  const MAX_VISIBLE_ITEMS = 7;
 
   // Finished matches stay in the list for 2 minutes (max 15, newest first).
   const [now, setNow] = useState(Date.now());
@@ -54,7 +54,7 @@ export default function MatchList({ open, recent, userId, busy, onJoin, onCallBo
           <span className="muted">{open.length} open</span>
         </div>
 
-        {open.length === 0 && done.length === 0 && <div className="empty">No open matches. Press “Create match” to create one.</div>}
+        {open.length === 0 && done.length === 0 && <div className="empty">No open matches. Press “Post match” to create one.</div>}
 
         <ul className="matches">
           {open.map((m) => {
@@ -109,19 +109,17 @@ export default function MatchList({ open, recent, userId, busy, onJoin, onCallBo
                     }
                   />
                   {mine ? (
-                    <>
-                      <button className="btn btn--primary" disabled={busy} onClick={() => onCallBot(m)}>
-                        Call Bot
-                      </button>
-                      <button className="btn btn--ghost" disabled={busy} onClick={() => onCancel(m)}>
-                        Cancel
-                      </button>
-                    </>
+                    <button className="btn btn--primary" disabled={busy} onClick={() => onCallBot(m)}>
+                      Call Bot
+                    </button>
                   ) : (
                     <button className="btn btn--primary" disabled={busy} onClick={() => onJoin(m)}>
                       Join
                     </button>
                   )}
+                  <button className="btn btn--ghost" onClick={() => onView(m)}>
+                    View
+                  </button>
                 </div>
               </li>
             );

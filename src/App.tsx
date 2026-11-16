@@ -27,11 +27,13 @@ import InventoryViewModal from "./components/InventoryViewModal";
 import Leaderboard from "./components/Leaderboard";
 import MarketModal from "./components/MarketModal";
 import MatchList from "./components/MatchList";
+import MatchViewModal from "./components/MatchViewModal";
 import Navbar, { type Page } from "./components/Navbar";
 import { useAuth } from "./hooks/useAuth";
 import { useBattles } from "./hooks/useBattles";
 import { useCases } from "./hooks/useCases";
 import { useItems } from "./hooks/useItems";
+import { useMatchById } from "./hooks/useMatchById";
 import { useMatches } from "./hooks/useMatches";
 import { useUserData } from "./hooks/useUserData";
 import type { BattleFormat, BattleMode, CaseBattle, InvItem, Item, Match, Side } from "./types";
@@ -55,7 +57,7 @@ type Theme = "normal" | "halloween" | "christmas";
 
 // The "as Theme" lets TypeScript accept the comparisons below for every theme
 // (without it, `npm run build` fails with "types have no overlap").
-const ACTIVE_THEME = "christmas" as Theme;
+const ACTIVE_THEME = "normal" as Theme;
 
 /** The coin icon changes with the theme: snowflake at Christmas, candy at Halloween. */
 const COIN_ICON = ACTIVE_THEME === "christmas" ? "❄️" : ACTIVE_THEME === "halloween" ? "🍬" : "🪙";
@@ -90,6 +92,9 @@ export default function App() {
   // a finished case battle being shown (animate = reveal the rounds one by one)
   const [viewBattle, setViewBattle] = useState<{ battle: CaseBattle; animate: boolean } | null>(null);
   const [battle, setBattle] = useState<Match | null>(null);
+  // the match info window (kept live while it is open)
+  const [viewSeed, setViewSeed] = useState<Match | null>(null);
+  const viewed = useMatchById(viewSeed);
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
@@ -114,6 +119,22 @@ export default function App() {
     const next = unseen.find((m) => !handled.current.has(m.id));
     if (!next) return;
 
+    // You are watching this match's info window: it moves on to the flip by itself.
+    if (viewSeed?.id === next.id) return;
+
+    // Someone else joined your match while you weren't watching: no pop-up, the result
+    // is simply in History / Recent results. (Bot flips and flips you joined are still replayed.)
+    if (next.creator_id === userId && !next.is_bot) {
+      handled.current.add(next.id);
+      markSeen(next.id)
+        .catch(console.error)
+        .finally(() => {
+          refreshMatches();
+          refreshProfile();
+        });
+      return;
+    }
+
     const age = Date.now() - new Date(next.finished_at ?? next.created_at).getTime();
     if (age > REPLAY_WINDOW_MS) {
       // too old to be worth replaying: just mark it as seen
@@ -129,7 +150,7 @@ export default function App() {
 
     hold(); // keep profit / inventory frozen so the animation doesn't spoil the result
     setBattle(next);
-  }, [unseen, battle, userId, hold, refreshMatches, refreshProfile]);
+  }, [unseen, battle, userId, viewSeed, hold, refreshMatches, refreshProfile]);
 
   /** A case battle you are in has finished (e.g. someone filled the last slot): show it. */
   useEffect(() => {
@@ -184,11 +205,12 @@ export default function App() {
 
   function handlePost(items: InvItem[], side: Side) {
     return act(async () => {
-      await createMatch(
+      const created = await createMatch(
         items.map((i) => i.id),
         side
       );
       setPostOpen(false);
+      setViewSeed(created); // show the match info right away
       await Promise.all([refreshProfile(), refreshMatches()]);
     });
   }
@@ -215,6 +237,7 @@ export default function App() {
         match.id,
         botItems.map((i) => i.name)
       );
+      setViewSeed(null);
       startFlip(finished);
       refreshMatches();
     });
@@ -223,6 +246,7 @@ export default function App() {
   function handleCancel(match: Match) {
     return act(async () => {
       await cancelMatch(match.id);
+      setViewSeed(null);
       await Promise.all([refreshProfile(), refreshMatches()]);
     });
   }
@@ -356,7 +380,7 @@ export default function App() {
               busy={busy}
               onJoin={(m) => requireLogin(() => setJoinTarget(m))}
               onCallBot={handleCallBot}
-              onCancel={handleCancel}
+              onView={setViewSeed}
             />
           </>
         ) : (
@@ -416,6 +440,43 @@ export default function App() {
             setViewBattle(null);
             refreshProfile();
           }}
+        />
+      )}
+
+      {viewSeed && viewed && user && (
+        <MatchViewModal
+          key={viewSeed.id}
+          match={viewed}
+          userId={user.id}
+          busy={busy}
+          onClose={() => setViewSeed(null)}
+          onJoin={(m) => {
+            setViewSeed(null);
+            setJoinTarget(m);
+          }}
+          onCallBot={handleCallBot}
+          onCancel={handleCancel}
+          onFlip={(m) => {
+            setViewSeed(null);
+            startFlip(m);
+          }}
+        />
+      )}
+
+      {viewSeed && viewed && !user && (
+        <MatchViewModal
+          key={viewSeed.id}
+          match={viewed}
+          userId=""
+          busy={busy}
+          onClose={() => setViewSeed(null)}
+          onJoin={() => {
+            setViewSeed(null);
+            setAuthOpen(true);
+          }}
+          onCallBot={() => undefined}
+          onCancel={() => undefined}
+          onFlip={() => undefined}
         />
       )}
 
