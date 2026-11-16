@@ -106,7 +106,7 @@ export default function MatchViewModal({ match, userId, busy, onClose, onJoin, o
                 Call Bot
               </button>
               <button className="btn btn--ghost" disabled={busy} onClick={() => onCancel(match)}>
-                Cancel match
+                Cancel
               </button>
             </>
           )}
