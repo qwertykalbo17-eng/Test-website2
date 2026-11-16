@@ -17,7 +17,7 @@ const DONE_VISIBLE_MS = 2 * 60 * 1000;
 const MAX_DONE = 15;
 
 export default function MatchList({ open, recent, userId, busy, onJoin, onCallBot, onView }: Props) {
-  const MAX_VISIBLE_ITEMS = 7;
+  const MAX_VISIBLE_ITEMS = 3;
 
   // Finished matches stay in the list for 2 minutes (max 15, newest first).
   const [now, setNow] = useState(Date.now());
@@ -147,9 +147,16 @@ export default function MatchList({ open, recent, userId, busy, onJoin, onCallBo
                   <div className="muted">{winnerName} won</div>
                 </div>
                 <div className="match__action">
-                  <img className="coin" src={img(m.flip === "Heads" ? "heads.webp" : "tails.webp")} alt={m.flip ?? ""} title={m.flip ?? ""} />
-                  <span className="tag">Done</span>
-                </div>
+  <img
+    className="coin"
+    src={img(m.flip === "Heads" ? "heads.webp" : "tails.webp")}
+    alt={m.flip ?? ""}
+    title={m.flip ?? ""}
+  />
+  <button className="btn btn--ghost" onClick={() => onView(m)}>
+    View
+  </button>
+</div>
               </li>
             );
           })}
