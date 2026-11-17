@@ -2,9 +2,28 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "../supabase";
 import type { InvItem, Snapshot } from "../types";
+import { preloadImages } from "../utils";
 
 const EMPTY: Snapshot = { isAdmin: false, coins: 0, inventory: [], profit: 0, totalWagered: 0 };
 const PAGE = 1000;
+const CACHE_KEY = "bloxybet.snapshot.";
+
+/** Last known snapshot, shown instantly while the fresh one loads. */
+function readCache(userId: string): Snapshot | null {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY + userId);
+    return raw ? (JSON.parse(raw) as Snapshot) : null;
+  } catch {
+    return null;
+  }
+}
+function writeCache(userId: string, snap: Snapshot) {
+  try {
+    localStorage.setItem(CACHE_KEY + userId, JSON.stringify(snap));
+  } catch {
+    /* storage unavailable or full: fine */
+  }
+}
 
 async function fetchInventory(userId: string): Promise<InvItem[]> {
   const out: InvItem[] = [];
@@ -55,13 +74,16 @@ export function useUserData(user: User | null) {
       if (profile.error) throw profile.error;
       // ignore out-of-date answers, and don't spoil a flip that is still playing
       if (mine !== seq.current || held.current) return;
-      setData({
+      const snap: Snapshot = {
         isAdmin: profile.data?.is_admin === true,
         coins: Number(profile.data?.coins) || 0,
         inventory,
         profit: Number(profile.data?.profit) || 0,
         totalWagered: Number(profile.data?.total_wagered) || 0,
-      });
+      };
+      preloadImages(inventory.map((i) => i.image));
+      writeCache(userId, snap);
+      setData(snap);
     } catch (e) {
       console.error("Error loading user data:", e);
     }
@@ -73,7 +95,12 @@ export function useUserData(user: User | null) {
       return;
     }
     let cancelled = false;
-    setLoading(true);
+    const cached = readCache(userId);
+    if (cached) {
+      preloadImages(cached.inventory.map((i) => i.image));
+      setData(cached);
+    }
+    setLoading(!cached);
     refresh().finally(() => {
       if (!cancelled) setLoading(false);
     });
