@@ -25,7 +25,7 @@ import HistoryModal from "./components/HistoryModal";
 import InventoryModal from "./components/InventoryModal";
 import InventoryViewModal from "./components/InventoryViewModal";
 import Leaderboard from "./components/Leaderboard";
-import MarketModal from "./components/MarketModal";
+import MarketPage, { type CartLine } from "./components/MarketPage";
 import MatchList from "./components/MatchList";
 import MatchViewModal from "./components/MatchViewModal";
 import Navbar, { type Page } from "./components/Navbar";
@@ -36,7 +36,7 @@ import { useItems } from "./hooks/useItems";
 import { useMatchById } from "./hooks/useMatchById";
 import { useMatches } from "./hooks/useMatches";
 import { useUserData } from "./hooks/useUserData";
-import type { BattleFormat, BattleMode, CaseBattle, InvItem, Item, Match, Side } from "./types";
+import type { BattleFormat, BattleMode, CaseBattle, InvItem, Match, Side } from "./types";
 import { generateBotItems, sumValue } from "./utils";
 
 /*
@@ -57,7 +57,7 @@ type Theme = "normal" | "halloween" | "christmas";
 
 // The "as Theme" lets TypeScript accept the comparisons below for every theme
 // (without it, `npm run build` fails with "types have no overlap").
-const ACTIVE_THEME = "christmas" as Theme;
+const ACTIVE_THEME = "normal" as Theme;
 
 /** The coin icon changes with the theme: snowflake at Christmas, candy at Halloween. */
 const COIN_ICON = ACTIVE_THEME === "christmas" ? "❄️" : ACTIVE_THEME === "halloween" ? "🍬" : "🪙";
@@ -75,7 +75,7 @@ export default function App() {
 
   const { user, ready, username, login, signup, logout } = useAuth();
   const userId = user?.id ?? null;
-  const catalog = useItems(!!user);
+  const { items: catalog, refresh: refreshCatalog } = useItems(true);
   const { data, loading, refresh: refreshProfile, hold, release } = useUserData(user);
   const { open, recent, unseen, refresh: refreshMatches } = useMatches(userId);
   const { cases, refresh: refreshCases } = useCases(userId);
@@ -86,7 +86,6 @@ export default function App() {
   const [joinTarget, setJoinTarget] = useState<Match | null>(null);
   const [viewInventoryOpen, setViewInventoryOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
-  const [marketOpen, setMarketOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
   const [createBattleOpen, setCreateBattleOpen] = useState(false);
   // a finished case battle being shown (animate = reveal the rounds one by one)
@@ -251,11 +250,17 @@ export default function App() {
     });
   }
 
-  function handleBuy(item: Item, quantity: number) {
-    return act(async () => {
-      await buyItems(Array.from({ length: quantity }, () => item.name));
-      await refreshProfile();
+  /** Buy several items at once. Resolves true when it worked, so the cart can be cleared. */
+  async function handleBuy(cart: CartLine[]) {
+    let ok = false;
+    await act(async () => {
+      const names = cart.flatMap((l) => Array.from({ length: l.qty }, () => l.name));
+      await buyItems(names);
+      ok = true;
+      await Promise.all([refreshProfile(), refreshCatalog()]);
     });
+    if (!ok) refreshCatalog(); // stock may have changed
+    return ok;
   }
 
   function handleSell(items: InvItem[]) {
@@ -327,7 +332,7 @@ export default function App() {
         coinIcon={COIN_ICON}
         inventoryValue={sumValue(data.inventory)}
         onOpenInventory={() => setViewInventoryOpen(true)}
-        onOpenMarket={() => requireLogin(() => setMarketOpen(true))}
+        onOpenMarket={() => setPage("market")}
         onLogin={() => setAuthOpen(true)}
         onLogout={logout}
       />
@@ -345,8 +350,26 @@ export default function App() {
             onCancel={handleCancelBattle}
             onView={(b) => setViewBattle({ battle: b, animate: false })}
           />
+        ) : page === "market" ? (
+          <MarketPage
+            catalog={catalog}
+            inventory={available}
+            coins={data.coins}
+            loggedIn={!!user}
+            busy={busy}
+            onLogin={() => setAuthOpen(true)}
+            onBuy={handleBuy}
+            onSell={handleSell}
+            onRefresh={refreshCatalog}
+          />
         ) : page === "admin" && data.isAdmin ? (
-          <AdminPage cases={cases} catalog={catalog} onCasesChanged={refreshCases} onError={showToast} />
+          <AdminPage
+            cases={cases}
+            catalog={catalog}
+            onCasesChanged={refreshCases}
+            onItemsChanged={refreshCatalog}
+            onError={showToast}
+          />
         ) : page !== "leaderboard" ? (
           <>
             <div className="hero">
@@ -364,7 +387,7 @@ export default function App() {
                 <button className="btn btn--ghost" onClick={() => requireLogin(() => setHistoryOpen(true))}>
                   History
                 </button>
-                <button className="btn btn--ghost" onClick={() => requireLogin(() => setMarketOpen(true))}>
+                <button className="btn btn--ghost" onClick={() => setPage("market")}>
                   Marketplace
                 </button>
                 <button className="btn btn--primary" onClick={() => requireLogin(() => setPostOpen(true))}>
@@ -407,17 +430,6 @@ export default function App() {
         onClose={() => setViewInventoryOpen(false)}
       />
       <HistoryModal open={historyOpen && !!user} userId={user?.id ?? ""} onClose={() => setHistoryOpen(false)} />
-      <MarketModal
-        open={marketOpen}
-        catalog={catalog}
-        inventory={available}
-        coins={data.coins}
-        coinIcon={COIN_ICON}
-        busy={busy}
-        onClose={() => setMarketOpen(false)}
-        onBuy={handleBuy}
-        onSell={handleSell}
-      />
 
       <AuthModal open={authOpen && !user} onClose={() => setAuthOpen(false)} onLogin={login} onSignup={signup} />
 

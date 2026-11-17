@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { adminGiveCoins, adminListPlayers, adminSaveCase, adminSetCaseActive, type CaseInput } from "../api";
+import { adminGiveCoins, adminListPlayers, adminSaveCase, adminSetCaseActive, adminSetStock, type CaseInput } from "../api";
 import { useCoin } from "../coin";
 import type { AdminPlayer, CaseDef, Item } from "../types";
 import { formatValue, img } from "../utils";
@@ -10,11 +10,13 @@ interface Props {
   catalog: Item[];
   /** Reload the case list after a change. */
   onCasesChanged: () => void;
+  /** Reload the item catalog after a stock change. */
+  onItemsChanged: () => void;
   onError: (message: string) => void;
 }
 
-export default function AdminPage({ cases, catalog, onCasesChanged, onError }: Props) {
-  const [tab, setTab] = useState<"cases" | "players">("cases");
+export default function AdminPage({ cases, catalog, onCasesChanged, onItemsChanged, onError }: Props) {
+  const [tab, setTab] = useState<"cases" | "stock" | "players">("cases");
 
   return (
     <>
@@ -29,6 +31,9 @@ export default function AdminPage({ cases, catalog, onCasesChanged, onError }: P
         <button className={`auth-tabs__tab ${tab === "cases" ? "is-active" : ""}`} onClick={() => setTab("cases")}>
           Cases
         </button>
+        <button className={`auth-tabs__tab ${tab === "stock" ? "is-active" : ""}`} onClick={() => setTab("stock")}>
+          Stock
+        </button>
         <button className={`auth-tabs__tab ${tab === "players" ? "is-active" : ""}`} onClick={() => setTab("players")}>
           Players
         </button>
@@ -36,6 +41,8 @@ export default function AdminPage({ cases, catalog, onCasesChanged, onError }: P
 
       {tab === "cases" ? (
         <CasesTab cases={cases} catalog={catalog} onChanged={onCasesChanged} onError={onError} />
+      ) : tab === "stock" ? (
+        <StockTab catalog={catalog} onChanged={onItemsChanged} onError={onError} />
       ) : (
         <PlayersTab onError={onError} />
       )}
@@ -253,6 +260,88 @@ function PlayersTab({ onError }: { onError: (m: string) => void }) {
             </div>
           </li>
         ))}
+      </ul>
+    </section>
+  );
+}
+
+function StockTab({ catalog, onChanged, onError }: { catalog: Item[]; onChanged: () => void; onError: (m: string) => void }) {
+  const [search, setSearch] = useState("");
+  const [edits, setEdits] = useState<Record<string, string>>({});
+  const [busyName, setBusyName] = useState<string | null>(null);
+
+  const shown = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return catalog.filter((i) => i.name.toLowerCase().includes(q)).sort((a, b) => b.value - a.value);
+  }, [catalog, search]);
+
+  async function save(item: Item) {
+    const n = parseInt(edits[item.name] ?? "", 10);
+    if (!Number.isFinite(n) || n < 0) {
+      onError("Enter a stock of 0 or more.");
+      return;
+    }
+    setBusyName(item.name);
+    try {
+      await adminSetStock(item.name, n);
+      setEdits((e) => {
+        const next = { ...e };
+        delete next[item.name];
+        return next;
+      });
+      onChanged();
+    } catch (e) {
+      onError(e instanceof Error ? e.message : "Something went wrong.");
+    } finally {
+      setBusyName(null);
+    }
+  }
+
+  return (
+    <section className="panel">
+      <div className="panel__head">
+        <h2>Marketplace stock</h2>
+        <span className="muted">Taxed items from matches are added here automatically</span>
+      </div>
+      <div className="toolbar">
+        <input className="input" type="search" placeholder="Search items…" value={search} onChange={(e) => setSearch(e.target.value)} />
+      </div>
+
+      <ul className="matches">
+        {shown.map((item) => {
+          const edit = edits[item.name];
+          const dirty = edit !== undefined && edit !== String(item.stock ?? 0);
+          return (
+            <li key={item.name} className="cb admin-player">
+              <div className="cb__info">
+                <div className="stock-row">
+                  <img src={img(item.image)} alt="" loading="lazy" decoding="async" />
+                  <div>
+                    <b>{item.name}</b>
+                    <div className="muted">💎 {formatValue(item.value)}</div>
+                  </div>
+                </div>
+              </div>
+              <div className="admin-case__stats">
+                <div className="muted">In stock</div>
+                <div className="match__total">{formatValue(item.stock ?? 0)}</div>
+              </div>
+              <div className="cb__buttons">
+                <input
+                  className="input input--qty admin-player__amount"
+                  type="number"
+                  min={0}
+                  placeholder="New stock"
+                  value={edit ?? ""}
+                  onChange={(e) => setEdits((all) => ({ ...all, [item.name]: e.target.value }))}
+                />
+                <button className="btn btn--primary btn--sm" disabled={!dirty || busyName === item.name} onClick={() => save(item)}>
+                  Save
+                </button>
+              </div>
+            </li>
+          );
+        })}
       </ul>
     </section>
   );

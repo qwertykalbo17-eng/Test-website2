@@ -1,6 +1,6 @@
 import { formatValue } from "../utils";
 
-export type Page = "coinflip" | "battles" | "leaderboard" | "admin";
+export type Page = "coinflip" | "battles" | "market" | "leaderboard" | "admin";
 
 interface Props {
   page: Page;
@@ -52,10 +52,15 @@ export default function Navbar({
             </button>
             <button
               className={`nav-link ${page === "battles" ? "is-active" : ""}`}
-              disabled
-              style={{ cursor: "not-allowed", opacity: 0.5 }}
+              onClick={() => onNavigate("battles")}
             >
               📦 Case Battles
+            </button>
+            <button
+              className={`nav-link ${page === "market" ? "is-active" : ""}`}
+              onClick={() => onNavigate("market")}
+            >
+              🛒 Marketplace
             </button>
             <button
               className={`nav-link ${page === "leaderboard" ? "is-active" : ""}`}
@@ -114,11 +119,7 @@ export default function Navbar({
           <span className="tabbar__icon">🪙</span>
           <span>Coinflip</span>
         </button>
-        <button
-          className={`tabbar__item ${page === "battles" ? "is-active" : ""}`}
-          disabled
-          style={{ cursor: "not-allowed", opacity: 0.5 }}
-        >
+        <button className={`tabbar__item ${page === "battles" ? "is-active" : ""}`} onClick={() => onNavigate("battles")}>
           <span className="tabbar__icon">📦</span>
           <span>Battles</span>
         </button>
@@ -129,12 +130,10 @@ export default function Navbar({
           <span className="tabbar__icon">🏆</span>
           <span>Leaderboard</span>
         </button>
-        {loggedIn && (
-          <button className="tabbar__item" onClick={onOpenMarket}>
-            <span className="tabbar__icon">🛒</span>
-            <span>Market</span>
-          </button>
-        )}
+        <button className={`tabbar__item ${page === "market" ? "is-active" : ""}`} onClick={() => onNavigate("market")}>
+          <span className="tabbar__icon">🛒</span>
+          <span>Market</span>
+        </button>
         {loggedIn ? (
           <button className="tabbar__item" onClick={onOpenInventory}>
             <span className="tabbar__icon">🎒</span>

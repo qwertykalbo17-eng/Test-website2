@@ -76,3 +76,7 @@ export const adminListPlayers = () => rpc<AdminPlayer[]>("admin_list_players", {
 
 export const adminGiveCoins = (userId: string, amount: number) =>
   rpc<number>("admin_give_coins", { p_user: userId, p_amount: amount });
+
+/** Set how many of an item the marketplace has in stock. */
+export const adminSetStock = (name: string, stock: number) =>
+  rpc<void>("admin_set_stock", { p_name: name, p_stock: stock });
