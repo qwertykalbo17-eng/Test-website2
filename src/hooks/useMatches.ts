@@ -5,6 +5,13 @@ import type { Match } from "../types";
 const POLL_MS = 4000;
 
 /**
+ * The Heads / Tails counter only counts flips that finished after this moment, so it starts at 0
+ * and grows as matches complete (never more than the last 100). To clear it again, set this to
+ * the current time (ISO format, UTC).
+ */
+const COUNTER_STARTS_AT = "2026-11-17T07:22:00Z";
+
+/**
  * Live match data:
  *  - open:   matches waiting for a player
  *  - recent: the last finished matches from everyone
@@ -44,6 +51,7 @@ export function useMatches(userId: string | null) {
         .from("matches")
         .select("flip")
         .eq("status", "finished")
+        .gte("finished_at", COUNTER_STARTS_AT)
         .order("finished_at", { ascending: false })
         .limit(100),
       // guests have no unwatched flips

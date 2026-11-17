@@ -94,7 +94,8 @@ export default function ValuesPage({ catalog, isAdmin, onSaved, onError }: Props
                   </div>
                   <div className="vcard__line">
                     <span>Demand</span> - <b>{item.demand ?? "N/A"}</b>
-                    <span className="vcard__dot">•</span>
+                  </div>
+                  <div className="vcard__line">
                     <span>Rarity</span> - <b>{item.rarity ?? "N/A"}</b>
                   </div>
                   {isAdmin && (
