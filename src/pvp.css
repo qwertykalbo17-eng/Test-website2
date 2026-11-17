@@ -572,7 +572,7 @@
 }
 
 /* medium screens: drop the chip labels and the username to save room */
-@media (min-width: 801px) and (max-width: 1180px) {
+@media (min-width: 801px) and (max-width: 1300px) {
   .navbar__inner { gap: 10px; padding: 12px 14px; }
   .profit-chip__label { display: none; }
   .navbar__name { display: none; }
@@ -581,7 +581,7 @@
 }
 
 /* small laptops / tablets: show only the icons of the page links */
-@media (min-width: 801px) and (max-width: 980px) {
+@media (min-width: 801px) and (max-width: 1120px) {
   .nav-link__text { display: none; }
   .nav-link { font-size: 17px; padding: 8px 12px; }
 }
@@ -621,9 +621,50 @@
   .recent-summary__item.is-tails b { color: var(--accent); }
 }
 
-.recent-summary__item img {
-  width: 27px;
-  height: 27px;
+/* ---------- Value list ---------- */
+
+.vgrid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 12px;
+}
+.vcard {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding: 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  font-weight: 700;
+}
+.vcard__img {
+  width: 84px;
+  height: 84px;
+  flex-shrink: 0;
   object-fit: contain;
-  vertical-align: middle;
+}
+.vcard__body { min-width: 0; font-size: 14px; line-height: 1.5; }
+.vcard__name {
+  font-size: 17px;
+  font-weight: 800;
+  text-decoration: underline;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.vcard__line { color: var(--text); }
+.vcard__line span { color: var(--text); }
+.vcard__value { color: var(--gem); }
+.vcard__dot { margin: 0 8px; color: var(--muted); }
+.vcard__edit { margin-top: 6px; }
+.editor__form { display: flex; flex-direction: column; gap: 14px; }
+.editor__two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.stab-preview { margin-left: 6px; }
+
+@media (max-width: 800px) {
+  .vgrid { grid-template-columns: 1fr; }
 }

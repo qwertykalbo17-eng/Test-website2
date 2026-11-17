@@ -26,6 +26,7 @@ import InventoryModal from "./components/InventoryModal";
 import InventoryViewModal from "./components/InventoryViewModal";
 import Leaderboard from "./components/Leaderboard";
 import MarketPage, { type CartLine } from "./components/MarketPage";
+import ValuesPage from "./components/ValuesPage";
 import MatchList from "./components/MatchList";
 import MatchViewModal from "./components/MatchViewModal";
 import Navbar, { type Page } from "./components/Navbar";
@@ -354,6 +355,8 @@ export default function App() {
             onCancel={handleCancelBattle}
             onView={(b) => setViewBattle({ battle: b, animate: false })}
           />
+        ) : page === "values" ? (
+          <ValuesPage catalog={catalog} isAdmin={data.isAdmin} onSaved={refreshCatalog} onError={showToast} />
         ) : page === "market" ? (
           <MarketPage
             catalog={catalog}

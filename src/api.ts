@@ -80,3 +80,23 @@ export const adminGiveCoins = (userId: string, amount: number) =>
 /** Set how many of an item the marketplace has in stock. */
 export const adminSetStock = (name: string, stock: number) =>
   rpc<void>("admin_set_stock", { p_name: name, p_stock: stock });
+
+export interface ItemInfoInput {
+  name: string;
+  value: number;
+  demand: number | null;
+  rarity: number | null;
+  stability: string | null;
+  range: string;
+}
+
+/** Edit an item's value and value-list info. */
+export const adminUpdateItem = (i: ItemInfoInput) =>
+  rpc<void>("admin_update_item", {
+    p_name: i.name,
+    p_value: i.value,
+    p_demand: i.demand,
+    p_rarity: i.rarity,
+    p_stability: i.stability,
+    p_range: i.range,
+  });

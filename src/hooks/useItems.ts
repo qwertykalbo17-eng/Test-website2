@@ -9,7 +9,7 @@ export function useItems(enabled: boolean) {
   const refresh = useCallback(async () => {
     const { data, error } = await supabase
       .from("items")
-      .select("name, value, image, stock")
+      .select("name, value, image, stock, demand, rarity, stability, value_range")
       .order("value", { ascending: true });
     if (error) {
       console.error("Error loading items:", error);
@@ -21,6 +21,10 @@ export function useItems(enabled: boolean) {
         value: Number(r.value),
         image: r.image,
         stock: Number(r.stock) || 0,
+        demand: r.demand ?? null,
+        rarity: r.rarity ?? null,
+        stability: r.stability ?? null,
+        value_range: r.value_range ?? null,
       }))
     );
   }, []);

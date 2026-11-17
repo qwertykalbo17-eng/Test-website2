@@ -1,6 +1,6 @@
 import { formatValue } from "../utils";
 
-export type Page = "coinflip" | "battles" | "market" | "leaderboard" | "admin";
+export type Page = "coinflip" | "battles" | "market" | "values" | "leaderboard" | "admin";
 
 interface Props {
   page: Page;
@@ -70,6 +70,13 @@ export default function Navbar({
               <span aria-hidden="true">🛒</span> <span className="nav-link__text">Marketplace</span>
             </button>
             <button
+              className={`nav-link ${page === "values" ? "is-active" : ""}`}
+              onClick={() => onNavigate("values")}
+              title="Value List"
+            >
+              <span aria-hidden="true">📋</span> <span className="nav-link__text">Value List</span>
+            </button>
+            <button
               className={`nav-link ${page === "leaderboard" ? "is-active" : ""}`}
               onClick={() => onNavigate("leaderboard")}
               title="Leaderboard"
@@ -128,24 +135,19 @@ export default function Navbar({
           <span className="tabbar__icon">🪙</span>
           <span>Coinflip</span>
         </button>
-        <button
-          className={`tabbar__item ${page === "battles" ? "is-active" : ""}`}
-          onClick={() => onNavigate("battles")}
-          disabled={!battlesEnabled}
-        >
-          <span className="tabbar__icon">📦</span>
-          <span>Battles</span>
-        </button>
-        <button
-          className={`tabbar__item ${page === "leaderboard" ? "is-active" : ""}`}
-          onClick={() => onNavigate("leaderboard")}
-        >
-          <span className="tabbar__icon">🏆</span>
-          <span>Leaderboard</span>
-        </button>
+        {battlesEnabled && (
+          <button className={`tabbar__item ${page === "battles" ? "is-active" : ""}`} onClick={() => onNavigate("battles")}>
+            <span className="tabbar__icon">📦</span>
+            <span>Battles</span>
+          </button>
+        )}
         <button className={`tabbar__item ${page === "market" ? "is-active" : ""}`} onClick={() => onNavigate("market")}>
           <span className="tabbar__icon">🛒</span>
           <span>Market</span>
+        </button>
+        <button className={`tabbar__item ${page === "values" ? "is-active" : ""}`} onClick={() => onNavigate("values")}>
+          <span className="tabbar__icon">📋</span>
+          <span>Values</span>
         </button>
         {loggedIn ? (
           <button className="tabbar__item" onClick={onOpenInventory}>

@@ -6,6 +6,11 @@ export interface Item {
   image: string;
   /** How many are left in the marketplace (only set for catalog items). */
   stock?: number;
+  /** Value list info (0-10, stability id, free-text range). */
+  demand?: number | null;
+  rarity?: number | null;
+  stability?: string | null;
+  value_range?: string | null;
 }
 
 /** An item you own. `locked` means it is inside one of your open matches. */
