@@ -62,6 +62,9 @@ const ACTIVE_THEME = "christmas" as Theme;
 /** The coin icon changes with the theme: snowflake at Christmas, candy at Halloween. */
 const COIN_ICON = ACTIVE_THEME === "christmas" ? "❄️" : ACTIVE_THEME === "halloween" ? "🍬" : "🪙";
 
+/** Case Battles are switched off for now (the nav button is greyed out). Set to true to open them again. */
+const CASE_BATTLES_ENABLED = false;
+
 /** A finished flip you never watched is replayed only if it ended less than this long ago. */
 const REPLAY_WINDOW_MS = 2 * 60 * 1000;
 
@@ -77,7 +80,7 @@ export default function App() {
   const userId = user?.id ?? null;
   const { items: catalog, refresh: refreshCatalog } = useItems(true);
   const { data, loading, refresh: refreshProfile, hold, release } = useUserData(user);
-  const { open, recent, unseen, refresh: refreshMatches } = useMatches(userId);
+  const { open, recent, unseen, counts, refresh: refreshMatches } = useMatches(userId);
   const { cases, refresh: refreshCases } = useCases(userId);
   const battles = useBattles();
 
@@ -328,6 +331,7 @@ export default function App() {
         onNavigate={setPage}
         username={user ? username : null}
         isAdmin={data.isAdmin}
+        battlesEnabled={CASE_BATTLES_ENABLED}
         coins={data.coins}
         coinIcon={COIN_ICON}
         inventoryValue={sumValue(data.inventory)}
@@ -338,7 +342,7 @@ export default function App() {
       />
 
       <main className="container">
-        {page === "battles" ? (
+        {page === "battles" && CASE_BATTLES_ENABLED ? (
           <BattlesPage
             open={battles.open}
             recent={battles.recent}
@@ -399,6 +403,7 @@ export default function App() {
             <MatchList
               open={open}
               recent={recent}
+              counts={counts}
               userId={user?.id ?? ""}
               busy={busy}
               onJoin={(m) => requireLogin(() => setJoinTarget(m))}

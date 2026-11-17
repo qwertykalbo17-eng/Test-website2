@@ -585,3 +585,38 @@
   .nav-link__text { display: none; }
   .nav-link { font-size: 17px; padding: 8px 12px; }
 }
+
+/* greyed-out items (Case Battles switched off) */
+.tabbar__item:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* Heads / Tails counter (phones only) */
+.recent-summary { display: none; }
+
+@media (max-width: 800px) {
+  .recent { display: none; }
+  .recent-summary {
+    display: flex;
+    gap: 12px;
+    padding: 4px 0 2px;
+  }
+  .recent-summary__item {
+    flex: 1;
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 12px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--muted);
+  }
+  .recent-summary__item b {
+    font-size: 22px;
+    color: var(--text);
+  }
+  .recent-summary__item.is-heads b { color: #ffd54a; }
+  .recent-summary__item.is-tails b { color: var(--accent); }
+}

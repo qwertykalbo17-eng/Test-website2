@@ -8,6 +8,8 @@ interface Props {
   /** null when nobody is logged in */
   username: string | null;
   isAdmin: boolean;
+  /** false greys out Case Battles so it can't be opened */
+  battlesEnabled: boolean;
   coins: number;
   coinIcon: string;
   inventoryValue: number;
@@ -22,6 +24,7 @@ export default function Navbar({
   onNavigate,
   username,
   isAdmin,
+  battlesEnabled,
   coins,
   coinIcon,
   inventoryValue,
@@ -52,9 +55,10 @@ export default function Navbar({
               <span aria-hidden="true">🪙</span> <span className="nav-link__text">Coinflip</span>
             </button>
             <button
-              className={`nav-link ${page === "battles" ? "is-active" : ""}`}
+              className={`nav-link ${page === "battles" ? "is-active" : ""} ${battlesEnabled ? "" : "is-disabled"}`}
               onClick={() => onNavigate("battles")}
-              title="Case Battles"
+              disabled={!battlesEnabled}
+              title={battlesEnabled ? "Case Battles" : "Case Battles (coming soon)"}
             >
               <span aria-hidden="true">📦</span> <span className="nav-link__text">Case Battles</span>
             </button>
@@ -124,7 +128,11 @@ export default function Navbar({
           <span className="tabbar__icon">🪙</span>
           <span>Coinflip</span>
         </button>
-        <button className={`tabbar__item ${page === "battles" ? "is-active" : ""}`} onClick={() => onNavigate("battles")}>
+        <button
+          className={`tabbar__item ${page === "battles" ? "is-active" : ""}`}
+          onClick={() => onNavigate("battles")}
+          disabled={!battlesEnabled}
+        >
           <span className="tabbar__icon">📦</span>
           <span>Battles</span>
         </button>
