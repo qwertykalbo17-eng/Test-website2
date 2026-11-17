@@ -668,3 +668,10 @@
 @media (max-width: 800px) {
   .vgrid { grid-template-columns: 1fr; }
 }
+
+.recent-summary__item img {
+  width: 33px;
+  height: 33px;
+  object-fit: contain;
+  vertical-align: middle;
+}
