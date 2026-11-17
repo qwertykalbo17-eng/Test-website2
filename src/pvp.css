@@ -620,3 +620,10 @@
   .recent-summary__item.is-heads b { color: #ffd54a; }
   .recent-summary__item.is-tails b { color: var(--accent); }
 }
+
+.recent-summary__item img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  vertical-align: middle;
+}
