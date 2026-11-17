@@ -142,7 +142,6 @@ export default function MatchList({ open, recent, counts, userId, busy, onJoin, 
           })}
           {done.map((m) => {
             const joinerName = m.joiner_name ?? "Bot";
-            const winnerName = m.winner === "creator" ? m.creator_name : joinerName;
             const pot = [...m.creator_items, ...(m.joiner_items ?? [])].sort((a, b) => b.value - a.value);
             const shown = pot.slice(0, MAX_VISIBLE_ITEMS);
             const extra = pot.length - MAX_VISIBLE_ITEMS;
@@ -161,7 +160,6 @@ export default function MatchList({ open, recent, counts, userId, busy, onJoin, 
                 </div>
                 <div className="match__value">
                   <div className="match__total">💎 {formatValue(m.creator_total + (m.joiner_total ?? 0))}</div>
-                  <div className="muted">{winnerName} won</div>
                 </div>
                 <div className="match__action">
                   <img className="coin" src={img(m.flip === "Heads" ? "heads.webp" : "tails.webp")} alt={m.flip ?? ""} title={m.flip ?? ""} />
