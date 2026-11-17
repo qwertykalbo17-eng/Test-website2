@@ -689,8 +689,8 @@
     justify-items: center;
     align-items: center;
     column-gap: 16px;
-    row-gap: 16px;
-    padding: 22px 16px;
+    row-gap: 20px;
+    padding: 30px 18px;
     text-align: center;
   }
   .match::before {
@@ -742,11 +742,11 @@
     text-align: center;
   }
   .match__total {
-    font-size: 26px;
+    font-size: 20px;
     color: var(--text);
   }
   .match__value .muted {
-    font-size: 18px;
+    font-size: 14px;
     font-weight: 700;
   }
   .match__buttons {
@@ -823,5 +823,71 @@
   }
   .vcard__line {
     font-size: 13px;
+  }
+}
+
+/* ---------- Phones: match info takes the whole screen ---------- */
+
+@media (max-width: 800px) {
+  .backdrop:has(.matchview) {
+    padding: 0;
+    place-items: stretch;
+  }
+  .backdrop:has(.matchview) .modal {
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    max-height: none;
+    border: 0;
+    border-radius: 0;
+  }
+  .backdrop:has(.matchview) .modal__body {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 14px;
+    overflow: hidden;
+  }
+  .matchview {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .matchview .battle__top {
+    gap: 10px;
+  }
+  .matchview .stage {
+    min-height: 0;
+    text-align: center;
+  }
+  .matchview .stage__result {
+    width: 80px;
+    height: 80px;
+  }
+  .matchview .battle__hash {
+    display: none;
+  }
+  /* the two bet lists scroll in the middle, the buttons stay in view at the bottom */
+  .matchview .battle__cols {
+    flex: 1;
+    min-height: 0;
+    margin-top: 14px;
+    overflow-y: auto;
+    align-content: start;
+  }
+  .matchview .bet-col__list {
+    max-height: none;
+    overflow: visible;
+  }
+  .matchview .battle__footer {
+    margin-top: 12px;
+    gap: 10px;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .matchview .battle__footer .btn {
+    flex: 1;
+    padding: 14px 16px;
   }
 }

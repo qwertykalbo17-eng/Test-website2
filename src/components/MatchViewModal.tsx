@@ -48,7 +48,7 @@ export default function MatchViewModal({ match, userId, busy, onClose, onJoin, o
 
   return (
     <Modal open onClose={onClose} title="Match info" wide>
-      <div className="battle">
+      <div className="battle matchview">
         <div className="battle__top">
           <div className="fighter">
             <Avatar name={match.creator_name} state={finished ? (match.winner === "creator" ? "winner" : "loser") : undefined} />
