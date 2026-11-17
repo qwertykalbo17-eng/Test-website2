@@ -85,7 +85,6 @@ export default function ValuesPage({ catalog, isAdmin, onSaved, onError }: Props
                   <div className="vcard__line">
                     <span>Value</span> - <b className="vcard__value">{full(item.value)}</b>
                   </div>
-                  
                   <div className="vcard__line">
                     <span>Stability</span> -{" "}
                     <b style={st ? { color: st.color } : undefined}>{st ? st.label : "N/A"}</b>
@@ -136,7 +135,6 @@ function ItemEditor({
   onError: (m: string) => void;
 }) {
   const [value, setValue] = useState(String(item.value));
-  const [range, setRange] = useState(item.value_range ?? "");
   const [stability, setStability] = useState(item.stability ?? "");
   const [demand, setDemand] = useState(item.demand == null ? "" : String(item.demand));
   const [rarity, setRarity] = useState(item.rarity == null ? "" : String(item.rarity));
@@ -164,7 +162,7 @@ function ItemEditor({
         demand: d,
         rarity: r,
         stability: stability || null,
-        range,
+        range: item.value_range ?? "", // not shown any more, kept as it is
       });
       onSaved();
     } catch (e) {
@@ -180,10 +178,6 @@ function ItemEditor({
         <label className="field">
           <span>Value</span>
           <input className="input" type="number" min={1} value={value} onChange={(e) => setValue(e.target.value)} />
-        </label>
-        <label className="field">
-          <span>Range (leave empty for N/A)</span>
-          <input className="input" value={range} maxLength={40} placeholder="e.g. 15,000 - 17,000" onChange={(e) => setRange(e.target.value)} />
         </label>
         <label className="field">
           <span>

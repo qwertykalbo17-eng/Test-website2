@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import type { Match } from "../types";
 import { betRange, formatValue, img, otherSide } from "../utils";
 import Modal from "./Modal";
@@ -22,6 +22,9 @@ const FLIP_DELAY_MS = 1800;
 const FLIP_WINDOW_MS = 2 * 60 * 1000;
 
 export default function MatchViewModal({ match, userId, busy, onClose, onJoin, onCallBot, onCancel, onFlip }: Props) {
+  // only a match that was still open when the window opened moves on to the flip by itself;
+  // opening an already finished match (View in the Done list) just shows it
+  const openedWhileOpen = useRef(match.status === "open");
   const isOpen = match.status === "open";
   const finished = match.status === "finished";
   const iAmCreator = match.creator_id === userId;
@@ -33,7 +36,7 @@ export default function MatchViewModal({ match, userId, busy, onClose, onJoin, o
 
   // The creator is watching and a player joined: show them for a moment, then flip.
   const fresh = finished && Date.now() - new Date(match.finished_at ?? match.created_at).getTime() < FLIP_WINDOW_MS;
-  const goesToFlip = fresh && (iAmCreator || iAmJoiner);
+  const goesToFlip = openedWhileOpen.current && fresh && (iAmCreator || iAmJoiner);
   useEffect(() => {
     if (!goesToFlip) return;
     const t = setTimeout(() => onFlip(match), FLIP_DELAY_MS);
@@ -106,7 +109,7 @@ export default function MatchViewModal({ match, userId, busy, onClose, onJoin, o
                 Call Bot
               </button>
               <button className="btn btn--ghost" disabled={busy} onClick={() => onCancel(match)}>
-                Cancel
+                Cancel match
               </button>
             </>
           )}

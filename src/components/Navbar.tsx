@@ -149,6 +149,13 @@ export default function Navbar({
           <span className="tabbar__icon">📋</span>
           <span>Values</span>
         </button>
+        <button
+          className={`tabbar__item ${page === "leaderboard" ? "is-active" : ""}`}
+          onClick={() => onNavigate("leaderboard")}
+        >
+          <span className="tabbar__icon">🏆</span>
+          <span>Ranks</span>
+        </button>
         {loggedIn ? (
           <button className="tabbar__item" onClick={onOpenInventory}>
             <span className="tabbar__icon">🎒</span>

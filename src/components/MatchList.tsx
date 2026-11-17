@@ -50,16 +50,16 @@ export default function MatchList({ open, recent, counts, userId, busy, onJoin, 
         </div>
         {/* phones: a short Heads / Tails counter instead of the row of coins */}
         <div className="recent-summary" aria-label="Last 100 flips">
-  <span className="recent-summary__item is-heads">
-    <img src={img("heads.webp")} alt="Heads" />
-    <b>{counts.heads}</b>
-  </span>
+          <span className="recent-summary__item is-heads">
+            <img src={img("heads.webp")} alt="Heads" />
+            <b>{counts.heads}</b>
+          </span>
 
-  <span className="recent-summary__item is-tails">
-    <img src={img("tails.webp")} alt="Tails" />
-    <b>{counts.tails}</b>
-  </span>
-</div>
+          <span className="recent-summary__item is-tails">
+            <img src={img("tails.webp")} alt="Tails" />
+            <b>{counts.tails}</b>
+          </span>
+        </div>
       </section>
 
       <section className="panel">
@@ -122,18 +122,20 @@ export default function MatchList({ open, recent, counts, userId, busy, onJoin, 
                         : `${m.creator_name} picked ${m.creator_side}, you would get ${otherSide(m.creator_side)}`
                     }
                   />
-                  {mine ? (
-                    <button className="btn btn--primary" disabled={busy} onClick={() => onCallBot(m)}>
-                      Call Bot
+                  <div className="match__buttons">
+                    {mine ? (
+                      <button className="btn btn--primary" disabled={busy} onClick={() => onCallBot(m)}>
+                        Call Bot
+                      </button>
+                    ) : (
+                      <button className="btn btn--primary" disabled={busy} onClick={() => onJoin(m)}>
+                        Join
+                      </button>
+                    )}
+                    <button className="btn btn--ghost" onClick={() => onView(m)}>
+                      View
                     </button>
-                  ) : (
-                    <button className="btn btn--primary" disabled={busy} onClick={() => onJoin(m)}>
-                      Join
-                    </button>
-                  )}
-                  <button className="btn btn--ghost" onClick={() => onView(m)}>
-                    View
-                  </button>
+                  </div>
                 </div>
               </li>
             );
@@ -162,7 +164,12 @@ export default function MatchList({ open, recent, counts, userId, busy, onJoin, 
                 </div>
                 <div className="match__action">
                   <img className="coin" src={img(m.flip === "Heads" ? "heads.webp" : "tails.webp")} alt={m.flip ?? ""} title={m.flip ?? ""} />
-                  <span className="tag">Done</span>
+                  <div className="match__buttons">
+                    <span className="tag">Done</span>
+                    <button className="btn btn--ghost" onClick={() => onView(m)}>
+                      View
+                    </button>
+                  </div>
                 </div>
               </li>
             );
