@@ -85,9 +85,7 @@ export default function ValuesPage({ catalog, isAdmin, onSaved, onError }: Props
                   <div className="vcard__line">
                     <span>Value</span> - <b className="vcard__value">{full(item.value)}</b>
                   </div>
-                  <div className="vcard__line">
-                    <span>Range</span> - <b>[{item.value_range || "N/A"}]</b>
-                  </div>
+                  
                   <div className="vcard__line">
                     <span>Stability</span> -{" "}
                     <b style={st ? { color: st.color } : undefined}>{st ? st.label : "N/A"}</b>
