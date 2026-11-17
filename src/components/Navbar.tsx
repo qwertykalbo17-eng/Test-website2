@@ -47,33 +47,38 @@ export default function Navbar({
             <button
               className={`nav-link ${page === "coinflip" ? "is-active" : ""}`}
               onClick={() => onNavigate("coinflip")}
+              title="Coinflip"
             >
-              🪙 Coinflip
+              <span aria-hidden="true">🪙</span> <span className="nav-link__text">Coinflip</span>
             </button>
             <button
               className={`nav-link ${page === "battles" ? "is-active" : ""}`}
               onClick={() => onNavigate("battles")}
+              title="Case Battles"
             >
-              📦 Case Battles
+              <span aria-hidden="true">📦</span> <span className="nav-link__text">Case Battles</span>
             </button>
             <button
               className={`nav-link ${page === "market" ? "is-active" : ""}`}
               onClick={() => onNavigate("market")}
+              title="Marketplace"
             >
-              🛒 Marketplace
+              <span aria-hidden="true">🛒</span> <span className="nav-link__text">Marketplace</span>
             </button>
             <button
               className={`nav-link ${page === "leaderboard" ? "is-active" : ""}`}
               onClick={() => onNavigate("leaderboard")}
+              title="Leaderboard"
             >
-              🏆 Leaderboard
+              <span aria-hidden="true">🏆</span> <span className="nav-link__text">Leaderboard</span>
             </button>
             {isAdmin && (
               <button
                 className={`nav-link ${page === "admin" ? "is-active" : ""}`}
                 onClick={() => onNavigate("admin")}
+                title="Admin"
               >
-                🛠 Admin
+                <span aria-hidden="true">🛠</span> <span className="nav-link__text">Admin</span>
               </button>
             )}
           </nav>

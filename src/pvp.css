@@ -551,3 +551,37 @@
   /* keep the buy bar above the bottom navigation */
   .market-footer { bottom: calc(60px + env(safe-area-inset-bottom)); }
 }
+
+/* ---------- Navbar: no sideways scrolling ---------- */
+
+.navbar__inner {
+  max-width: 1400px;
+  gap: 16px;
+  padding: 12px 20px;
+}
+.navbar__links {
+  min-width: 0;
+  overflow: visible; /* was overflow-x: auto, which showed a scrollbar */
+}
+.navbar__left,
+.navbar__user {
+  flex-shrink: 0;
+}
+.nav-link {
+  padding: 9px 11px;
+}
+
+/* medium screens: drop the chip labels and the username to save room */
+@media (min-width: 801px) and (max-width: 1180px) {
+  .navbar__inner { gap: 10px; padding: 12px 14px; }
+  .profit-chip__label { display: none; }
+  .navbar__name { display: none; }
+  .navbar__user { gap: 8px; }
+  .nav-link { padding: 9px 9px; }
+}
+
+/* small laptops / tablets: show only the icons of the page links */
+@media (min-width: 801px) and (max-width: 980px) {
+  .nav-link__text { display: none; }
+  .nav-link { font-size: 17px; padding: 8px 12px; }
+}
