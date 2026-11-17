@@ -79,7 +79,7 @@ export default function ValuesPage({ catalog, isAdmin, onSaved, onError }: Props
             const st = stabilityOf(item.stability);
             return (
               <li key={item.name} className="vcard">
-                <img className="vcard__img" src={img(item.image)} alt={item.name} loading="lazy" decoding="async" />
+                <img className="vcard__img" src={img(item.image)} alt={item.name} decoding="async" />
                 <div className="vcard__body">
                   <div className="vcard__name">{item.name}</div>
                   <div className="vcard__line">

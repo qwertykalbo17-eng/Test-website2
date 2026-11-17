@@ -23,6 +23,19 @@ export function img(file: string): string {
   return `/${file}`;
 }
 
+const preloaded = new Set<string>();
+/** Downloads and decodes images in the background so they show instantly while scrolling. */
+export function preloadImages(files: string[]) {
+  for (const f of files) {
+    if (!f || preloaded.has(f)) continue;
+    preloaded.add(f);
+    const el = new Image();
+    el.decoding = "async";
+    el.src = img(f);
+    el.decode?.().catch(() => {});
+  }
+}
+
 export function randomItem<T>(list: T[]): T {
   return list[Math.floor(Math.random() * list.length)];
 }

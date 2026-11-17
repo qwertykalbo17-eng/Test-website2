@@ -40,7 +40,7 @@ export default function BattleModal({ match, userId, onFinish }: Props) {
 
   return (
     <Modal open onClose={onFinish} locked={!done} wide>
-      <div className="battle">
+      <div className="battle matchview">
         <div className="battle__top">
           <div className="fighter">
             <Avatar name={match.creator_name} />

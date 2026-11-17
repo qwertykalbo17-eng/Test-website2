@@ -173,7 +173,7 @@ export default function MarketPage({ catalog, inventory, coins, loggedIn, busy, 
                     className={`card ${qty > 0 ? "is-selected" : ""} ${out ? "is-out" : ""}`}
                     onClick={() => !out && setQty(item, qty > 0 ? 0 : 1)}
                   >
-                    <img src={img(item.image)} alt={item.name} loading="lazy" decoding="async" />
+                    <img src={img(item.image)} alt={item.name} decoding="async" />
                     <div className="card__name" title={item.name}>
                       {item.name}
                     </div>
@@ -253,7 +253,7 @@ export default function MarketPage({ catalog, inventory, coins, loggedIn, busy, 
                   className={`card ${picked.has(item.id) ? "is-selected" : ""}`}
                   onClick={() => toggle(item.id)}
                 >
-                  <img src={img(item.image)} alt={item.name} loading="lazy" decoding="async" />
+                  <img src={img(item.image)} alt={item.name} decoding="async" />
                   <div className="card__name" title={item.name}>
                     {item.name}
                   </div>

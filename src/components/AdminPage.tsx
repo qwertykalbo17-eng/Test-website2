@@ -315,7 +315,7 @@ function StockTab({ catalog, onChanged, onError }: { catalog: Item[]; onChanged:
             <li key={item.name} className="cb admin-player">
               <div className="cb__info">
                 <div className="stock-row">
-                  <img src={img(item.image)} alt="" loading="lazy" decoding="async" />
+                  <img src={img(item.image)} alt="" decoding="async" />
                   <div>
                     <b>{item.name}</b>
                     <div className="muted">💎 {formatValue(item.value)}</div>

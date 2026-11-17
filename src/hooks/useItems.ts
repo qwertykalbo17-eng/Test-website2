@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../supabase";
 import type { Item } from "../types";
+import { preloadImages } from "../utils";
 
 /** The item catalog (names, values, images, marketplace stock) from the `items` table. */
 export function useItems(enabled: boolean) {
@@ -15,6 +16,7 @@ export function useItems(enabled: boolean) {
       console.error("Error loading items:", error);
       return;
     }
+    preloadImages((data ?? []).map((r: any) => r.image));
     setItems(
       (data ?? []).map((r: any) => ({
         name: r.name,

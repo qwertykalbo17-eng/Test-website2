@@ -176,7 +176,8 @@
 }
 
 /* finished matches in the list */
-.match--done { opacity: 0.75; }
+.match--done { opacity: 1; }
+.match__vs { color: var(--muted); font-weight: 800; font-size: 14px; }
 .match--done .match__creator { gap: 6px; }
 
 /* ---------- Login popup ---------- */
@@ -768,7 +769,17 @@
     grid-row: 1;
     justify-self: end;
   }
-  .match--done .match__creator > :nth-child(2) {
+  .match--done .match__creator > .match__vs {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: center;
+    align-self: center;
+    font-size: 20px;
+  }
+  .match--done .match__buttons .tag {
+    display: none;
+  }
+  .match--done .match__creator > :nth-child(3) {
     grid-column: 3;
     grid-row: 1;
     justify-self: start;

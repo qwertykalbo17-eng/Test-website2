@@ -150,6 +150,7 @@ export default function MatchList({ open, recent, counts, userId, busy, onJoin, 
               <li key={m.id} className="match match--done">
                 <div className="match__creator">
                   <Avatar name={m.creator_name} state={m.winner === "creator" ? "winner" : "loser"} />
+                  <span className="match__vs">vs</span>
                   <Avatar name={joinerName} bot={m.is_bot} state={m.winner === "joiner" ? "winner" : "loser"} />
                 </div>
                 <div className="match__items">
