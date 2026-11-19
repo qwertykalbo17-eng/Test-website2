@@ -355,42 +355,6 @@
   border-top: 1px dashed var(--border);
   background: rgba(0, 245, 180, 0.06);
 }
-
-/* ---------- Marketplace, coins ---------- */
-
-.profit-chip.is-coins {
-  color: #ffd54a;
-}
-.market-balance {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 12px;
-  padding: 10px 14px;
-  background: var(--surface-2);
-  border-radius: 10px;
-}
-.market-balance b {
-  font-size: 18px;
-  color: #ffd54a;
-}
-.card__price {
-  margin-top: 2px;
-  font-size: 13px;
-  font-weight: 700;
-  color: #ffd54a;
-}
-.market-note {
-  margin: 12px 0 0;
-  font-size: 12px;
-  text-align: center;
-}
-.table__row--me {
-  margin-top: 6px;
-  border-top: 1px dashed var(--border);
-  background: rgba(0, 245, 180, 0.06);
-}
 .tag--crazy { background: rgba(255, 90, 90, 0.14); color: #ff7a7a; }
 .tag--normal { background: rgba(0, 245, 180, 0.12); color: var(--accent); }
 
@@ -503,7 +467,6 @@
   .nav-link { font-size: 17px; padding: 8px 12px; }
 }
 
-
 /* Heads / Tails counter (phones only) */
 .recent-summary { display: none; }
 
@@ -577,8 +540,6 @@
 .vcard__dot { margin: 0 8px; color: var(--muted); }
 .vcard__edit { margin-top: 6px; }
 .stab-preview { margin-left: 6px; }
-
-
 
 .recent-summary__item img {
   width: 33px;
@@ -1066,73 +1027,12 @@
 .wbet__bar:disabled { opacity: 0.8; }
 .wbet__mine { display: inline-flex; align-items: center; gap: 5px; color: #9aa3b8; }
 
-@media (max-width: 800px) {
-  .wheel { padding: 12px; }
-  .wstrip { height: 112px; }
-  .wheel-bets { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-  .wbet { padding: 10px; }
-  .wbet__name { font-size: 15px; }
-  .wbet__icon { width: 36px; height: 36px; }
-  .wbet__stats { font-size: 12px; }
-  .wbet__bar { padding: 12px 10px; font-size: 11px; letter-spacing: 0.02em; }
-  .wbet__txt { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
-  .wbonus__mult { font-size: 44px; }
-  .admin-row { grid-template-columns: 1fr; gap: 12px; }
-  .admin-row__stats { text-align: left; }
-  .admin-row__buttons { justify-content: flex-start; }
-}
-@media (max-width: 400px) {
-  .wbet__head { flex-wrap: wrap; }
-  .wbet__stats { flex-direction: row; gap: 10px; margin-left: 0; width: 100%; }
-}
-
-/* Double & Triple history badges, wheel tiles, and boost banners */
-.whist--double {
-  background: #17354d;
-  color: #5cc8ff;
-  border-color: #234b6b;
-}
-.whist--triple {
-  background: #421c38;
-  color: #ff7ad9;
-  border-color: #5e2750;
-}
-
-.wtile--double {
-  background: #19364e;
-  color: #5cc8ff;
-  border-color: rgba(92, 200, 255, 0.22);
-}
-.wtile--triple {
-  background: #3d1b35;
-  color: #ff7ad9;
-  border-color: rgba(255, 122, 217, 0.22);
-}
-
-.wbonus--double {
-  background: radial-gradient(ellipse at 50% 0%, rgba(92, 200, 255, 0.18), transparent 70%), var(--surface-2);
-  border-color: rgba(92, 200, 255, 0.35);
-}
-.wbonus--double.is-done .wbonus__mult {
-  color: #5cc8ff;
-  text-shadow: 0 0 24px rgba(92, 200, 255, 0.55);
-}
-
-.wbonus--triple {
-  background: radial-gradient(ellipse at 50% 0%, rgba(255, 122, 217, 0.18), transparent 70%), var(--surface-2);
-  border-color: rgba(255, 122, 217, 0.35);
-}
-.wbonus--triple.is-done .wbonus__mult {
-  color: #ff7ad9;
-  text-shadow: 0 0 24px rgba(255, 122, 217, 0.55);
-}
-/* Flashing borders when Double (2x) or Triple (3x) drops on a random segment */
+/* Flashing boost on the boosted segment card */
 .wbet__title-row {
   display: inline-flex;
   align-items: center;
   gap: 6px;
 }
-
 .wbet__boost-pill {
   padding: 1px 6px;
   border-radius: 6px;
@@ -1151,12 +1051,10 @@
   color: #f472b6;
   border: 1px solid rgba(244, 114, 182, 0.65);
 }
-
 .wbet__name small.is-boosted-mult {
   color: #ffd54a;
   font-weight: 800;
 }
-
 .wbet--boost-2 {
   border-width: 2px;
   animation: flashBorderDouble 0.95s ease-in-out infinite;
@@ -1165,7 +1063,6 @@
   border-width: 2px;
   animation: flashBorderTriple 0.75s ease-in-out infinite;
 }
-
 @keyframes flashBorderDouble {
   0%, 100% {
     border-color: #38bdf8;
@@ -1176,7 +1073,6 @@
     box-shadow: 0 0 4px rgba(56, 189, 248, 0.15);
   }
 }
-
 @keyframes flashBorderTriple {
   0%, 100% {
     border-color: #f472b6;
@@ -1188,21 +1084,22 @@
   }
 }
 
-/* Optional: subtle badge & flashing border on matching wheel tiles */
-.wtile__badge {
-  position: absolute;
-  top: 4px;
-  right: 5px;
-  padding: 1px 5px;
-  border-radius: 5px;
-  font-size: 10px;
-  font-weight: 900;
-  background: rgba(0, 0, 0, 0.55);
-  color: #ffd54a;
+@media (max-width: 800px) {
+  .wheel { padding: 12px; }
+  .wstrip { height: 112px; }
+  .wheel-bets { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .wbet { padding: 10px; }
+  .wbet__name { font-size: 15px; }
+  .wbet__icon { width: 36px; height: 36px; }
+  .wbet__stats { font-size: 12px; }
+  .wbet__bar { padding: 12px 10px; font-size: 11px; letter-spacing: 0.02em; }
+  .wbet__txt { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  .wbonus__mult { font-size: 44px; }
+  .admin-row { grid-template-columns: 1fr; gap: 12px; }
+  .admin-row__stats { text-align: left; }
+  .admin-row__buttons { justify-content: flex-start; }
 }
-.wtile.is-boost-2 {
-  animation: flashBorderDouble 0.95s ease-in-out infinite;
-}
-.wtile.is-boost-3 {
-  animation: flashBorderTriple 0.75s ease-in-out infinite;
+@media (max-width: 400px) {
+  .wbet__head { flex-wrap: wrap; }
+  .wbet__stats { flex-direction: row; gap: 10px; margin-left: 0; width: 100%; }
 }

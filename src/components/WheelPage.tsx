@@ -127,33 +127,25 @@ const Strip = memo(function Strip({
   tiles,
   tile,
   winIndex,
-  boostTarget,
-  boostMult,
   trackRef,
 }: {
   tiles: WheelTarget[];
   tile: number;
   winIndex: number | null;
-  boostTarget: WheelTarget | null;
-  boostMult: number;
   trackRef: RefObject<HTMLDivElement>;
 }) {
   return (
     <div className="wstrip__track" ref={trackRef} style={{ gap: GAP }}>
-      {tiles.map((t, i) => {
-        const isBoosted = boostTarget === t && boostMult > 1;
-        return (
-          <div
-            key={i}
-            className={`wtile wtile--${t} ${isBoosted ? `is-boost-${boostMult}` : ""} ${winIndex === i ? "is-win" : winIndex !== null ? "is-dim" : ""}`}
-            style={{ width: tile, height: tile }}
-          >
-            {isBoosted && <span className="wtile__badge">{boostMult}×</span>}
-            <Icon kind={t} />
-            <span className="wtile__label">{t === "bonus" ? "BONUS" : t === "coinflip" ? "FLIP" : LABEL[t]}</span>
-          </div>
-        );
-      })}
+      {tiles.map((t, i) => (
+        <div
+          key={i}
+          className={`wtile wtile--${t} ${winIndex === i ? "is-win" : winIndex !== null ? "is-dim" : ""}`}
+          style={{ width: tile, height: tile }}
+        >
+          <Icon kind={t} />
+          <span className="wtile__label">{t === "bonus" ? "BONUS" : t === "coinflip" ? "FLIP" : LABEL[t]}</span>
+        </div>
+      ))}
     </div>
   );
 });
@@ -359,7 +351,7 @@ export default function WheelPage({ state, offset, coins, loggedIn, busy, onLogi
         <div className="wheel-history" aria-label="Previous results">
           {(state?.history ?? []).slice(0, 12).map((h) => (
             <span key={h.id} className={`whist whist--${h.result}`} title={`${LABEL[h.result]} (${h.mult}x)`}>
-              {h.result === "bonus" || h.result === "coinflip" ? `${h.mult}x` : `${h.mult}x`}
+              {`${h.mult}x`}
             </span>
           ))}
         </div>
@@ -375,15 +367,7 @@ export default function WheelPage({ state, offset, coins, loggedIn, busy, onLogi
           <div className="wstrip__line" aria-hidden="true" />
           <div className="wstrip__fade wstrip__fade--l" aria-hidden="true" />
           <div className="wstrip__fade wstrip__fade--r" aria-hidden="true" />
-          <Strip
-            key={roundId}
-            tiles={shownTiles}
-            tile={tile}
-            winIndex={winIndex}
-            boostTarget={boostTarget}
-            boostMult={boostMult}
-            trackRef={trackRef}
-          />
+          <Strip key={roundId} tiles={shownTiles} tile={tile} winIndex={winIndex} trackRef={trackRef} />
         </div>
 
         {spun && hasBonus && (
@@ -465,11 +449,10 @@ export default function WheelPage({ state, offset, coins, loggedIn, busy, onLogi
                     <span className="wbet__title-row">
                       {LABEL[t]}
                       {isBoosted && (
-  <span className={`wbet__boost-pill wbet__boost-pill--${boostMult}`}>
-    {`x${boostMult}`}
-  </span>
-)}
-                      
+                        <span className={`wbet__boost-pill wbet__boost-pill--${boostMult}`}>
+                          {`x${boostMult}`}
+                        </span>
+                      )}
                     </span>
                     <small className={isBoosted ? "is-boosted-mult" : ""}>{multLabel(t)}</small>
                   </div>
