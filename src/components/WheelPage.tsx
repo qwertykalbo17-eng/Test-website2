@@ -345,7 +345,7 @@ export default function WheelPage({ state, offset, coins, loggedIn, busy, onLogi
   }
 
   const secondsLeft = Math.max(0, Math.ceil((bettingEnds - now) / 1000));
-  const progress = state ? Math.min(1, Math.max(0, (bettingEnds - now) / 20000)) : 0;
+  const progress = state ? Math.min(1, Math.max(0, (bettingEnds - now) / 11000)) : 0;
   const winIndex = spun && result ? RES : null;
 
   const bonusElapsed = Math.max(0, now - spinEnds);
