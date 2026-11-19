@@ -57,8 +57,7 @@ export interface LeaderboardEntry {
   profit: number;
 }
 
-export type WheelTarget = "2x" | "3x" | "5x" | "10x" | "bonus" | "coinflip";
-export type WheelResult = WheelTarget | "double" | "triple";
+export type WheelTarget = "2x" | "3x" | "5x" | "10x" | "coinflip" | "bonus";
 
 /** What the `wheel_state()` function returns. Times are milliseconds since 1970 (server clock). */
 export interface WheelState {
@@ -67,15 +66,17 @@ export interface WheelState {
   betting_ends_at: number;
   spin_ends_at: number;
   ends_at: number;
+  /** Random segment boosted this round (null when no event occurs) */
+  boost_target: WheelTarget | null;
+  /** 1 = normal, 2 = Double, 3 = Triple */
+  boost_mult: number;
   /** null until betting has closed */
-  result: WheelResult | null;
-  /** optional multiplier boost (e.g. 2 or 3) applied to multipliers below bet choices */
-  boost_mult?: number | null;
-  /** what a bet on the winning segment pays (2, 3, 5, 10, 11-99 bonus, 7 or 25 coinflip) */
+  result: WheelTarget | null;
+  /** base multiplier of the winning segment (2, 3, 5, 10, 7 or 25 coinflip, 11-99 bonus) */
   mult: number | null;
   totals: Partial<Record<WheelTarget, { coins: number; players: number }>>;
   mine: Partial<Record<WheelTarget, number>>;
-  history: { id: number; result: WheelResult; mult: number; boost_mult?: number | null }[];
+  history: { id: number; result: WheelTarget; mult: number }[];
 }
 
 export interface AdminPlayer {
