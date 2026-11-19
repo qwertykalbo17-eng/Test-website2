@@ -1171,3 +1171,16 @@
   .wbet__head { flex-wrap: wrap; }
   .wbet__stats { flex-direction: row; gap: 10px; margin-left: 0; width: 100%; }
 }
+
+.wheel-50x {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 12px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  opacity: 0.9;
+}

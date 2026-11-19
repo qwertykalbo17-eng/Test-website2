@@ -77,6 +77,7 @@ export interface WheelState {
   totals: Partial<Record<WheelTarget, { coins: number; players: number }>>;
   mine: Partial<Record<WheelTarget, number>>;
   history: { id: number; result: WheelTarget; mult: number }[];
+  last_50x_at: string | null;
 }
 
 export interface AdminPlayer {
