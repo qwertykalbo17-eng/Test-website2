@@ -199,17 +199,6 @@ export default function WheelPage({ state, offset, coins, loggedIn, busy, onLogi
     return { tiles: list, jitter: j };
   }, [roundId]);
 
-  const result = state?.result ?? null;
-  const boostTarget = state?.boost_target ?? null;
-  const boostMult = state?.boost_mult && state.boost_mult > 1 ? state.boost_mult : 1;
-
-  const shownTiles = useMemo(() => {
-    if (!result) return tiles;
-    const copy = tiles.slice();
-    copy[RES] = result;
-    return copy;
-  }, [tiles, result]);
-
   const bettingEnds = state?.betting_ends_at ?? 0;
   const spinStarts = bettingEnds + SPIN_DELAY;
   const spinEnds = state?.spin_ends_at ?? 0;
@@ -226,6 +215,19 @@ export default function WheelPage({ state, offset, coins, loggedIn, busy, onLogi
             ? "reveal"
             : "ended";
   const spun = phase === "reveal" || phase === "ended";
+  const betsClosed = state != null && now >= bettingEnds;
+
+  const result = state?.result ?? null;
+  const boostTarget = betsClosed ? (state?.boost_target ?? null) : null;
+  const boostMult = betsClosed && state?.boost_mult && state.boost_mult > 1 ? state.boost_mult : 1;
+
+  const shownTiles = useMemo(() => {
+    if (!result) return tiles;
+    const copy = tiles.slice();
+    copy[RES] = result;
+    return copy;
+  }, [tiles, result]);
+
   const hasBonus = result === "bonus" || result === "coinflip";
 
   const resultBoost = result && boostTarget === result ? boostMult : 1;
