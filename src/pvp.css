@@ -831,8 +831,9 @@
 
 .wheel-top {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
   margin-bottom: 8px;
 }
 
@@ -845,9 +846,9 @@
 }
 
 .wheel-50x {
-  flex: 1;
-  min-width: 0;
-  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 
   padding: 6px 12px;
   border-radius: 999px;
@@ -855,8 +856,6 @@
   font-size: 13px;
   font-weight: 700;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   opacity: 0.9;
 }
 
