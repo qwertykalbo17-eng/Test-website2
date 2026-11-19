@@ -1180,7 +1180,7 @@
 
 .wheel-50x {
   position: absolute;
-  left: 250px;
+  left: 200px;
   top: 50%;
   transform: translateY(-50%);
 
