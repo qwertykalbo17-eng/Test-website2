@@ -1,5 +1,5 @@
 import { supabase } from "./supabase";
-import type { AdminPlayer, BattleFormat, BattleMode, CaseBattle, Match, Side } from "./types";
+import type { AdminPlayer, Match, Side, WheelState, WheelTarget } from "./types";
 
 /** Calls a database function. Errors carry the readable message the function raised. */
 async function rpc<T>(fn: string, args: Record<string, unknown>): Promise<T> {
@@ -32,45 +32,16 @@ export const buyItems = (names: string[]) => rpc<number>("buy_items", { p_names:
 /** Sell inventory items for coins. Returns your new coin balance. */
 export const sellItems = (itemIds: string[]) => rpc<number>("sell_items", { p_item_ids: itemIds });
 
-// ---- Case battles ----
+// ---- Wheel ----
 
-/** Create a battle. You pay for the cases right away (coins). */
-export const createBattle = (caseIds: string[], mode: BattleMode, format: BattleFormat) =>
-  rpc<CaseBattle>("create_battle", { p_case_ids: caseIds, p_mode: mode, p_format: format });
+/** Current wheel round: times, totals, your bets, and the result once betting has closed. */
+export const wheelState = () => rpc<WheelState>("wheel_state", {});
 
-/** Take a free slot. When the last slot is taken the battle plays instantly. */
-export const joinBattle = (battleId: string, slot: number) =>
-  rpc<CaseBattle>("join_battle", { p_battle_id: battleId, p_slot: slot });
-
-/** Creator fills the empty slots with bots and starts the battle. */
-export const addBots = (battleId: string) => rpc<CaseBattle>("add_bots", { p_battle_id: battleId });
-
-/** Creator cancels an open battle; everyone is refunded. */
-export const cancelBattle = (battleId: string) => rpc<CaseBattle>("cancel_battle", { p_battle_id: battleId });
+/** Bet coins on one segment of the current round. Returns your new coin balance. */
+export const wheelBet = (roundId: number, target: WheelTarget, amount: number) =>
+  rpc<number>("wheel_bet", { p_round: roundId, p_target: target, p_amount: amount });
 
 // ---- Admin ----
-
-export interface CaseInput {
-  id: string | null;
-  name: string;
-  image: string;
-  price: number;
-  active: boolean;
-  items: { name: string; chance: number }[];
-}
-
-export const adminSaveCase = (c: CaseInput) =>
-  rpc<string>("admin_save_case", {
-    p_id: c.id,
-    p_name: c.name,
-    p_image: c.image,
-    p_price: c.price,
-    p_items: c.items,
-    p_active: c.active,
-  });
-
-export const adminSetCaseActive = (id: string, active: boolean) =>
-  rpc<void>("admin_set_case_active", { p_id: id, p_active: active });
 
 export const adminListPlayers = () => rpc<AdminPlayer[]>("admin_list_players", {});
 

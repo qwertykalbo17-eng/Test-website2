@@ -1,36 +1,29 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { adminGiveCoins, adminListPlayers, adminSaveCase, adminSetCaseActive, adminSetStock, type CaseInput } from "../api";
+import { adminGiveCoins, adminListPlayers, adminSetStock } from "../api";
 import { useCoin } from "../coin";
-import type { AdminPlayer, CaseDef, Item } from "../types";
+import type { AdminPlayer, Item } from "../types";
 import { formatValue, img } from "../utils";
-import CaseEditorModal from "./CaseEditorModal";
 
 interface Props {
-  cases: CaseDef[];
   catalog: Item[];
-  /** Reload the case list after a change. */
-  onCasesChanged: () => void;
   /** Reload the item catalog after a stock change. */
   onItemsChanged: () => void;
   onError: (message: string) => void;
 }
 
-export default function AdminPage({ cases, catalog, onCasesChanged, onItemsChanged, onError }: Props) {
-  const [tab, setTab] = useState<"cases" | "stock" | "players">("cases");
+export default function AdminPage({ catalog, onItemsChanged, onError }: Props) {
+  const [tab, setTab] = useState<"stock" | "players">("stock");
 
   return (
     <>
       <div className="hero">
         <div>
           <h1>Admin panel</h1>
-          <p className="muted">Create cases and manage players.</p>
+          <p className="muted">Manage marketplace stock and players.</p>
         </div>
       </div>
 
       <div className="auth-tabs admin-tabs" role="tablist">
-        <button className={`auth-tabs__tab ${tab === "cases" ? "is-active" : ""}`} onClick={() => setTab("cases")}>
-          Cases
-        </button>
         <button className={`auth-tabs__tab ${tab === "stock" ? "is-active" : ""}`} onClick={() => setTab("stock")}>
           Stock
         </button>
@@ -39,128 +32,12 @@ export default function AdminPage({ cases, catalog, onCasesChanged, onItemsChang
         </button>
       </div>
 
-      {tab === "cases" ? (
-        <CasesTab cases={cases} catalog={catalog} onChanged={onCasesChanged} onError={onError} />
-      ) : tab === "stock" ? (
+      {tab === "stock" ? (
         <StockTab catalog={catalog} onChanged={onItemsChanged} onError={onError} />
       ) : (
         <PlayersTab onError={onError} />
       )}
     </>
-  );
-}
-
-function CasesTab({
-  cases,
-  catalog,
-  onChanged,
-  onError,
-}: {
-  cases: CaseDef[];
-  catalog: Item[];
-  onChanged: () => void;
-  onError: (m: string) => void;
-}) {
-  const coin = useCoin();
-  const [editorOpen, setEditorOpen] = useState(false);
-  const [editing, setEditing] = useState<CaseDef | null>(null);
-  const [busy, setBusy] = useState(false);
-
-  async function run(fn: () => Promise<unknown>) {
-    setBusy(true);
-    try {
-      await fn();
-      onChanged();
-    } catch (e) {
-      onError(e instanceof Error ? e.message : "Something went wrong.");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  function save(input: CaseInput) {
-    return run(async () => {
-      await adminSaveCase(input);
-      setEditorOpen(false);
-    });
-  }
-
-  return (
-    <section className="panel">
-      <div className="panel__head">
-        <h2>Cases</h2>
-        <button
-          className="btn btn--primary btn--sm"
-          onClick={() => {
-            setEditing(null);
-            setEditorOpen(true);
-          }}
-        >
-          + New case
-        </button>
-      </div>
-
-      {cases.length === 0 && <div className="empty">No cases yet. Press “New case” to make the first one.</div>}
-
-      <ul className="matches">
-        {cases.map((c) => {
-          const ev = c.items.reduce((s, i) => s + (i.chance / 100) * i.value, 0);
-          return (
-            <li key={c.id} className={`cb admin-case ${c.active ? "" : "is-hidden"}`}>
-              <div className="cb__info">
-                <div className="cb__tags">
-                  <b>{c.name}</b>
-                  {!c.active && <span className="tag tag--crazy">Hidden</span>}
-                </div>
-                <div className="cb__cases">
-                  {c.items.slice(0, 8).map((i) => (
-                    <span key={i.name} className="cb__case" title={`${i.name} · ${i.chance}%`}>
-                      <img src={img(i.image)} alt={i.name} />
-                    </span>
-                  ))}
-                  {c.items.length > 8 && <span className="match__extra">+{c.items.length - 8}</span>}
-                </div>
-              </div>
-              <div className="admin-case__stats">
-                <div className="match__total">
-                  {coin} {formatValue(c.price)}
-                </div>
-                <div className="muted">
-                  {c.items.length} items · avg 💎 {formatValue(Math.round(ev))}
-                </div>
-              </div>
-              <div className="cb__buttons">
-                <button
-                  className="btn btn--ghost btn--sm"
-                  onClick={() => {
-                    setEditing(c);
-                    setEditorOpen(true);
-                  }}
-                >
-                  Edit
-                </button>
-                <button
-                  className="btn btn--ghost btn--sm"
-                  disabled={busy}
-                  onClick={() => run(() => adminSetCaseActive(c.id, !c.active))}
-                >
-                  {c.active ? "Hide" : "Show"}
-                </button>
-              </div>
-            </li>
-          );
-        })}
-      </ul>
-
-      <CaseEditorModal
-        open={editorOpen}
-        editing={editing}
-        catalog={catalog}
-        busy={busy}
-        onClose={() => setEditorOpen(false)}
-        onSave={save}
-      />
-    </section>
   );
 }
 
@@ -227,8 +104,8 @@ function PlayersTab({ onError }: { onError: (m: string) => void }) {
 
       <ul className="matches">
         {shown.map((p) => (
-          <li key={p.id} className="cb admin-player">
-            <div className="cb__info">
+          <li key={p.id} className="admin-row admin-player">
+            <div className="admin-row__info">
               <b>
                 {p.username} {p.is_admin && <span className="tag">Admin</span>}
               </b>
@@ -237,12 +114,12 @@ function PlayersTab({ onError }: { onError: (m: string) => void }) {
                 {formatValue(Math.abs(p.profit))}
               </div>
             </div>
-            <div className="admin-case__stats">
+            <div className="admin-row__stats">
               <div className="match__total">
                 {coin} {formatValue(p.coins)}
               </div>
             </div>
-            <div className="cb__buttons">
+            <div className="admin-row__buttons">
               <input
                 className="input input--qty admin-player__amount"
                 type="number"
@@ -312,8 +189,8 @@ function StockTab({ catalog, onChanged, onError }: { catalog: Item[]; onChanged:
           const edit = edits[item.name];
           const dirty = edit !== undefined && edit !== String(item.stock ?? 0);
           return (
-            <li key={item.name} className="cb admin-player">
-              <div className="cb__info">
+            <li key={item.name} className="admin-row admin-player">
+              <div className="admin-row__info">
                 <div className="stock-row">
                   <img src={img(item.image)} alt="" decoding="async" />
                   <div>
@@ -322,11 +199,11 @@ function StockTab({ catalog, onChanged, onError }: { catalog: Item[]; onChanged:
                   </div>
                 </div>
               </div>
-              <div className="admin-case__stats">
+              <div className="admin-row__stats">
                 <div className="muted">In stock</div>
                 <div className="match__total">{formatValue(item.stock ?? 0)}</div>
               </div>
-              <div className="cb__buttons">
+              <div className="admin-row__buttons">
                 <input
                   className="input input--qty admin-player__amount"
                   type="number"

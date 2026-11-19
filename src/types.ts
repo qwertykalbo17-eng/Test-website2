@@ -57,56 +57,22 @@ export interface LeaderboardEntry {
   profit: number;
 }
 
-/** One item inside a case, with its chance (percent). */
-export interface CaseItem extends Item {
-  chance: number;
-}
+export type WheelTarget = "2x" | "3x" | "5x" | "10x" | "bonus" | "coinflip";
 
-export interface CaseDef {
-  id: string;
-  name: string;
-  image: string | null;
-  /** price in coins */
-  price: number;
-  active: boolean;
-  items: CaseItem[];
-}
-
-export type BattleMode = "normal" | "crazy";
-export type BattleFormat = "1v1" | "1v1v1" | "2v2";
-
-export interface BattlePlayer {
-  user_id: string | null;
-  name: string;
-  is_bot: boolean;
-}
-
-export interface BattleResult {
-  /** rounds[round][slot] = the item that slot pulled */
-  rounds: Item[][];
-  totals: number[];
-  team_totals: number[];
-  winning_team: number;
-  winner_slots: number[];
-  items_won: number;
-}
-
-/** One row of the `battles` table. */
-export interface CaseBattle {
-  id: string;
-  status: "open" | "finished" | "cancelled";
-  mode: BattleMode;
-  format: BattleFormat;
-  slots: number;
-  cases: { id: string; name: string; image: string | null; price: number }[];
-  /** coins each player pays */
-  cost: number;
-  creator_id: string;
-  /** one entry per slot, null while the slot is empty */
-  players: (BattlePlayer | null)[];
-  result: BattleResult | null;
-  created_at: string;
-  finished_at: string | null;
+/** What the `wheel_state()` function returns. Times are milliseconds since 1970 (server clock). */
+export interface WheelState {
+  now: number;
+  id: number;
+  betting_ends_at: number;
+  spin_ends_at: number;
+  ends_at: number;
+  /** null until betting has closed */
+  result: WheelTarget | null;
+  /** what a bet on the winning segment pays (2, 3, 5, 10, 6-50 bonus, 10 or 15 coinflip) */
+  mult: number | null;
+  totals: Partial<Record<WheelTarget, { coins: number; players: number }>>;
+  mine: Partial<Record<WheelTarget, number>>;
+  history: { id: number; result: WheelTarget; mult: number }[];
 }
 
 export interface AdminPlayer {

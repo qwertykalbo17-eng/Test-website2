@@ -1,0 +1,476 @@
+import { memo, useEffect, useMemo, useRef, useState, type RefObject } from "react";
+import { useCoin } from "../coin";
+import type { WheelState, WheelTarget } from "../types";
+import { img } from "../utils";
+
+interface Props {
+  state: WheelState | null;
+  /** server clock minus this device's clock (ms) */
+  offset: number;
+  coins: number;
+  loggedIn: boolean;
+  busy: boolean;
+  onLogin: () => void;
+  onBet: (target: WheelTarget, amount: number) => Promise<void>;
+  /** the round is over: reload the wheel and your coins */
+  onRoundEnd: () => void;
+  /** reload the wheel (used to fetch the result as soon as betting closes) */
+  onRefresh: () => void;
+}
+
+const TARGETS: WheelTarget[] = ["2x", "3x", "5x", "10x", "bonus", "coinflip"];
+const LABEL: Record<WheelTarget, string> = {
+  "2x": "2X",
+  "3x": "3X",
+  "5x": "5X",
+  "10x": "10X",
+  bonus: "BONUS",
+  coinflip: "COINFLIP",
+};
+/** Same chances as the database, only used to make the strip look natural. */
+const WEIGHTS: [WheelTarget, number][] = [
+  ["2x", 37],
+  ["3x", 25],
+  ["5x", 17],
+  ["10x", 9],
+  ["bonus", 6],
+  ["coinflip", 6],
+];
+
+const COUNT = 62; // tiles in the strip
+const START = 7; // tile under the marker before the spin
+const RES = 52; // tile the spin lands on
+const GAP = 8;
+/** After betting closes the result is known but the wheel waits this long before it spins. */
+const SPIN_DELAY = 2000;
+/** The bonus / coinflip animation plays for this long after the spin, then shows the result. */
+const BONUS_ANIM = 5500;
+
+function mulberry32(seed: number) {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function pickWeighted(r: number): WheelTarget {
+  let x = r * 100;
+  for (const [t, w] of WEIGHTS) {
+    if (x < w) return t;
+    x -= w;
+  }
+  return "2x";
+}
+
+const easeOut = (t: number) => 1 - Math.pow(1 - Math.min(Math.max(t, 0), 1), 4);
+
+function fmt(n: number) {
+  return Math.floor(n).toLocaleString("en-US");
+}
+
+/* ---------- icons ---------- */
+
+function Icon({ kind }: { kind: WheelTarget }) {
+  if (kind === "2x" || kind === "5x") {
+    // gun
+    return (
+      <svg viewBox="0 0 32 32" className="wicon" aria-hidden="true">
+        <path d="M3 9.5h20.5l3 3.2v4.3h-6.3l-1.7 7.6h-5.4l1.4-7.6H9.7L8 19.6 3 17.2z" fill="currentColor" />
+      </svg>
+    );
+  }
+  if (kind === "3x" || kind === "10x") {
+    // knife
+    return (
+      <svg viewBox="0 0 32 32" className="wicon" aria-hidden="true">
+        <path d="M28 4 L17.8 19.8 L12.2 14.2 Z" fill="currentColor" />
+        <path d="M10.5 12.5 L19.5 21.5" stroke="currentColor" strokeWidth="3" strokeLinecap="round" fill="none" />
+        <path d="M15 17 L6.5 25.5" stroke="currentColor" strokeWidth="3.6" strokeLinecap="round" fill="none" />
+      </svg>
+    );
+  }
+  if (kind === "bonus") {
+    return (
+      <svg viewBox="0 0 32 32" className="wicon" aria-hidden="true">
+        <path
+          d="M16 3l3.8 8.2 8.9 1-6.6 6 1.9 8.8L16 22.5 8 27l1.9-8.8-6.6-6 8.9-1z"
+          fill="currentColor"
+        />
+      </svg>
+    );
+  }
+  return <img className="wicon wicon--img" src={img("heads.webp")} alt="" />;
+}
+
+function PeopleIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+      <path
+        d="M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zm7 0a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM9 13c-3 0-6 1.5-6 4v2h12v-2c0-2.5-3-4-6-4zm7 0c-.4 0-.8 0-1.2.1 1.4 1 2.2 2.3 2.2 3.9v2h4v-2c0-2.3-2.4-4-5-4z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
+/* ---------- the strip ---------- */
+
+const Strip = memo(function Strip({
+  tiles,
+  tile,
+  winIndex,
+  trackRef,
+}: {
+  tiles: WheelTarget[];
+  tile: number;
+  winIndex: number | null;
+  trackRef: RefObject<HTMLDivElement>;
+}) {
+  return (
+    <div className="wstrip__track" ref={trackRef} style={{ gap: GAP }}>
+      {tiles.map((t, i) => (
+        <div
+          key={i}
+          className={`wtile wtile--${t} ${winIndex === i ? "is-win" : winIndex !== null ? "is-dim" : ""}`}
+          style={{ width: tile, height: tile }}
+        >
+          <Icon kind={t} />
+          <span className="wtile__label">{t === "bonus" ? "BONUS" : t === "coinflip" ? "FLIP" : LABEL[t]}</span>
+        </div>
+      ))}
+    </div>
+  );
+});
+
+/* ---------- the page ---------- */
+
+export default function WheelPage({ state, offset, coins, loggedIn, busy, onLogin, onBet, onRoundEnd, onRefresh }: Props) {
+  const coin = useCoin();
+  const [amount, setAmount] = useState("");
+  const [clock, setClock] = useState(Date.now());
+  const [width, setWidth] = useState(720);
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const offsetRef = useRef(offset);
+  offsetRef.current = offset;
+
+  // the last finished round, shown as "You won …" until the next spin
+  const [lastOutcome, setLastOutcome] = useState<{ id: number; result: WheelTarget; mult: number; bet: number; won: number } | null>(
+    null
+  );
+  const reported = useRef(0);
+
+  const tile = width < 560 ? 72 : 88;
+  const step = tile + GAP;
+
+  // ---- clock (text) ----
+  useEffect(() => {
+    const t = setInterval(() => setClock(Date.now()), 200);
+    return () => clearInterval(t);
+  }, []);
+
+  // ---- width of the strip ----
+  useEffect(() => {
+    const el = viewportRef.current;
+    if (!el) return;
+    const measure = () => setWidth(el.clientWidth || 720);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const now = clock + offset;
+  const roundId = state?.id ?? 0;
+
+  // ---- tiles for this round (same for everybody: seeded by the round id) ----
+  const { tiles, jitter } = useMemo(() => {
+    const rng = mulberry32(roundId * 2654435761 + 12345);
+    const list: WheelTarget[] = Array.from({ length: COUNT }, () => pickWeighted(rng()));
+    const j = (rng() - 0.5) * 0.6;
+    return { tiles: list, jitter: j };
+  }, [roundId]);
+
+  const result = state?.result ?? null;
+  const shownTiles = useMemo(() => {
+    if (!result) return tiles;
+    const copy = tiles.slice();
+    copy[RES] = result;
+    return copy;
+  }, [tiles, result]);
+
+  // ---- phases ----
+  const bettingEnds = state?.betting_ends_at ?? 0;
+  const spinStarts = bettingEnds + SPIN_DELAY;
+  const spinEnds = state?.spin_ends_at ?? 0;
+  const roundEnds = state?.ends_at ?? 0;
+  const phase: "loading" | "betting" | "locked" | "spinning" | "reveal" | "ended" = !state
+    ? "loading"
+    : now < bettingEnds
+      ? "betting"
+      : now < spinStarts
+        ? "locked"
+        : now < spinEnds
+          ? "spinning"
+          : now < roundEnds
+            ? "reveal"
+            : "ended";
+  const spun = phase === "reveal" || phase === "ended";
+  const hasBonus = result === "bonus" || result === "coinflip";
+
+  // ---- move the strip (written straight to the DOM, so React doesn't re-render every frame) ----
+  useEffect(() => {
+    if (!state) return;
+    const track = trackRef.current;
+    if (!track) return;
+    const center = (i: number) => i * step + tile / 2;
+    const startX = width / 2 - center(START);
+    const endX = width / 2 - (center(RES) + jitter * tile);
+    let raf = 0;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+
+    const frame = () => {
+      const n = Date.now() + offsetRef.current;
+      let x = startX;
+      if (n >= spinStarts) {
+        const t = (n - spinStarts) / Math.max(1, spinEnds - spinStarts);
+        x = startX + (endX - startX) * easeOut(t);
+      }
+      track.style.transform = `translate3d(${x}px,0,0)`;
+      if (n < spinStarts) {
+        timer = setTimeout(frame, Math.min(500, Math.max(30, spinStarts - n)));
+      } else if (n < spinEnds) {
+        raf = requestAnimationFrame(frame);
+      }
+    };
+    frame();
+    return () => {
+      cancelAnimationFrame(raf);
+      if (timer) clearTimeout(timer);
+    };
+  }, [state, step, tile, width, jitter, spinStarts, spinEnds]);
+
+  // ---- ask for the result the moment betting closes, reload coins when the round ends ----
+  useEffect(() => {
+    if (!state) return;
+    const t1 = setTimeout(onRefresh, Math.max(0, state.betting_ends_at - (Date.now() + offsetRef.current)) + 120);
+    const t2 = setTimeout(() => onRefresh(), Math.max(0, state.betting_ends_at - (Date.now() + offsetRef.current)) + 700);
+    const t3 = setTimeout(onRoundEnd, Math.max(0, state.ends_at - (Date.now() + offsetRef.current)) + 400);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state?.id, state?.betting_ends_at, state?.ends_at]);
+
+  // ---- your outcome, remembered when the round finishes ----
+  useEffect(() => {
+    if (!state || !state.result || state.mult == null) return;
+    if (phase !== "reveal" || reported.current === state.id) return;
+    reported.current = state.id;
+    const bet = Object.values(state.mine).reduce((a, b) => a + (b ?? 0), 0);
+    const won = (state.mine[state.result] ?? 0) * state.mult;
+    setLastOutcome({ id: state.id, result: state.result, mult: state.mult, bet, won });
+  }, [state, phase]);
+
+  // ---- betting ----
+  const amountNum = Math.floor(Number(amount.replace(/[^0-9]/g, "")) || 0);
+  const canBet = phase === "betting";
+
+  function setAmt(n: number) {
+    setAmount(n > 0 ? String(Math.floor(n)) : "");
+  }
+  function place(target: WheelTarget) {
+    if (!loggedIn) return onLogin();
+    if (!canBet || busy || amountNum < 1) return;
+    onBet(target, amountNum);
+  }
+
+  const secondsLeft = Math.max(0, Math.ceil((bettingEnds - now) / 1000));
+  const progress = state ? Math.min(1, Math.max(0, (bettingEnds - now) / 20000)) : 0;
+  const winIndex = spun && result ? RES : null;
+
+  // ---- bonus / coinflip reveal ----
+  const bonusElapsed = Math.max(0, now - spinEnds);
+  const bonusDone = bonusElapsed >= BONUS_ANIM;
+
+  let rolling: number | null = null;
+  if (result === "bonus" && state?.mult != null) {
+    if (bonusDone) rolling = state.mult;
+    else {
+      const k = Math.floor(Math.sqrt(bonusElapsed / BONUS_ANIM) * 36);
+      rolling = 6 + Math.floor(mulberry32(roundId * 977 + k)() * 45);
+    }
+  }
+  const flipProgress = result === "coinflip" ? easeOut(bonusElapsed / BONUS_ANIM) : 0;
+  const flipAngle = 360 * 6 * flipProgress + (state?.mult === 15 ? 180 * flipProgress : 0);
+
+  const totals = state?.totals ?? {};
+  const mine = state?.mine ?? {};
+
+  const statusText =
+    phase === "loading"
+      ? "Loading the wheel…"
+      : phase === "betting"
+        ? `Place your bets · ${secondsLeft}s`
+        : phase === "locked"
+          ? "Bets closed"
+          : phase === "spinning"
+            ? "Spinning…"
+            : phase === "reveal"
+              ? hasBonus && !bonusDone
+                ? result === "bonus"
+                  ? "Bonus round!"
+                  : "Coinflip bonus!"
+                : `${state?.mult}x`
+              : "Next round starting…";
+
+  return (
+    <>
+      <div className="hero">
+        <div>
+          <h1>Wheel</h1>
+          <p className="muted">
+            {loggedIn ? (
+              <>
+                Your balance: <b>{coin} {fmt(coins)}</b>
+              </>
+            ) : (
+              "Log in to place a bet."
+            )}
+          </p>
+        </div>
+        <div className="wheel-history" aria-label="Previous results">
+          {(state?.history ?? []).slice(0, 12).map((h) => (
+            <span key={h.id} className={`whist whist--${h.result}`} title={`${LABEL[h.result]}`}>
+              {h.result === "bonus" || h.result === "coinflip" ? `${h.mult}x` : h.result}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <section className="panel wheel">
+        <div className="wheel__status">
+          <span className={`wheel__phase wheel__phase--${phase}`}>{statusText}</span>
+        </div>
+
+        <div className="wstrip" ref={viewportRef}>
+          <div className="wstrip__bar">
+            <div className="wstrip__bar-fill" style={{ width: `${progress * 100}%` }} />
+          </div>
+          <div className="wstrip__marker" aria-hidden="true" />
+          <div className="wstrip__line" aria-hidden="true" />
+          <div className="wstrip__fade wstrip__fade--l" aria-hidden="true" />
+          <div className="wstrip__fade wstrip__fade--r" aria-hidden="true" />
+          <Strip key={roundId} tiles={shownTiles} tile={tile} winIndex={winIndex} trackRef={trackRef} />
+        </div>
+
+        {/* bonus round / coinflip bonus */}
+        {spun && hasBonus && (
+          <div className={`wbonus wbonus--${result} ${bonusDone ? "is-done" : ""}`}>
+            {result === "bonus" ? (
+              <>
+                <div className="wbonus__title">BONUS ROUND</div>
+                <div className="wbonus__mult">{rolling}x</div>
+              </>
+            ) : (
+              <>
+                <div className="wbonus__title">COINFLIP BONUS · Heads 10x · Tails 15x</div>
+                <div className="wbonus__coin" style={{ transform: `rotateY(${flipAngle}deg)` }}>
+                  <img src={img("heads.webp")} alt="Heads" className="wbonus__face" />
+                  <img src={img("tails.webp")} alt="Tails" className="wbonus__face wbonus__face--back" />
+                </div>
+                <div className="wbonus__mult">{bonusDone ? `${state?.mult}x` : "…"}</div>
+              </>
+            )}
+          </div>
+        )}
+
+        {lastOutcome && (phase === "reveal" || phase === "ended") && lastOutcome.id === roundId && lastOutcome.bet > 0 && (!hasBonus || bonusDone) && (
+          <div className={`wheel__outcome ${lastOutcome.won > 0 ? "is-win" : "is-lose"}`}>
+            {lastOutcome.won > 0 ? (
+              <>
+                You won <b>{coin} {fmt(lastOutcome.won)}</b>
+              </>
+            ) : (
+              <>
+                No win this round · you bet <b>{coin} {fmt(lastOutcome.bet)}</b>
+              </>
+            )}
+          </div>
+        )}
+      </section>
+
+      <section className="panel wheel-bet">
+        <div className="wheel-bet__amount">
+          <div className="wheel-bet__input">
+            <span className="wheel-bet__coin">{coin}</span>
+            <input
+              className="input"
+              inputMode="numeric"
+              placeholder="Bet amount"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value.replace(/[^0-9]/g, ""))}
+            />
+          </div>
+          <div className="wheel-bet__chips">
+            <button className="chip-btn" onClick={() => setAmt(amountNum + 10)}>+10</button>
+            <button className="chip-btn" onClick={() => setAmt(amountNum + 100)}>+100</button>
+            <button className="chip-btn" onClick={() => setAmt(amountNum + 1000)}>+1K</button>
+            <button className="chip-btn" onClick={() => setAmt(amountNum / 2)}>½</button>
+            <button className="chip-btn" onClick={() => setAmt(amountNum * 2)}>2×</button>
+            <button className="chip-btn" onClick={() => setAmt(coins)}>Max</button>
+            <button className="chip-btn chip-btn--clear" onClick={() => setAmt(0)}>Clear</button>
+          </div>
+        </div>
+
+        <div className="wheel-bets">
+          {TARGETS.map((t) => {
+            const tot = totals[t];
+            const my = mine[t] ?? 0;
+            const win = spun && result === t;
+            return (
+              <div key={t} className={`wbet wbet--${t} ${win ? "is-win" : ""} ${spun && !win ? "is-dim" : ""}`}>
+                <div className="wbet__head">
+                  <div className={`wbet__icon wtile--${t}`}>
+                    <Icon kind={t} />
+                  </div>
+                  <div className="wbet__name">
+                    {LABEL[t]}
+                    {t === "bonus" && <small>6x – 50x</small>}
+                    {t === "coinflip" && <small>10x / 15x</small>}
+                  </div>
+                  <div className="wbet__stats">
+                    <span title="Coins bet by everyone">
+                      <i className="wbet__coin">{coin}</i> {fmt(tot?.coins ?? 0)}
+                    </span>
+                    <span title="Players">
+                      <PeopleIcon /> {tot?.players ?? 0}
+                    </span>
+                  </div>
+                </div>
+                <button
+                  className={`wbet__bar ${canBet ? "is-open" : ""}`}
+                  disabled={!!loggedIn && (!canBet || busy)}
+                  onClick={() => place(t)}
+                >
+                  <span className="wbet__txt">
+                    {!loggedIn ? "LOG IN TO BET" : canBet ? "PLACE A BET" : "BETS CLOSED"}
+                  </span>
+                  <span className="wbet__mine">
+                    <i className="wbet__coin">{coin}</i> {fmt(my)}
+                  </span>
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+    </>
+  );
+}

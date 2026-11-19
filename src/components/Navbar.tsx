@@ -1,6 +1,6 @@
 import { formatValue } from "../utils";
 
-export type Page = "coinflip" | "battles" | "market" | "values" | "leaderboard" | "admin";
+export type Page = "coinflip" | "wheel" | "market" | "values" | "leaderboard" | "admin";
 
 interface Props {
   page: Page;
@@ -8,8 +8,6 @@ interface Props {
   /** null when nobody is logged in */
   username: string | null;
   isAdmin: boolean;
-  /** false greys out Case Battles so it can't be opened */
-  battlesEnabled: boolean;
   coins: number;
   coinIcon: string;
   inventoryValue: number;
@@ -24,7 +22,6 @@ export default function Navbar({
   onNavigate,
   username,
   isAdmin,
-  battlesEnabled,
   coins,
   coinIcon,
   inventoryValue,
@@ -55,12 +52,11 @@ export default function Navbar({
               <span aria-hidden="true">🪙</span> <span className="nav-link__text">Coinflip</span>
             </button>
             <button
-              className={`nav-link ${page === "battles" ? "is-active" : ""} ${battlesEnabled ? "" : "is-disabled"}`}
-              onClick={() => onNavigate("battles")}
-              disabled={!battlesEnabled}
-              title={battlesEnabled ? "Case Battles" : "Case Battles (coming soon)"}
+              className={`nav-link ${page === "wheel" ? "is-active" : ""}`}
+              onClick={() => onNavigate("wheel")}
+              title="Wheel"
             >
-              <span aria-hidden="true">📦</span> <span className="nav-link__text">Case Battles</span>
+              <span aria-hidden="true">🎡</span> <span className="nav-link__text">Wheel</span>
             </button>
             <button
               className={`nav-link ${page === "market" ? "is-active" : ""}`}
@@ -135,12 +131,10 @@ export default function Navbar({
           <span className="tabbar__icon">🪙</span>
           <span>Coinflip</span>
         </button>
-        {battlesEnabled && (
-          <button className={`tabbar__item ${page === "battles" ? "is-active" : ""}`} onClick={() => onNavigate("battles")}>
-            <span className="tabbar__icon">📦</span>
-            <span>Battles</span>
-          </button>
-        )}
+        <button className={`tabbar__item ${page === "wheel" ? "is-active" : ""}`} onClick={() => onNavigate("wheel")}>
+          <span className="tabbar__icon">🎡</span>
+          <span>Wheel</span>
+        </button>
         <button className={`tabbar__item ${page === "market" ? "is-active" : ""}`} onClick={() => onNavigate("market")}>
           <span className="tabbar__icon">🛒</span>
           <span>Market</span>

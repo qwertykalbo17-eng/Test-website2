@@ -1,25 +1,19 @@
 import { useEffect, useRef, useState } from "react";
 import {
-  addBots,
   buyItems,
   callBot,
-  cancelBattle,
   cancelMatch,
-  createBattle,
   createMatch,
-  joinBattle,
   joinMatch,
   markSeen,
   sellItems,
+  wheelBet,
 } from "./api";
 import { CoinContext } from "./coin";
 import AdminPage from "./components/AdminPage";
 import AuthModal from "./components/AuthModal";
 import BattleModal from "./components/BattleModal";
-import BattlesPage from "./components/BattlesPage";
-import CaseBattleModal from "./components/CaseBattleModal";
 import ChristmasDecor from "./components/ChristmasDecor";
-import CreateBattleModal from "./components/CreateBattleModal";
 import HalloweenDecor from "./components/HalloweenDecor";
 import HistoryModal from "./components/HistoryModal";
 import InventoryModal from "./components/InventoryModal";
@@ -29,15 +23,15 @@ import MarketPage, { type CartLine } from "./components/MarketPage";
 import ValuesPage from "./components/ValuesPage";
 import MatchList from "./components/MatchList";
 import MatchViewModal from "./components/MatchViewModal";
+import WheelPage from "./components/WheelPage";
 import Navbar, { type Page } from "./components/Navbar";
 import { useAuth } from "./hooks/useAuth";
-import { useBattles } from "./hooks/useBattles";
-import { useCases } from "./hooks/useCases";
 import { useItems } from "./hooks/useItems";
 import { useMatchById } from "./hooks/useMatchById";
 import { useMatches } from "./hooks/useMatches";
 import { useUserData } from "./hooks/useUserData";
-import type { BattleFormat, BattleMode, CaseBattle, InvItem, Match, Side } from "./types";
+import { useWheel } from "./hooks/useWheel";
+import type { InvItem, Match, Side, WheelTarget } from "./types";
 import { generateBotItems, sumValue } from "./utils";
 
 /*
@@ -63,9 +57,6 @@ const ACTIVE_THEME = "christmas" as Theme;
 /** The coin icon changes with the theme: snowflake at Christmas, candy at Halloween. */
 const COIN_ICON = ACTIVE_THEME === "christmas" ? "❄️" : ACTIVE_THEME === "halloween" ? "🍬" : "🪙";
 
-/** Case Battles are switched off for now (the nav button is greyed out). Set to true to open them again. */
-const CASE_BATTLES_ENABLED = false;
-
 /** A finished flip you never watched is replayed only if it ended less than this long ago. */
 const REPLAY_WINDOW_MS = 2 * 60 * 1000;
 
@@ -82,18 +73,14 @@ export default function App() {
   const { items: catalog, refresh: refreshCatalog } = useItems(true);
   const { data, loading, refresh: refreshProfile, hold, release } = useUserData(user);
   const { open, recent, unseen, counts, refresh: refreshMatches } = useMatches(userId);
-  const { cases, refresh: refreshCases } = useCases(userId);
-  const battles = useBattles();
 
   const [page, setPage] = useState<Page>("coinflip");
+  const wheel = useWheel(page === "wheel");
   const [postOpen, setPostOpen] = useState(false);
   const [joinTarget, setJoinTarget] = useState<Match | null>(null);
   const [viewInventoryOpen, setViewInventoryOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
-  const [createBattleOpen, setCreateBattleOpen] = useState(false);
-  // a finished case battle being shown (animate = reveal the rounds one by one)
-  const [viewBattle, setViewBattle] = useState<{ battle: CaseBattle; animate: boolean } | null>(null);
   const [battle, setBattle] = useState<Match | null>(null);
   // the match info window (kept live while it is open)
   const [viewSeed, setViewSeed] = useState<Match | null>(null);
@@ -104,8 +91,6 @@ export default function App() {
   const toastTimer = useRef<ReturnType<typeof setTimeout>>();
   // flips that were already shown (or skipped) in this tab
   const handled = useRef(new Set<string>());
-  // case battles that were already shown in this tab
-  const handledBattles = useRef(new Set<string>());
 
   function showToast(message: string) {
     setToast(message);
@@ -154,21 +139,6 @@ export default function App() {
     hold(); // keep profit / inventory frozen so the animation doesn't spoil the result
     setBattle(next);
   }, [unseen, battle, userId, viewSeed, hold, refreshMatches, refreshProfile]);
-
-  /** A case battle you are in has finished (e.g. someone filled the last slot): show it. */
-  useEffect(() => {
-    if (!userId || viewBattle) return;
-    const next = battles.recent.find(
-      (b) =>
-        !handledBattles.current.has(b.id) &&
-        b.players.some((p) => p && p.user_id === userId) &&
-        Date.now() - new Date(b.finished_at ?? b.created_at).getTime() < REPLAY_WINDOW_MS
-    );
-    if (!next) return;
-    handledBattles.current.add(next.id);
-    setViewBattle({ battle: next, animate: true });
-    refreshProfile();
-  }, [battles.recent, userId, viewBattle, refreshProfile]);
 
   /** Run an action once at a time and show any error from the database. */
   async function act(fn: () => Promise<void>) {
@@ -274,39 +244,12 @@ export default function App() {
     });
   }
 
-  function showBattle(b: CaseBattle) {
-    handledBattles.current.add(b.id);
-    setViewBattle({ battle: b, animate: true });
-  }
-
-  function handleCreateBattle(caseIds: string[], mode: BattleMode, format: BattleFormat) {
+  function handleWheelBet(target: WheelTarget, amount: number) {
     return act(async () => {
-      await createBattle(caseIds, mode, format);
-      setCreateBattleOpen(false);
-      await Promise.all([refreshProfile(), battles.refresh()]);
-    });
-  }
-
-  function handleJoinBattle(b: CaseBattle, slot: number) {
-    return act(async () => {
-      const result = await joinBattle(b.id, slot);
-      if (result.status === "finished") showBattle(result);
-      await Promise.all([refreshProfile(), battles.refresh()]);
-    });
-  }
-
-  function handleAddBots(b: CaseBattle) {
-    return act(async () => {
-      const result = await addBots(b.id);
-      if (result.status === "finished") showBattle(result);
-      await Promise.all([refreshProfile(), battles.refresh()]);
-    });
-  }
-
-  function handleCancelBattle(b: CaseBattle) {
-    return act(async () => {
-      await cancelBattle(b.id);
-      await Promise.all([refreshProfile(), battles.refresh()]);
+      const roundId = wheel.state?.id;
+      if (!roundId) throw new Error("The wheel is loading, try again in a second.");
+      await wheelBet(roundId, target, amount);
+      await Promise.all([refreshProfile(), wheel.refresh()]);
     });
   }
 
@@ -332,7 +275,6 @@ export default function App() {
         onNavigate={setPage}
         username={user ? username : null}
         isAdmin={data.isAdmin}
-        battlesEnabled={CASE_BATTLES_ENABLED}
         coins={data.coins}
         coinIcon={COIN_ICON}
         inventoryValue={sumValue(data.inventory)}
@@ -343,17 +285,20 @@ export default function App() {
       />
 
       <main className="container">
-        {page === "battles" && CASE_BATTLES_ENABLED ? (
-          <BattlesPage
-            open={battles.open}
-            recent={battles.recent}
-            userId={user?.id ?? ""}
+        {page === "wheel" ? (
+          <WheelPage
+            state={wheel.state}
+            offset={wheel.offset}
+            coins={data.coins}
+            loggedIn={!!user}
             busy={busy}
-            onCreate={() => requireLogin(() => setCreateBattleOpen(true))}
-            onJoin={(b, slot) => requireLogin(() => handleJoinBattle(b, slot))}
-            onAddBots={handleAddBots}
-            onCancel={handleCancelBattle}
-            onView={(b) => setViewBattle({ battle: b, animate: false })}
+            onLogin={() => setAuthOpen(true)}
+            onBet={handleWheelBet}
+            onRefresh={wheel.refresh}
+            onRoundEnd={() => {
+              wheel.refresh();
+              refreshProfile();
+            }}
           />
         ) : page === "values" ? (
           <ValuesPage catalog={catalog} isAdmin={data.isAdmin} onSaved={refreshCatalog} onError={showToast} />
@@ -371,9 +316,7 @@ export default function App() {
           />
         ) : page === "admin" && data.isAdmin ? (
           <AdminPage
-            cases={cases}
             catalog={catalog}
-            onCasesChanged={refreshCases}
             onItemsChanged={refreshCatalog}
             onError={showToast}
           />
@@ -440,28 +383,6 @@ export default function App() {
       <HistoryModal open={historyOpen && !!user} userId={user?.id ?? ""} onClose={() => setHistoryOpen(false)} />
 
       <AuthModal open={authOpen && !user} onClose={() => setAuthOpen(false)} onLogin={login} onSignup={signup} />
-
-      <CreateBattleModal
-        open={createBattleOpen && !!user}
-        cases={cases.filter((c) => c.active)}
-        coins={data.coins}
-        busy={busy}
-        onClose={() => setCreateBattleOpen(false)}
-        onCreate={handleCreateBattle}
-      />
-
-      {viewBattle && (
-        <CaseBattleModal
-          key={viewBattle.battle.id}
-          battle={viewBattle.battle}
-          userId={user?.id ?? ""}
-          animate={viewBattle.animate}
-          onClose={() => {
-            setViewBattle(null);
-            refreshProfile();
-          }}
-        />
-      )}
 
       {viewSeed && viewed && user && (
         <MatchViewModal
