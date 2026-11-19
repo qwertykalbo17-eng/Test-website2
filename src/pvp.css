@@ -1079,7 +1079,7 @@
 }
 .wbet--boost-3 {
   border-width: 2px;
-  animation: flashBorderTriple 0.75s ease-in-out infinite;
+  animation: flashBorderTriple 0.95s ease-in-out infinite;
 }
 @keyframes flashBorderDouble {
   0%, 100% {
