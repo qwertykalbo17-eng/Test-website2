@@ -164,7 +164,7 @@ export default function WheelPage({ state, offset, coins, loggedIn, busy, onLogi
   );
   const reported = useRef(0);
 
-  const tile = width < 560 ? 72 : 88;
+  const tile = width < 560 ? 72 : 80;
   const step = tile + GAP;
 
   // ---- clock (text) ----
@@ -332,19 +332,7 @@ export default function WheelPage({ state, offset, coins, loggedIn, busy, onLogi
 
   return (
     <>
-      <div className="hero">
-        <div>
-          <h1>Wheel</h1>
-          <p className="muted">
-            {loggedIn ? (
-              <>
-                Your balance: <b>{coin} {fmt(coins)}</b>
-              </>
-            ) : (
-              "Log in to place a bet."
-            )}
-          </p>
-        </div>
+      <div className="wheel-top">
         <div className="wheel-history" aria-label="Previous results">
           {(state?.history ?? []).slice(0, 12).map((h) => (
             <span key={h.id} className={`whist whist--${h.result}`} title={`${LABEL[h.result]}`}>
@@ -352,13 +340,10 @@ export default function WheelPage({ state, offset, coins, loggedIn, busy, onLogi
             </span>
           ))}
         </div>
+        <span className={`wheel__phase wheel__phase--${phase}`}>{statusText}</span>
       </div>
 
       <section className="panel wheel">
-        <div className="wheel__status">
-          <span className={`wheel__phase wheel__phase--${phase}`}>{statusText}</span>
-        </div>
-
         <div className="wstrip" ref={viewportRef}>
           <div className="wstrip__bar">
             <div className="wstrip__bar-fill" style={{ width: `${progress * 100}%` }} />

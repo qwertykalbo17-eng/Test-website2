@@ -853,14 +853,13 @@
 
 /* ---------- Wheel ---------- */
 
-.wheel { padding: 18px; }
-.wheel__status { display: flex; justify-content: center; margin-bottom: 14px; }
+.wheel { padding: 12px 14px; margin-bottom: 10px; }
 .wheel__phase {
   font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   font-size: 14px;
-  padding: 7px 16px;
+  padding: 6px 14px;
   border-radius: 999px;
   background: var(--surface-2);
   border: 1px solid var(--border);
@@ -869,7 +868,8 @@
 .wheel__phase--betting { color: var(--accent); border-color: rgba(0, 245, 180, 0.35); }
 .wheel__phase--spinning, .wheel__phase--locked { color: #ffb066; border-color: rgba(255, 150, 80, 0.35); }
 
-.wheel-history { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; max-width: 100%; }
+.wheel-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+.wheel-history { display: flex; flex-wrap: wrap; gap: 6px; min-height: 26px; }
 .whist {
   min-width: 36px;
   padding: 5px 8px;
@@ -890,7 +890,7 @@
 /* the roulette strip */
 .wstrip {
   position: relative;
-  height: 128px;
+  height: 108px;
   overflow: hidden;
   border-radius: 16px;
   background: #121722;
@@ -996,8 +996,8 @@
 .wheel__outcome.is-lose { color: var(--muted); }
 
 /* bet amount */
-.wheel-bet { padding: 18px; }
-.wheel-bet__amount { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 16px; }
+.wheel-bet { padding: 12px 14px; }
+.wheel-bet__amount { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 12px; }
 .wheel-bet__input { position: relative; flex: 1 1 200px; max-width: 280px; }
 .wheel-bet__input .input { width: 100%; padding-left: 40px; font-weight: 700; }
 .wheel-bet__coin { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); }
@@ -1017,9 +1017,9 @@
 .chip-btn--clear { color: var(--muted); }
 
 /* bet cards */
-.wheel-bets { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.wheel-bets { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 .wbet {
-  padding: 12px;
+  padding: 10px;
   border-radius: 14px;
   background: #121722;
   border: 1px solid var(--border);
@@ -1029,8 +1029,8 @@
 .wbet.is-win { border-color: #ff8a55; box-shadow: 0 0 22px rgba(255, 120, 60, 0.3); }
 .wbet__head { display: flex; align-items: center; gap: 10px; }
 .wbet__icon {
-  width: 42px;
-  height: 42px;
+  width: 38px;
+  height: 38px;
   flex: none;
   display: grid;
   place-items: center;
@@ -1044,13 +1044,13 @@
 .wbet__stats span { display: inline-flex; align-items: center; gap: 5px; }
 .wbet__coin { font-style: normal; }
 .wbet__bar {
-  margin-top: 10px;
+  margin-top: 8px;
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 13px 14px;
+  padding: 11px 14px;
   font: inherit;
   font-weight: 800;
   font-size: 13px;
@@ -1077,7 +1077,6 @@
   .wbet__bar { padding: 12px 10px; font-size: 11px; letter-spacing: 0.02em; }
   .wbet__txt { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
   .wbonus__mult { font-size: 44px; }
-  .wheel-history { justify-content: flex-start; }
   .admin-row { grid-template-columns: 1fr; gap: 12px; }
   .admin-row__stats { text-align: left; }
   .admin-row__buttons { justify-content: flex-start; }
