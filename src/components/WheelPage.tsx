@@ -394,8 +394,8 @@ export default function WheelPage({ state, offset, coins, loggedIn, busy, onLogi
         <span className={`wheel__phase wheel__phase--${phase}`}>{statusText}</span>
       </div>
 
-      <section className="panel wheel">
-        <div className="wstrip" ref={viewportRef}>
+      <section className={`panel wheel ${boostMult === 50 ? "is-mega" : ""}`}>
+        <div className={`wstrip ${boostMult === 50 ? "is-mega" : ""}`} ref={viewportRef}>
           <div className="wstrip__bar">
             <div className="wstrip__bar-fill" style={{ width: `${progress * 100}%` }} />
           </div>
@@ -447,7 +447,7 @@ export default function WheelPage({ state, offset, coins, loggedIn, busy, onLogi
         )}
       </section>
 
-      <section className="panel wheel-bet">
+      <section className={`panel wheel-bet ${boostMult === 50 ? "is-mega" : ""}`}>
         <div className="wheel-bet__amount">
           <div className="wheel-bet__input">
             <span className="wheel-bet__coin">{coin}</span>

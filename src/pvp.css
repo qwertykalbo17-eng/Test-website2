@@ -1102,6 +1102,56 @@
   }
 }
 
+/* Extra boost tiers: each sets --bc (main colour), --bc2 (flash colour), --bcg (glow rgb) */
+.wbet__boost-pill--4  { background: rgba(52, 211, 153, 0.2);  color: #34d399; border: 1px solid rgba(52, 211, 153, 0.6); }
+.wbet__boost-pill--5  { background: rgba(250, 204, 21, 0.2);  color: #facc15; border: 1px solid rgba(250, 204, 21, 0.6); }
+.wbet__boost-pill--7  { background: rgba(251, 146, 60, 0.22); color: #fb923c; border: 1px solid rgba(251, 146, 60, 0.65); }
+.wbet__boost-pill--10 { background: rgba(248, 113, 113, 0.22); color: #f87171; border: 1px solid rgba(248, 113, 113, 0.65); }
+.wbet__boost-pill--15 { background: rgba(192, 132, 252, 0.22); color: #c084fc; border: 1px solid rgba(192, 132, 252, 0.65); }
+.wbet__boost-pill--25 { background: rgba(232, 121, 249, 0.24); color: #e879f9; border: 1px solid rgba(232, 121, 249, 0.7); }
+.wbet__boost-pill--50 { background: #fff; color: #11141c; border: 1px solid #fff; box-shadow: 0 0 10px rgba(255, 255, 255, 0.8); }
+
+.wbet--boost-4, .wbet--boost-5, .wbet--boost-7, .wbet--boost-10,
+.wbet--boost-15, .wbet--boost-25, .wbet--boost-50 {
+  border-width: 2px;
+  animation: flashBorderTier var(--spd, 0.7s) ease-in-out infinite;
+}
+.wbet--boost-4  { --bc: #34d399; --bc2: #38bdf8; --bcg: 52, 211, 153;  --spd: 0.7s; }
+.wbet--boost-5  { --bc: #facc15; --bc2: #34d399; --bcg: 250, 204, 21;  --spd: 0.65s; }
+.wbet--boost-7  { --bc: #fb923c; --bc2: #facc15; --bcg: 251, 146, 60;  --spd: 0.6s; }
+.wbet--boost-10 { --bc: #f87171; --bc2: #fb923c; --bcg: 248, 113, 113; --spd: 0.5s; }
+.wbet--boost-15 { --bc: #c084fc; --bc2: #f472b6; --bcg: 192, 132, 252; --spd: 0.45s; }
+.wbet--boost-25 { --bc: #e879f9; --bc2: #ffd54a; --bcg: 232, 121, 249; --spd: 0.38s; }
+.wbet--boost-50 { --bc: #ffffff; --bc2: rgba(255, 255, 255, 0.3); --bcg: 255, 255, 255; --spd: 0.3s; }
+.wbet--boost-50 .wbet__name small.is-boosted-mult { color: #fff; text-shadow: 0 0 8px rgba(255, 255, 255, 0.8); }
+@keyframes flashBorderTier {
+  0%, 100% {
+    border-color: var(--bc);
+    box-shadow: 0 0 24px rgba(var(--bcg), 0.8), inset 0 0 12px rgba(var(--bcg), 0.25);
+  }
+  50% {
+    border-color: var(--bc2);
+    box-shadow: 0 0 8px rgba(var(--bcg), 0.35);
+  }
+}
+
+/* 50x special effect: wheel, strip and the whole bet table flash white */
+.wheel.is-mega, .wheel-bet.is-mega, .wstrip.is-mega {
+  border-width: 2px;
+  border-style: solid;
+  animation: flashBorderMega 0.3s ease-in-out infinite;
+}
+@keyframes flashBorderMega {
+  0%, 100% {
+    border-color: #ffffff;
+    box-shadow: 0 0 28px rgba(255, 255, 255, 0.85), inset 0 0 14px rgba(255, 255, 255, 0.25);
+  }
+  50% {
+    border-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.35);
+  }
+}
+
 @media (max-width: 800px) {
   .wheel { padding: 12px; }
   .wstrip { height: 112px; }

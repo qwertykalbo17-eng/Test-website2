@@ -68,7 +68,7 @@ export interface WheelState {
   ends_at: number;
   /** Random segment boosted this round (null when no event occurs) */
   boost_target: WheelTarget | null;
-  /** 1 = normal, 2 = Double, 3 = Triple */
+  /** 1 = no boost, otherwise 2, 3, 4, 5, 7, 10, 15, 25 or 50 */
   boost_mult: number;
   /** null until betting has closed */
   result: WheelTarget | null;
