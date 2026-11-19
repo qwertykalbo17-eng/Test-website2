@@ -1116,12 +1116,12 @@
   border-width: 2px;
   animation: flashBorderTier var(--spd, 0.7s) ease-in-out infinite;
 }
-.wbet--boost-4  { --bc: #34d399; --bc2: #38bdf8; --bcg: 52, 211, 153;  --spd: 0.7s; }
-.wbet--boost-5  { --bc: #facc15; --bc2: #34d399; --bcg: 250, 204, 21;  --spd: 0.65s; }
-.wbet--boost-7  { --bc: #fb923c; --bc2: #facc15; --bcg: 251, 146, 60;  --spd: 0.6s; }
-.wbet--boost-10 { --bc: #f87171; --bc2: #fb923c; --bcg: 248, 113, 113; --spd: 0.5s; }
-.wbet--boost-15 { --bc: #c084fc; --bc2: #f472b6; --bcg: 192, 132, 252; --spd: 0.45s; }
-.wbet--boost-25 { --bc: #e879f9; --bc2: #ffd54a; --bcg: 232, 121, 249; --spd: 0.38s; }
+.wbet--boost-4  { --bc: #34d399; --bc2: #38bdf8; --bcg: 52, 211, 153;  --spd: 0.95s; }
+.wbet--boost-5  { --bc: #facc15; --bc2: #34d399; --bcg: 250, 204, 21;  --spd: 0.95s; }
+.wbet--boost-7  { --bc: #fb923c; --bc2: #facc15; --bcg: 251, 146, 60;  --spd: 0.95s; }
+.wbet--boost-10 { --bc: #f87171; --bc2: #fb923c; --bcg: 248, 113, 113; --spd: 0.95s; }
+.wbet--boost-15 { --bc: #c084fc; --bc2: #f472b6; --bcg: 192, 132, 252; --spd: 0.95s; }
+.wbet--boost-25 { --bc: #e879f9; --bc2: #ffd54a; --bcg: 232, 121, 249; --spd: 0.95s; }
 .wbet--boost-50 { --bc: #ffffff; --bc2: rgba(255, 255, 255, 0.3); --bcg: 255, 255, 255; --spd: 0.3s; }
 .wbet--boost-50 .wbet__name small.is-boosted-mult { color: #fff; text-shadow: 0 0 8px rgba(255, 255, 255, 0.8); }
 @keyframes flashBorderTier {
