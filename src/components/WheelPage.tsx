@@ -32,11 +32,11 @@ const LABEL: Record<WheelTarget, string> = {
 /** Same chances as the database, only used to make the strip look natural. */
 const WEIGHTS: [WheelTarget, number][] = [
   ["2x", 38],
-  ["3x", 23],
-  ["5x", 15],
-  ["10x", 8.5],
-  ["coinflip", 7],
-  ["bonus", 6],
+  ["3x", 25.5],
+  ["5x", 16],
+  ["10x", 9],
+  ["coinflip", 7.5],
+  ["bonus", 4],
 ];
 const WEIGHT_TOTAL = WEIGHTS.reduce((sum, [, w]) => sum + w, 0);
 
