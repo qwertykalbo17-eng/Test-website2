@@ -49,35 +49,35 @@ export default function Navbar({
               onClick={() => onNavigate("coinflip")}
               title="Coinflip"
             >
-              <span aria-hidden="true">🪙</span> <span className="nav-link__text">Coinflip</span>
+              <span aria-hidden="true"></span> <span className="nav-link__text">Coinflip</span>
             </button>
             <button
               className={`nav-link ${page === "wheel" ? "is-active" : ""}`}
               onClick={() => onNavigate("wheel")}
               title="Wheel"
             >
-              <span aria-hidden="true">🎡</span> <span className="nav-link__text">Wheel</span>
+              <span aria-hidden="true"></span> <span className="nav-link__text">Wheel</span>
             </button>
             <button
               className={`nav-link ${page === "market" ? "is-active" : ""}`}
               onClick={() => onNavigate("market")}
               title="Marketplace"
             >
-              <span aria-hidden="true">🛒</span> <span className="nav-link__text">Marketplace</span>
+              <span aria-hidden="true"></span> <span className="nav-link__text">Marketplace</span>
             </button>
             <button
               className={`nav-link ${page === "values" ? "is-active" : ""}`}
               onClick={() => onNavigate("values")}
               title="Value List"
             >
-              <span aria-hidden="true">📋</span> <span className="nav-link__text">Value List</span>
+              <span aria-hidden="true"></span> <span className="nav-link__text">Value List</span>
             </button>
             <button
               className={`nav-link ${page === "leaderboard" ? "is-active" : ""}`}
               onClick={() => onNavigate("leaderboard")}
               title="Leaderboard"
             >
-              <span aria-hidden="true">🏆</span> <span className="nav-link__text">Leaderboard</span>
+              <span aria-hidden="true"></span> <span className="nav-link__text">Leaderboard</span>
             </button>
             {isAdmin && (
               <button
@@ -85,7 +85,7 @@ export default function Navbar({
                 onClick={() => onNavigate("admin")}
                 title="Admin"
               >
-                <span aria-hidden="true">🛠</span> <span className="nav-link__text">Admin</span>
+                <span aria-hidden="true"></span> <span className="nav-link__text">Admin</span>
               </button>
             )}
           </nav>
@@ -128,26 +128,26 @@ export default function Navbar({
       {/* phone navigation: fixed bar at the bottom of the screen */}
       <nav className="tabbar" aria-label="Main navigation">
         <button className={`tabbar__item ${page === "coinflip" ? "is-active" : ""}`} onClick={() => onNavigate("coinflip")}>
-          <span className="tabbar__icon">🪙</span>
+          <span className="tabbar__icon"></span>
           <span>Coinflip</span>
         </button>
         <button className={`tabbar__item ${page === "wheel" ? "is-active" : ""}`} onClick={() => onNavigate("wheel")}>
-          <span className="tabbar__icon">🎡</span>
+          <span className="tabbar__icon"></span>
           <span>Wheel</span>
         </button>
         <button className={`tabbar__item ${page === "market" ? "is-active" : ""}`} onClick={() => onNavigate("market")}>
-          <span className="tabbar__icon">🛒</span>
+          <span className="tabbar__icon"></span>
           <span>Market</span>
         </button>
         <button className={`tabbar__item ${page === "values" ? "is-active" : ""}`} onClick={() => onNavigate("values")}>
-          <span className="tabbar__icon">📋</span>
+          <span className="tabbar__icon"></span>
           <span>Values</span>
         </button>
         <button
           className={`tabbar__item ${page === "leaderboard" ? "is-active" : ""}`}
           onClick={() => onNavigate("leaderboard")}
         >
-          <span className="tabbar__icon">🏆</span>
+          <span className="tabbar__icon"></span>
           <span>Ranks</span>
         </button>
         {loggedIn ? (
