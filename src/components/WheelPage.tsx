@@ -365,7 +365,7 @@ export default function WheelPage({ state, offset, coins, loggedIn, busy, onLogi
               </>
             ) : (
               <>
-                <div className="wbonus__title">COINFLIP BONUS · Heads 10x · Tails 15x</div>
+                <div className="wbonus__title">COINFLIP BONUS · Heads 7x · Tails 25x</div>
                 <div className="wbonus__coin" style={{ transform: `rotateY(${flipAngle}deg)` }}>
                   <img src={img("heads.webp")} alt="Heads" className="wbonus__face" />
                   <img src={img("tails.webp")} alt="Tails" className="wbonus__face wbonus__face--back" />
@@ -428,7 +428,7 @@ export default function WheelPage({ state, offset, coins, loggedIn, busy, onLogi
                   <div className="wbet__name">
                     {LABEL[t]}
                     {t === "bonus" && <small>6x – 50x</small>}
-                    {t === "coinflip" && <small>10x / 15x</small>}
+                    {t === "coinflip" && <small>7x / 25x</small>}
                   </div>
                   <div className="wbet__stats">
                     <span title="Coins bet by everyone">
