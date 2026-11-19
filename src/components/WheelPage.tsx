@@ -74,6 +74,11 @@ function pickWeighted(r: number): WheelTarget {
 
 const easeOut = (t: number) => 1 - Math.pow(1 - Math.min(Math.max(t, 0), 1), 4);
 
+const easeInOutCubic = (t: number) => {
+  const c = Math.min(Math.max(t, 0), 1);
+  return c < 0.5 ? 4 * c * c * c : 1 - Math.pow(-2 * c + 2, 3) / 2;
+};
+
 function fmt(n: number) {
   return Math.floor(n).toLocaleString("en-US");
 }
@@ -159,6 +164,7 @@ export default function WheelPage({ state, offset, coins, loggedIn, busy, onLogi
   const [width, setWidth] = useState(720);
   const viewportRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
+  const coinRef = useRef<HTMLDivElement>(null);
   const offsetRef = useRef(offset);
   offsetRef.current = offset;
 
@@ -265,6 +271,36 @@ export default function WheelPage({ state, offset, coins, loggedIn, busy, onLogi
   }, [state, step, tile, width, jitter, spinStarts, spinEnds]);
 
   useEffect(() => {
+    if (!spun || result !== "coinflip") return;
+    const el = coinRef.current;
+    if (!el) return;
+
+    const targetOffset = state?.mult === 25 ? 180 : 0;
+    let raf = 0;
+
+    const tickCoin = () => {
+      const n = Date.now() + offsetRef.current;
+      const elapsed = Math.max(0, n - spinEnds);
+      const p = Math.min(1, elapsed / BONUS_ANIM);
+      const eased = easeInOutCubic(p);
+      const angle = 360 * 6 * eased + targetOffset * eased;
+      const lift = Math.sin(p * Math.PI) * 14;
+      const scale = 1 + Math.sin(p * Math.PI) * 0.14;
+
+      el.style.transform = `translate3d(0, ${-lift}px, 0) scale(${scale}) rotateY(${angle}deg)`;
+
+      if (p < 1) {
+        raf = requestAnimationFrame(tickCoin);
+      } else {
+        el.style.transform = `translate3d(0, 0, 0) scale(1) rotateY(${360 * 6 + targetOffset}deg)`;
+      }
+    };
+
+    raf = requestAnimationFrame(tickCoin);
+    return () => cancelAnimationFrame(raf);
+  }, [spun, result, state?.mult, spinEnds]);
+
+  useEffect(() => {
     if (!state) return;
     const t1 = setTimeout(onRefresh, Math.max(0, state.betting_ends_at - (Date.now() + offsetRef.current)) + 120);
     const t2 = setTimeout(() => onRefresh(), Math.max(0, state.betting_ends_at - (Date.now() + offsetRef.current)) + 700);
@@ -324,8 +360,6 @@ export default function WheelPage({ state, offset, coins, loggedIn, busy, onLogi
       rolling = (BONUS_MIN + Math.floor(mulberry32(roundId * 977 + k)() * span)) * resultBoost;
     }
   }
-  const flipProgress = result === "coinflip" ? easeOut(bonusElapsed / BONUS_ANIM) : 0;
-  const flipAngle = 360 * 6 * flipProgress + (state?.mult === 25 ? 180 * flipProgress : 0);
 
   const totals = state?.totals ?? {};
   const mine = state?.mine ?? {};
@@ -384,7 +418,11 @@ export default function WheelPage({ state, offset, coins, loggedIn, busy, onLogi
                 <div className="wbonus__title">
                   COINFLIP BONUS · Heads {7 * resultBoost}x · Tails {25 * resultBoost}x
                 </div>
-                <div className="wbonus__coin" style={{ transform: `rotateY(${flipAngle}deg)` }}>
+                <div
+                  ref={coinRef}
+                  className="wbonus__coin"
+                  style={{ transform: `rotateY(${state?.mult === 25 ? 180 : 0}deg)` }}
+                >
                   <img src={img("heads.webp")} alt="Heads" className="wbonus__face" />
                   <img src={img("tails.webp")} alt="Tails" className="wbonus__face wbonus__face--back" />
                 </div>
