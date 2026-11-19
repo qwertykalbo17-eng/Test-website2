@@ -465,10 +465,11 @@ export default function WheelPage({ state, offset, coins, loggedIn, busy, onLogi
                     <span className="wbet__title-row">
                       {LABEL[t]}
                       {isBoosted && (
-                        <span className={`wbet__boost-pill wbet__boost-pill--${boostMult}`}>
-                          {boostMult === 2 ? "2× DOUBLE" : "3× TRIPLE"}
-                        </span>
-                      )}
+  <span className={`wbet__boost-pill wbet__boost-pill--${boostMult}`}>
+    {`x${boostMult}`}
+  </span>
+)}
+                      
                     </span>
                     <small className={isBoosted ? "is-boosted-mult" : ""}>{multLabel(t)}</small>
                   </div>
