@@ -68,7 +68,7 @@ export interface WheelState {
   ends_at: number;
   /** null until betting has closed */
   result: WheelTarget | null;
-  /** what a bet on the winning segment pays (2, 3, 5, 10, 6-50 bonus, 10 or 15 coinflip) */
+  /** what a bet on the winning segment pays (2, 3, 5, 10, 6-50 bonus, 7 or 25 coinflip) */
   mult: number | null;
   totals: Partial<Record<WheelTarget, { coins: number; players: number }>>;
   mine: Partial<Record<WheelTarget, number>>;

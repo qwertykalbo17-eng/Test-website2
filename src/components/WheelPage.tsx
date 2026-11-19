@@ -308,7 +308,7 @@ export default function WheelPage({ state, offset, coins, loggedIn, busy, onLogi
     }
   }
   const flipProgress = result === "coinflip" ? easeOut(bonusElapsed / BONUS_ANIM) : 0;
-  const flipAngle = 360 * 6 * flipProgress + (state?.mult === 15 ? 180 * flipProgress : 0);
+  const flipAngle = 360 * 6 * flipProgress + (state?.mult === 25 ? 180 * flipProgress : 0);
 
   const totals = state?.totals ?? {};
   const mine = state?.mine ?? {};
