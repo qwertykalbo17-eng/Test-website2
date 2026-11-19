@@ -1085,3 +1085,44 @@
   .wbet__head { flex-wrap: wrap; }
   .wbet__stats { flex-direction: row; gap: 10px; margin-left: 0; width: 100%; }
 }
+
+/* Double & Triple history badges, wheel tiles, and boost banners */
+.whist--double {
+  background: #17354d;
+  color: #5cc8ff;
+  border-color: #234b6b;
+}
+.whist--triple {
+  background: #421c38;
+  color: #ff7ad9;
+  border-color: #5e2750;
+}
+
+.wtile--double {
+  background: #19364e;
+  color: #5cc8ff;
+  border-color: rgba(92, 200, 255, 0.22);
+}
+.wtile--triple {
+  background: #3d1b35;
+  color: #ff7ad9;
+  border-color: rgba(255, 122, 217, 0.22);
+}
+
+.wbonus--double {
+  background: radial-gradient(ellipse at 50% 0%, rgba(92, 200, 255, 0.18), transparent 70%), var(--surface-2);
+  border-color: rgba(92, 200, 255, 0.35);
+}
+.wbonus--double.is-done .wbonus__mult {
+  color: #5cc8ff;
+  text-shadow: 0 0 24px rgba(92, 200, 255, 0.55);
+}
+
+.wbonus--triple {
+  background: radial-gradient(ellipse at 50% 0%, rgba(255, 122, 217, 0.18), transparent 70%), var(--surface-2);
+  border-color: rgba(255, 122, 217, 0.35);
+}
+.wbonus--triple.is-done .wbonus__mult {
+  color: #ff7ad9;
+  text-shadow: 0 0 24px rgba(255, 122, 217, 0.55);
+}

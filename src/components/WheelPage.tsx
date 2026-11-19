@@ -1,6 +1,6 @@
 import { memo, useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import { useCoin } from "../coin";
-import type { WheelState, WheelTarget } from "../types";
+import type { WheelResult, WheelState, WheelTarget } from "../types";
 import { img } from "../utils";
 
 interface Props {
@@ -18,24 +18,33 @@ interface Props {
   onRefresh: () => void;
 }
 
-const TARGETS: WheelTarget[] = ["2x", "3x", "5x", "10x", "bonus", "coinflip"];
-const LABEL: Record<WheelTarget, string> = {
+const TARGETS: WheelTarget[] = ["2x", "3x", "5x", "10x", "coinflip", "bonus"];
+
+const LABEL: Record<WheelResult, string> = {
   "2x": "2X",
   "3x": "3X",
   "5x": "5X",
   "10x": "10X",
-  bonus: "BONUS",
   coinflip: "COINFLIP",
+  bonus: "BONUS",
+  double: "DOUBLE",
+  triple: "TRIPLE",
 };
-/** Same chances as the database, only used to make the strip look natural. */
-const WEIGHTS: [WheelTarget, number][] = [
-  ["2x", 37],
-  ["3x", 25],
-  ["5x", 17],
-  ["10x", 9],
+
+/** Exact wheel probabilities (total = 100%). */
+const WEIGHTS: [WheelResult, number][] = [
+  ["2x", 38],
+  ["3x", 23],
+  ["5x", 15],
+  ["10x", 8.5],
+  ["coinflip", 7],
   ["bonus", 6],
-  ["coinflip", 6],
+  ["double", 1.5],
+  ["triple", 1],
 ];
+
+const BONUS_MIN = 11;
+const BONUS_MAX = 99;
 
 const COUNT = 62; // tiles in the strip
 const START = 7; // tile under the marker before the spin
@@ -57,7 +66,7 @@ function mulberry32(seed: number) {
   };
 }
 
-function pickWeighted(r: number): WheelTarget {
+function pickWeighted(r: number): WheelResult {
   let x = r * 100;
   for (const [t, w] of WEIGHTS) {
     if (x < w) return t;
@@ -74,9 +83,8 @@ function fmt(n: number) {
 
 /* ---------- icons ---------- */
 
-function Icon({ kind }: { kind: WheelTarget }) {
+function Icon({ kind }: { kind: WheelResult }) {
   if (kind === "2x" || kind === "5x") {
-    // gun
     return (
       <svg viewBox="0 0 32 32" className="wicon" aria-hidden="true">
         <path d="M3 9.5h20.5l3 3.2v4.3h-6.3l-1.7 7.6h-5.4l1.4-7.6H9.7L8 19.6 3 17.2z" fill="currentColor" />
@@ -84,7 +92,6 @@ function Icon({ kind }: { kind: WheelTarget }) {
     );
   }
   if (kind === "3x" || kind === "10x") {
-    // knife
     return (
       <svg viewBox="0 0 32 32" className="wicon" aria-hidden="true">
         <path d="M28 4 L17.8 19.8 L12.2 14.2 Z" fill="currentColor" />
@@ -100,6 +107,13 @@ function Icon({ kind }: { kind: WheelTarget }) {
           d="M16 3l3.8 8.2 8.9 1-6.6 6 1.9 8.8L16 22.5 8 27l1.9-8.8-6.6-6 8.9-1z"
           fill="currentColor"
         />
+      </svg>
+    );
+  }
+  if (kind === "double" || kind === "triple") {
+    return (
+      <svg viewBox="0 0 32 32" className="wicon" aria-hidden="true">
+        <path d="M17.5 2L7 17h8l-1.5 13L25 15h-8z" fill="currentColor" />
       </svg>
     );
   }
@@ -125,7 +139,7 @@ const Strip = memo(function Strip({
   winIndex,
   trackRef,
 }: {
-  tiles: WheelTarget[];
+  tiles: WheelResult[];
   tile: number;
   winIndex: number | null;
   trackRef: RefObject<HTMLDivElement>;
@@ -139,7 +153,9 @@ const Strip = memo(function Strip({
           style={{ width: tile, height: tile }}
         >
           <Icon kind={t} />
-          <span className="wtile__label">{t === "bonus" ? "BONUS" : t === "coinflip" ? "FLIP" : LABEL[t]}</span>
+          <span className="wtile__label">
+            {t === "bonus" ? "BONUS" : t === "coinflip" ? "FLIP" : LABEL[t]}
+          </span>
         </div>
       ))}
     </div>
@@ -158,22 +174,23 @@ export default function WheelPage({ state, offset, coins, loggedIn, busy, onLogi
   const offsetRef = useRef(offset);
   offsetRef.current = offset;
 
-  // the last finished round, shown as "You won …" until the next spin
-  const [lastOutcome, setLastOutcome] = useState<{ id: number; result: WheelTarget; mult: number; bet: number; won: number } | null>(
-    null
-  );
+  const [lastOutcome, setLastOutcome] = useState<{
+    id: number;
+    result: WheelResult;
+    mult: number;
+    bet: number;
+    won: number;
+  } | null>(null);
   const reported = useRef(0);
 
   const tile = width < 560 ? 72 : 80;
   const step = tile + GAP;
 
-  // ---- clock (text) ----
   useEffect(() => {
     const t = setInterval(() => setClock(Date.now()), 200);
     return () => clearInterval(t);
   }, []);
 
-  // ---- width of the strip ----
   useEffect(() => {
     const el = viewportRef.current;
     if (!el) return;
@@ -187,10 +204,9 @@ export default function WheelPage({ state, offset, coins, loggedIn, busy, onLogi
   const now = clock + offset;
   const roundId = state?.id ?? 0;
 
-  // ---- tiles for this round (same for everybody: seeded by the round id) ----
   const { tiles, jitter } = useMemo(() => {
     const rng = mulberry32(roundId * 2654435761 + 12345);
-    const list: WheelTarget[] = Array.from({ length: COUNT }, () => pickWeighted(rng()));
+    const list: WheelResult[] = Array.from({ length: COUNT }, () => pickWeighted(rng()));
     const j = (rng() - 0.5) * 0.6;
     return { tiles: list, jitter: j };
   }, [roundId]);
@@ -203,7 +219,6 @@ export default function WheelPage({ state, offset, coins, loggedIn, busy, onLogi
     return copy;
   }, [tiles, result]);
 
-  // ---- phases ----
   const bettingEnds = state?.betting_ends_at ?? 0;
   const spinStarts = bettingEnds + SPIN_DELAY;
   const spinEnds = state?.spin_ends_at ?? 0;
@@ -222,7 +237,10 @@ export default function WheelPage({ state, offset, coins, loggedIn, busy, onLogi
   const spun = phase === "reveal" || phase === "ended";
   const hasBonus = result === "bonus" || result === "coinflip";
 
-  // ---- move the strip (written straight to the DOM, so React doesn't re-render every frame) ----
+  // Multiplier boost active on this round's multipliers below the bet choices
+  const activeBoost = state?.boost_mult && state.boost_mult > 1 ? state.boost_mult : 1;
+  const effectiveMult = state?.mult != null ? state.mult * activeBoost : null;
+
   useEffect(() => {
     if (!state) return;
     const track = trackRef.current;
@@ -254,7 +272,6 @@ export default function WheelPage({ state, offset, coins, loggedIn, busy, onLogi
     };
   }, [state, step, tile, width, jitter, spinStarts, spinEnds]);
 
-  // ---- ask for the result the moment betting closes, reload coins when the round ends ----
   useEffect(() => {
     if (!state) return;
     const t1 = setTimeout(onRefresh, Math.max(0, state.betting_ends_at - (Date.now() + offsetRef.current)) + 120);
@@ -268,17 +285,22 @@ export default function WheelPage({ state, offset, coins, loggedIn, busy, onLogi
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state?.id, state?.betting_ends_at, state?.ends_at]);
 
-  // ---- your outcome, remembered when the round finishes ----
   useEffect(() => {
-    if (!state || !state.result || state.mult == null) return;
+    if (!state || !state.result || effectiveMult == null) return;
     if (phase !== "reveal" || reported.current === state.id) return;
     reported.current = state.id;
     const bet = Object.values(state.mine).reduce((a, b) => a + (b ?? 0), 0);
-    const won = (state.mine[state.result] ?? 0) * state.mult;
-    setLastOutcome({ id: state.id, result: state.result, mult: state.mult, bet, won });
-  }, [state, phase]);
+    const isBetTarget =
+      result === "2x" ||
+      result === "3x" ||
+      result === "5x" ||
+      result === "10x" ||
+      result === "coinflip" ||
+      result === "bonus";
+    const won = isBetTarget ? (state.mine[result] ?? 0) * effectiveMult : 0;
+    setLastOutcome({ id: state.id, result: state.result, mult: effectiveMult, bet, won });
+  }, [state, phase, result, effectiveMult]);
 
-  // ---- betting ----
   const amountNum = Math.floor(Number(amount.replace(/[^0-9]/g, "")) || 0);
   const canBet = phase === "betting";
 
@@ -291,20 +313,29 @@ export default function WheelPage({ state, offset, coins, loggedIn, busy, onLogi
     onBet(target, amountNum);
   }
 
+  function multLabel(target: WheelTarget) {
+    if (target === "2x") return `${2 * activeBoost}x`;
+    if (target === "3x") return `${3 * activeBoost}x`;
+    if (target === "5x") return `${5 * activeBoost}x`;
+    if (target === "10x") return `${10 * activeBoost}x`;
+    if (target === "coinflip") return `${7 * activeBoost}x / ${25 * activeBoost}x`;
+    return `${BONUS_MIN * activeBoost}x – ${BONUS_MAX * activeBoost}x`;
+  }
+
   const secondsLeft = Math.max(0, Math.ceil((bettingEnds - now) / 1000));
   const progress = state ? Math.min(1, Math.max(0, (bettingEnds - now) / 20000)) : 0;
   const winIndex = spun && result ? RES : null;
 
-  // ---- bonus / coinflip reveal ----
   const bonusElapsed = Math.max(0, now - spinEnds);
   const bonusDone = bonusElapsed >= BONUS_ANIM;
 
   let rolling: number | null = null;
-  if (result === "bonus" && state?.mult != null) {
-    if (bonusDone) rolling = state.mult;
+  if (result === "bonus" && effectiveMult != null) {
+    if (bonusDone) rolling = effectiveMult;
     else {
       const k = Math.floor(Math.sqrt(bonusElapsed / BONUS_ANIM) * 36);
-      rolling = 6 + Math.floor(mulberry32(roundId * 977 + k)() * 45);
+      const span = BONUS_MAX - BONUS_MIN + 1;
+      rolling = (BONUS_MIN + Math.floor(mulberry32(roundId * 977 + k)() * span)) * activeBoost;
     }
   }
   const flipProgress = result === "coinflip" ? easeOut(bonusElapsed / BONUS_ANIM) : 0;
@@ -317,7 +348,7 @@ export default function WheelPage({ state, offset, coins, loggedIn, busy, onLogi
     phase === "loading"
       ? "Loading the wheel…"
       : phase === "betting"
-        ? `Place your bets · ${secondsLeft}s`
+        ? `Place your bets · ${secondsLeft}s${activeBoost > 1 ? ` · ${activeBoost}x BOOST` : ""}`
         : phase === "locked"
           ? "Bets closed"
           : phase === "spinning"
@@ -327,18 +358,29 @@ export default function WheelPage({ state, offset, coins, loggedIn, busy, onLogi
                 ? result === "bonus"
                   ? "Bonus round!"
                   : "Coinflip bonus!"
-                : `${state?.mult}x`
+                : result === "double" || result === "triple"
+                  ? `${result === "double" ? "2x" : "3x"} NEXT ROUND BOOST!`
+                  : `${effectiveMult}x`
               : "Next round starting…";
 
   return (
     <>
       <div className="wheel-top">
         <div className="wheel-history" aria-label="Previous results">
-          {(state?.history ?? []).slice(0, 12).map((h) => (
-            <span key={h.id} className={`whist whist--${h.result}`} title={`${LABEL[h.result]}`}>
-              {h.result === "bonus" || h.result === "coinflip" ? `${h.mult}x` : h.result}
-            </span>
-          ))}
+          {(state?.history ?? []).slice(0, 12).map((h) => {
+            const hBoost = h.boost_mult && h.boost_mult > 1 ? h.boost_mult : 1;
+            return (
+              <span key={h.id} className={`whist whist--${h.result}`} title={LABEL[h.result]}>
+                {h.result === "bonus" || h.result === "coinflip"
+                  ? `${h.mult * hBoost}x`
+                  : h.result === "double"
+                    ? "2×"
+                    : h.result === "triple"
+                      ? "3×"
+                      : `${Number(h.result.replace("x", "")) * hBoost}x`}
+              </span>
+            );
+          })}
         </div>
         <span className={`wheel__phase wheel__phase--${phase}`}>{statusText}</span>
       </div>
@@ -355,7 +397,15 @@ export default function WheelPage({ state, offset, coins, loggedIn, busy, onLogi
           <Strip key={roundId} tiles={shownTiles} tile={tile} winIndex={winIndex} trackRef={trackRef} />
         </div>
 
-        {/* bonus round / coinflip bonus */}
+        {spun && (result === "double" || result === "triple") && (
+          <div className={`wbonus wbonus--${result} is-done`}>
+            <div className="wbonus__title">
+              {result === "double" ? "DOUBLE" : "TRIPLE"} · NEXT ROUND MULTIPLIERS
+            </div>
+            <div className="wbonus__mult">{result === "double" ? "2x" : "3x"}</div>
+          </div>
+        )}
+
         {spun && hasBonus && (
           <div className={`wbonus wbonus--${result} ${bonusDone ? "is-done" : ""}`}>
             {result === "bonus" ? (
@@ -365,12 +415,14 @@ export default function WheelPage({ state, offset, coins, loggedIn, busy, onLogi
               </>
             ) : (
               <>
-                <div className="wbonus__title">COINFLIP BONUS · Heads 7x · Tails 25x</div>
+                <div className="wbonus__title">
+                  COINFLIP BONUS · Heads {7 * activeBoost}x · Tails {25 * activeBoost}x
+                </div>
                 <div className="wbonus__coin" style={{ transform: `rotateY(${flipAngle}deg)` }}>
                   <img src={img("heads.webp")} alt="Heads" className="wbonus__face" />
                   <img src={img("tails.webp")} alt="Tails" className="wbonus__face wbonus__face--back" />
                 </div>
-                <div className="wbonus__mult">{bonusDone ? `${state?.mult}x` : "…"}</div>
+                <div className="wbonus__mult">{bonusDone ? `${effectiveMult}x` : "…"}</div>
               </>
             )}
           </div>
@@ -427,8 +479,7 @@ export default function WheelPage({ state, offset, coins, loggedIn, busy, onLogi
                   </div>
                   <div className="wbet__name">
                     {LABEL[t]}
-                    {t === "bonus" && <small>6x – 50x</small>}
-                    {t === "coinflip" && <small>7x / 25x</small>}
+                    <small>{multLabel(t)}</small>
                   </div>
                   <div className="wbet__stats">
                     <span title="Coins bet by everyone">
