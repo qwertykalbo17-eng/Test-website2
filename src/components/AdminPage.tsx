@@ -233,9 +233,10 @@ function StockTab({ catalog, onChanged, onError }: { catalog: Item[]; onChanged:
   );
 }
 
-const SEGMENTS: WheelTarget[] = ["2x", "3x", "5x", "10x", "coinflip", "bonus"];
+const SEGMENTS: WheelTarget[] = ["2x", "3x", "5x", "10x", "coinflip", "bonus", "crazytime"];
 const BOOSTS = [2, 3, 4, 5, 7, 10, 15, 25, 50];
-const segLabel = (t: WheelTarget) => (t === "coinflip" ? "Coinflip" : t === "bonus" ? "Bonus" : t);
+const segLabel = (t: WheelTarget) =>
+  t === "coinflip" ? "Coinflip" : t === "bonus" ? "Bonus" : t === "crazytime" ? "Crazy Time" : t;
 
 function WheelTab({ onError }: { onError: (m: string) => void }) {
   const [result, setResult] = useState<string>("");
@@ -361,26 +362,69 @@ function WheelTab({ onError }: { onError: (m: string) => void }) {
   );
 }
 
+const DEFAULT_CRAZY_BOARD_ODDS: Record<string, number> = {
+  "10": 10,
+  "20": 5,
+  "30": 3,
+  "50": 2,
+  "100": 1,
+  double: 7,
+};
+
+const CRAZY_BOARD_ORDER = ["10", "20", "30", "50", "100", "double"];
+
+const crazySlotLabel = (k: string) => (k === "double" ? "DOUBLE (Respin)" : `${k}x`);
+
 const ODDS_GROUPS: { kind: keyof WheelOdds; title: string; hint: string; label: (k: string) => string; order: string[] }[] = [
-  { kind: "segment", title: "Winning segment", hint: "Chance of each segment winning.", label: (k) => segLabel(k as WheelTarget), order: ["2x", "3x", "5x", "10x", "coinflip", "bonus"] },
-  { kind: "boost", title: "Boost multiplier", hint: "Chance of each boost. \"None\" means no boost that round.", label: (k) => (k === "1" ? "None" : `${k}x`), order: ["1", "2", "3", "4", "5", "7", "10", "15", "25", "50"] },
-  { kind: "coinflip", title: "Coinflip result", hint: "Heads pays 7x, Tails pays 25x.", label: (k) => (k === "7" ? "Heads 7x" : "Tails 25x"), order: ["7", "25"] },
+  {
+    kind: "segment",
+    title: "Winning segment",
+    hint: "Chance of each segment winning.",
+    label: (k) => segLabel(k as WheelTarget),
+    order: ["2x", "3x", "5x", "10x", "coinflip", "bonus", "crazytime"],
+  },
+  {
+    kind: "boost",
+    title: "Boost multiplier",
+    hint: 'Chance of each boost. "None" means no boost that round.',
+    label: (k) => (k === "1" ? "None" : `${k}x`),
+    order: ["1", "2", "3", "4", "5", "7", "10", "15", "25", "50"],
+  },
+  {
+    kind: "coinflip",
+    title: "Coinflip result",
+    hint: "Heads pays 7x, Tails pays 25x.",
+    label: (k) => (k === "7" ? "Heads 7x" : "Tails 25x"),
+    order: ["7", "25"],
+  },
 ];
 
 function OddsPanel({ onError }: { onError: (m: string) => void }) {
   const [odds, setOdds] = useState<Record<string, Record<string, string>> | null>(null);
+  const [crazyOdds, setCrazyOdds] = useState<Record<string, string>>(() => {
+    const init: Record<string, string> = {};
+    for (const k of CRAZY_BOARD_ORDER) init[k] = String(DEFAULT_CRAZY_BOARD_ODDS[k]);
+    return init;
+  });
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
 
   const load = () =>
     adminWheelGetOdds()
       .then((o) => {
+        const raw = o as unknown as Record<string, Record<string, number> | undefined>;
         const next: Record<string, Record<string, string>> = {};
         for (const g of ODDS_GROUPS) {
           next[g.kind] = {};
-          for (const k of g.order) next[g.kind][k] = String(o[g.kind]?.[k] ?? 0);
+          for (const k of g.order) next[g.kind][k] = String(raw[g.kind]?.[k] ?? (g.kind === "segment" && k === "crazytime" ? 3 : 0));
         }
         setOdds(next);
+
+        const nextCrazy: Record<string, string> = {};
+        for (const k of CRAZY_BOARD_ORDER) {
+          nextCrazy[k] = String(raw.crazytime?.[k] ?? DEFAULT_CRAZY_BOARD_ODDS[k]);
+        }
+        setCrazyOdds(nextCrazy);
       })
       .catch((e) => onError(e.message));
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -414,10 +458,31 @@ function OddsPanel({ onError }: { onError: (m: string) => void }) {
         out[g.kind][k] = n;
       }
     }
+
+    const crazyOut: Record<string, number> = {};
+    for (const k of CRAZY_BOARD_ORDER) {
+      const n = Number(crazyOdds[k]);
+      if (!Number.isFinite(n) || n < 0) {
+        onError("Crazy Time odds must be numbers of 0 or more.");
+        return;
+      }
+      crazyOut[k] = n;
+    }
+    out.crazytime = crazyOut;
+
     void run(() => adminWheelSetOdds(out as unknown as WheelOdds), "Odds saved. They apply from the next round that starts.");
   };
 
+  const resetDefaults = () => {
+    const resetCrazy: Record<string, string> = {};
+    for (const k of CRAZY_BOARD_ORDER) resetCrazy[k] = String(DEFAULT_CRAZY_BOARD_ODDS[k]);
+    setCrazyOdds(resetCrazy);
+    return run(() => adminWheelSetOdds(null), "Odds reset to the defaults.");
+  };
+
   if (!odds) return null;
+
+  const crazyTotal = CRAZY_BOARD_ORDER.reduce((sum, k) => sum + (Number(crazyOdds[k]) || 0), 0);
 
   return (
     <div className="panel admin-wheel admin-odds">
@@ -453,9 +518,37 @@ function OddsPanel({ onError }: { onError: (m: string) => void }) {
           </div>
         );
       })}
+
+      <div className="admin-odds__group">
+        <h3>Crazy Time board odds</h3>
+        <p className="muted">
+          Weights for each slot each Red, Green, and Blue arrow can land on (including DOUBLE respins). Pre-spin wheel boosts apply on top before arrows spin.
+        </p>
+        <div className="admin-odds__grid">
+          {CRAZY_BOARD_ORDER.map((k) => {
+            const w = Number(crazyOdds[k]) || 0;
+            return (
+              <label key={k} className="admin-wheel__field">
+                <span>
+                  {crazySlotLabel(k)} · {crazyTotal > 0 ? ((w / crazyTotal) * 100).toFixed(1) : "0.0"}%
+                </span>
+                <input
+                  className="input"
+                  type="number"
+                  min={0}
+                  step="any"
+                  value={crazyOdds[k]}
+                  onChange={(e) => setCrazyOdds({ ...crazyOdds, [k]: e.target.value })}
+                />
+              </label>
+            );
+          })}
+        </div>
+      </div>
+
       <div className="admin-wheel__actions">
         <button className="btn btn--primary" disabled={busy} onClick={save}>Save odds</button>
-        <button className="btn btn--ghost" disabled={busy} onClick={() => run(() => adminWheelSetOdds(null), "Odds reset to the defaults.")}>
+        <button className="btn btn--ghost" disabled={busy} onClick={resetDefaults}>
           Reset to defaults
         </button>
       </div>

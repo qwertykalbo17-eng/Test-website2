@@ -1,104 +1,177 @@
 import { supabase } from "./supabase";
-import type { AdminPlayer, Match, Side, WheelState, WheelTarget } from "./types";
+import type {
+  AdminPlayer,
+  CrazyArrowColor,
+  Match,
+  MatchView,
+  Profile,
+  ValueItem,
+  WheelNext,
+  WheelOdds,
+  WheelState,
+  WheelTarget,
+} from "./types";
 
-/** Calls a database function. Errors carry the readable message the function raised. */
-async function rpc<T>(fn: string, args: Record<string, unknown>): Promise<T> {
-  const { data, error } = await supabase.rpc(fn, args);
+// AdminPage imports these from "../api"
+export type { WheelNext, WheelOdds };
+
+export async function myProfile(): Promise<Profile | null> {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return null;
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", session.user.id)
+    .single();
   if (error) throw new Error(error.message);
-  return data as T;
+  return data as Profile;
 }
 
-/** Post a match. Your items are locked until it is played or cancelled. */
-export const createMatch = (itemIds: string[], side: Side) =>
-  rpc<Match>("create_match", { p_item_ids: itemIds, p_side: side });
-
-/** Cancel your own open match and get the items back. */
-export const cancelMatch = (matchId: string) => rpc<Match>("cancel_match", { p_match_id: matchId });
-
-/** Join someone else's match. The database flips the coin and moves the items. */
-export const joinMatch = (matchId: string, itemIds: string[]) =>
-  rpc<Match>("join_match", { p_match_id: matchId, p_item_ids: itemIds });
-
-/** Creator calls the bot. */
-export const callBot = (matchId: string, botItemNames: string[]) =>
-  rpc<Match>("call_bot", { p_match_id: matchId, p_bot_items: botItemNames });
-
-/** Tell the database the flip animation was watched, so it is not replayed. */
-export const markSeen = (matchId: string) => rpc<void>("mark_seen", { p_match_id: matchId });
-
-/** Buy catalog items with coins. Returns your new coin balance. */
-export const buyItems = (names: string[]) => rpc<number>("buy_items", { p_names: names });
-
-/** Sell inventory items for coins. Returns your new coin balance. */
-export const sellItems = (itemIds: string[]) => rpc<number>("sell_items", { p_item_ids: itemIds });
-
-// ---- Wheel ----
-
-/** Current wheel round: times, totals, your bets, and the result once betting has closed. */
-export const wheelState = () => rpc<WheelState>("wheel_state", {});
-
-/** Bet coins on one segment of the current round. Returns your new coin balance. */
-export const wheelBet = (roundId: number, target: WheelTarget, amount: number) =>
-  rpc<number>("wheel_bet", { p_round: roundId, p_target: target, p_amount: amount });
-
-// ---- Admin ----
-
-export const adminListPlayers = () => rpc<AdminPlayer[]>("admin_list_players", {});
-
-export const adminGiveCoins = (userId: string, amount: number) =>
-  rpc<number>("admin_give_coins", { p_user: userId, p_amount: amount });
-
-/** Set how many of an item the marketplace has in stock. */
-export const adminSetStock = (name: string, stock: number) =>
-  rpc<void>("admin_set_stock", { p_name: name, p_stock: stock });
-
-export interface ItemInfoInput {
-  name: string;
-  value: number;
-  demand: number | null;
-  rarity: number | null;
-  stability: string | null;
-  range: string;
-}
-
-/** Edit an item's value and value-list info. */
-export const adminUpdateItem = (i: ItemInfoInput) =>
-  rpc<void>("admin_update_item", {
-    p_name: i.name,
-    p_value: i.value,
-    p_demand: i.demand,
-    p_rarity: i.rarity,
-    p_stability: i.stability,
-    p_range: i.range,
+export async function loginWithUsername(username: string, password: string) {
+  const clean = username.trim().toLowerCase();
+  const { error } = await supabase.auth.signInWithPassword({
+    email: `${clean}@bloxybet.local`,
+    password,
   });
-
-export interface WheelNext {
-  result: WheelTarget | null;
-  mult: number | null;
-  boost_target: WheelTarget | null;
-  boost_mult: number | null;
+  if (error) throw new Error("Wrong username or password");
 }
 
-/** What is queued for the next wheel round (null = random). */
-export const adminWheelGetNext = () => rpc<WheelNext>("admin_wheel_get_next", {});
-
-/** Fix the next round's result and / or boost. Used once. All null = random. */
-export const adminWheelSetNext = (n: WheelNext) =>
-  rpc<void>("admin_wheel_set_next", {
-    p_result: n.result,
-    p_mult: n.mult,
-    p_boost_target: n.boost_target,
-    p_boost_mult: n.boost_mult,
+export async function registerWithUsername(username: string, password: string) {
+  const clean = username.trim().toLowerCase();
+  if (!/^[a-z0-9_]{3,20}$/.test(clean)) {
+    throw new Error("Username: 3-20 letters, numbers or _");
+  }
+  const { error } = await supabase.auth.signUp({
+    email: `${clean}@bloxybet.local`,
+    password,
+    options: { data: { username: username.trim() } },
   });
+  if (error) throw new Error(error.message);
+}
 
-export type WheelOdds = {
-  segment: Record<string, number>;
-  boost: Record<string, number>;
-  coinflip: Record<string, number>;
-};
+export async function logout() {
+  await supabase.auth.signOut();
+}
 
-/** Current wheel odds (relative weights). */
-export const adminWheelGetOdds = () => rpc<WheelOdds>("admin_wheel_get_odds", {});
+export async function listMatches(): Promise<Match[]> {
+  const { data, error } = await supabase.rpc("list_matches");
+  if (error) throw new Error(error.message);
+  return (data ?? []) as Match[];
+}
 
-/** Save new odds, or pass null to reset to the defaults. */
-export const adminWheelSetOdds = (odds: WheelOdds | null) => rpc<void>("admin_wheel_set_odds", { p_odds: odds });
+export async function getMatchView(matchId: number): Promise<MatchView> {
+  const { data, error } = await supabase.rpc("get_match_view", { p_match_id: matchId });
+  if (error) throw new Error(error.message);
+  return data as MatchView;
+}
+
+export async function listValues(): Promise<ValueItem[]> {
+  const { data, error } = await supabase
+    .from("value_items")
+    .select("*")
+    .order("value", { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data ?? []) as ValueItem[];
+}
+
+export async function createMatch(itemIds: string[], side: "heads" | "tails"): Promise<number> {
+  const { data, error } = await supabase.rpc("create_match", { p_item_ids: itemIds, p_side: side });
+  if (error) throw new Error(error.message);
+  return data as number;
+}
+
+export async function joinMatch(matchId: number, itemIds: string[]) {
+  const { data, error } = await supabase.rpc("join_match", { p_match_id: matchId, p_item_ids: itemIds });
+  if (error) throw new Error(error.message);
+  return data as { winner_id: string; result_side: "heads" | "tails" };
+}
+
+export async function cancelMatch(matchId: number) {
+  const { error } = await supabase.rpc("cancel_match", { p_match_id: matchId });
+  if (error) throw new Error(error.message);
+}
+
+export async function joinWithBots(matchId: number) {
+  const { data, error } = await supabase.rpc("join_with_bots", { p_match_id: matchId });
+  if (error) throw new Error(error.message);
+  return data as { winner_id: string; result_side: "heads" | "tails" };
+}
+
+export async function wheelState(): Promise<WheelState> {
+  const { data, error } = await supabase.rpc("wheel_state");
+  if (error) throw new Error(error.message);
+  return data as WheelState;
+}
+
+export async function wheelBet(roundId: number, target: WheelTarget, amount: number): Promise<void> {
+  const { error } = await supabase.rpc("wheel_bet", {
+    p_round_id: roundId,
+    p_target: target,
+    p_amount: amount,
+  });
+  if (error) throw new Error(error.message);
+}
+
+export async function wheelSetArrow(roundId: number, arrow: CrazyArrowColor): Promise<void> {
+  const { error } = await supabase.rpc("wheel_set_arrow", {
+    p_round_id: roundId,
+    p_arrow: arrow,
+  });
+  if (error) throw new Error(error.message);
+}
+
+/* ---------- admin ---------- */
+// NOTE: the RPC names and p_* parameter names below are inferred from how
+// AdminPage uses them. Rename to match your SQL functions if they differ.
+
+export async function adminListPlayers(): Promise<AdminPlayer[]> {
+  const { data, error } = await supabase.rpc("admin_list_players");
+  if (error) throw new Error(error.message);
+  return (data ?? []) as AdminPlayer[];
+}
+
+/** Adds (positive) or removes (negative) coins. Resolves to the new balance. */
+export async function adminGiveCoins(playerId: string, amount: number): Promise<number> {
+  const { data, error } = await supabase.rpc("admin_give_coins", {
+    p_user_id: playerId,
+    p_amount: amount,
+  });
+  if (error) throw new Error(error.message);
+  return Number(data);
+}
+
+export async function adminSetStock(itemName: string, stock: number): Promise<void> {
+  const { error } = await supabase.rpc("admin_set_stock", {
+    p_name: itemName,
+    p_stock: stock,
+  });
+  if (error) throw new Error(error.message);
+}
+
+export async function adminWheelGetNext(): Promise<WheelNext> {
+  const { data, error } = await supabase.rpc("admin_wheel_get_next");
+  if (error) throw new Error(error.message);
+  return (data ?? { result: null, mult: null, boost_target: null, boost_mult: null }) as WheelNext;
+}
+
+export async function adminWheelSetNext(next: WheelNext): Promise<void> {
+  const { error } = await supabase.rpc("admin_wheel_set_next", {
+    p_result: next.result,
+    p_mult: next.mult,
+    p_boost_target: next.boost_target,
+    p_boost_mult: next.boost_mult,
+  });
+  if (error) throw new Error(error.message);
+}
+
+export async function adminWheelGetOdds(): Promise<WheelOdds> {
+  const { data, error } = await supabase.rpc("admin_wheel_get_odds");
+  if (error) throw new Error(error.message);
+  return data as WheelOdds;
+}
+
+/** Pass null to reset to the built-in defaults. */
+export async function adminWheelSetOdds(odds: WheelOdds | null): Promise<void> {
+  const { error } = await supabase.rpc("admin_wheel_set_odds", { p_odds: odds });
+  if (error) throw new Error(error.message);
+}
