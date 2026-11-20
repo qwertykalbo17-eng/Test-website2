@@ -8,6 +8,7 @@ import {
   markSeen,
   sellItems,
   wheelBet,
+  wheelSetArrow,
 } from "./api";
 import { CoinContext } from "./coin";
 import AdminPage from "./components/AdminPage";
@@ -309,6 +310,7 @@ export default function App() {
             busy={busy}
             onLogin={() => setAuthOpen(true)}
             onBet={handleWheelBet}
+            onChooseArrow={(roundId, arrow) => wheelSetArrow(roundId, arrow)}
             onRepeat={handleWheelRepeat}
             onRefresh={wheel.refresh}
             onRoundEnd={() => {
