@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { adminGiveCoins, adminListPlayers, adminSetStock, adminWheelGetNext, adminWheelSetNext } from "../api";
-import type { WheelNext } from "../api";
+import { adminGiveCoins, adminListPlayers, adminSetStock, adminWheelGetNext, adminWheelGetOdds, adminWheelSetNext, adminWheelSetOdds } from "../api";
+import type { WheelNext, WheelOdds } from "../api";
 import { useCoin } from "../coin";
 import type { AdminPlayer, Item, WheelTarget } from "../types";
 import { formatValue, img } from "../utils";
@@ -41,7 +41,10 @@ export default function AdminPage({ catalog, onItemsChanged, onError }: Props) {
       ) : tab === "players" ? (
         <PlayersTab onError={onError} />
       ) : (
-        <WheelTab onError={onError} />
+        <>
+          <WheelTab onError={onError} />
+          <OddsPanel onError={onError} />
+        </>
       )}
     </>
   );
@@ -353,6 +356,109 @@ function WheelTab({ onError }: { onError: (m: string) => void }) {
       <p className="admin-wheel__queued">
         <strong>Queued:</strong> {queued ? describe(queued) : "…"}
       </p>
+      {msg && <p className="muted">{msg}</p>}
+    </div>
+  );
+}
+
+const ODDS_GROUPS: { kind: keyof WheelOdds; title: string; hint: string; label: (k: string) => string; order: string[] }[] = [
+  { kind: "segment", title: "Winning segment", hint: "Chance of each segment winning.", label: (k) => segLabel(k as WheelTarget), order: ["2x", "3x", "5x", "10x", "coinflip", "bonus"] },
+  { kind: "boost", title: "Boost multiplier", hint: "Chance of each boost. \"None\" means no boost that round.", label: (k) => (k === "1" ? "None" : `${k}x`), order: ["1", "2", "3", "4", "5", "7", "10", "15", "25", "50"] },
+  { kind: "coinflip", title: "Coinflip result", hint: "Heads pays 7x, Tails pays 25x.", label: (k) => (k === "7" ? "Heads 7x" : "Tails 25x"), order: ["7", "25"] },
+];
+
+function OddsPanel({ onError }: { onError: (m: string) => void }) {
+  const [odds, setOdds] = useState<Record<string, Record<string, string>> | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState("");
+
+  const load = () =>
+    adminWheelGetOdds()
+      .then((o) => {
+        const next: Record<string, Record<string, string>> = {};
+        for (const g of ODDS_GROUPS) {
+          next[g.kind] = {};
+          for (const k of g.order) next[g.kind][k] = String(o[g.kind]?.[k] ?? 0);
+        }
+        setOdds(next);
+      })
+      .catch((e) => onError(e.message));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { void load(); }, []);
+
+  const run = async (fn: () => Promise<void>, text: string) => {
+    setBusy(true);
+    setMsg("");
+    try {
+      await fn();
+      await load();
+      setMsg(text);
+    } catch (e) {
+      onError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const save = () => {
+    if (!odds) return;
+    const out: Record<string, Record<string, number>> = {};
+    for (const g of ODDS_GROUPS) {
+      out[g.kind] = {};
+      for (const k of g.order) {
+        const n = Number(odds[g.kind][k]);
+        if (!Number.isFinite(n) || n < 0) {
+          onError("Odds must be numbers of 0 or more.");
+          return;
+        }
+        out[g.kind][k] = n;
+      }
+    }
+    void run(() => adminWheelSetOdds(out as unknown as WheelOdds), "Odds saved. They apply from the next round that starts.");
+  };
+
+  if (!odds) return null;
+
+  return (
+    <div className="panel admin-wheel admin-odds">
+      <h2>Wheel odds</h2>
+      <p className="muted">
+        Type any weights, they do not need to add up to 100. The percentage next to each box is its real chance. Changes apply from
+        the next round that starts. Bonus keeps its 11x–99x spread (lower is more common).
+      </p>
+      {ODDS_GROUPS.map((g) => {
+        const total = g.order.reduce((a, k) => a + (Number(odds[g.kind][k]) || 0), 0);
+        return (
+          <div key={g.kind} className="admin-odds__group">
+            <h3>{g.title}</h3>
+            <p className="muted">{g.hint}</p>
+            <div className="admin-odds__grid">
+              {g.order.map((k) => {
+                const w = Number(odds[g.kind][k]) || 0;
+                return (
+                  <label key={k} className="admin-wheel__field">
+                    <span>{g.label(k)} · {total > 0 ? ((w / total) * 100).toFixed(1) : "0.0"}%</span>
+                    <input
+                      className="input"
+                      type="number"
+                      min={0}
+                      step="any"
+                      value={odds[g.kind][k]}
+                      onChange={(e) => setOdds({ ...odds, [g.kind]: { ...odds[g.kind], [k]: e.target.value } })}
+                    />
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
+      <div className="admin-wheel__actions">
+        <button className="btn btn--primary" disabled={busy} onClick={save}>Save odds</button>
+        <button className="btn btn--ghost" disabled={busy} onClick={() => run(() => adminWheelSetOdds(null), "Odds reset to the defaults.")}>
+          Reset to defaults
+        </button>
+      </div>
       {msg && <p className="muted">{msg}</p>}
     </div>
   );

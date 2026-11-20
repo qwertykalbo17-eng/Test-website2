@@ -90,3 +90,15 @@ export const adminWheelSetNext = (n: WheelNext) =>
     p_boost_target: n.boost_target,
     p_boost_mult: n.boost_mult,
   });
+
+export type WheelOdds = {
+  segment: Record<string, number>;
+  boost: Record<string, number>;
+  coinflip: Record<string, number>;
+};
+
+/** Current wheel odds (relative weights). */
+export const adminWheelGetOdds = () => rpc<WheelOdds>("admin_wheel_get_odds", {});
+
+/** Save new odds, or pass null to reset to the defaults. */
+export const adminWheelSetOdds = (odds: WheelOdds | null) => rpc<void>("admin_wheel_set_odds", { p_odds: odds });

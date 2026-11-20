@@ -392,8 +392,13 @@
 .admin-wheel__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .admin-wheel__field { display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
 .admin-wheel__actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.admin-odds { margin-top: 16px; }
+.admin-odds__group { display: flex; flex-direction: column; gap: 8px; }
+.admin-odds__group h3 { margin: 0; }
+.admin-odds__group p { margin: 0; }
+.admin-odds__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 .admin-wheel__queued { margin: 0; }
-@media (max-width: 800px) { .admin-wheel__grid { grid-template-columns: 1fr; } }
+@media (max-width: 800px) { .admin-wheel__grid { grid-template-columns: 1fr; } .admin-odds__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .admin-player { grid-template-columns: minmax(120px, 1fr) auto auto; }
 .admin-player__amount { width: 110px; }
 
