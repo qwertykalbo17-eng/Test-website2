@@ -1140,6 +1140,58 @@
   }
 }
 
+/* Crazy Time roulette board */
+.wcrazy__caption {
+  margin-top: 10px;
+  min-height: 20px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.wcrazy__caption.is-double { color: #f0c64a; text-shadow: 0 0 14px rgba(240, 198, 74, 0.5); }
+.crazy-wheel-wrap { width: min(100%, 340px); margin: 6px auto 0; }
+.crazy-wheel { display: block; width: 100%; height: auto; filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.45)); }
+.crazy-wheel__bg { fill: #0b0e16; stroke: rgba(255, 110, 199, 0.45); stroke-width: 1.5; }
+.crazy-slot { stroke: rgba(0, 0, 0, 0.55); stroke-width: 1; transition: filter 0.2s; }
+.crazy-slot--10 { fill: #2b4a7a; }
+.crazy-slot--20 { fill: #2f6b4f; }
+.crazy-slot--30 { fill: #6b3f8f; }
+.crazy-slot--50 { fill: #9a5f1a; }
+.crazy-slot--100 { fill: #b02a45; }
+.crazy-slot--double { fill: #d4a017; }
+.crazy-slot.is-hit { filter: brightness(1.35); }
+.crazy-slot__ring {
+  fill: none;
+  stroke-width: 3.5;
+  stroke-linejoin: round;
+  pointer-events: none;
+  animation: crazyHit 0.5s ease-out;
+}
+@keyframes crazyHit { from { stroke-width: 10; opacity: 0.35; } to { stroke-width: 3.5; opacity: 1; } }
+.crazy-slot__label {
+  fill: #fff;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+  paint-order: stroke;
+  stroke: rgba(0, 0, 0, 0.5);
+  stroke-width: 2px;
+}
+.crazy-slot__label--double { fill: #1b1300; stroke: none; }
+.crazy-wheel__hub { fill: #121722; stroke: rgba(255, 110, 199, 0.6); stroke-width: 2; }
+.crazy-wheel__hub-text {
+  fill: #ff9ad8;
+  font-size: 11px;
+  font-weight: 900;
+  text-anchor: middle;
+  dominant-baseline: central;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: wheelPop 0.4s ease-out;
+}
+
 .wheel__outcome { margin-top: 14px; text-align: center; font-weight: 700; padding: 10px 14px; border-radius: 12px; background: var(--surface-2); }
 .wheel__outcome.is-win { color: #3de0a0; background: rgba(61, 224, 160, 0.1); }
 .wheel__outcome.is-lose { color: var(--muted); }
