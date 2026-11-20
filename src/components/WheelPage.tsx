@@ -1,4 +1,4 @@
-import { memo, useEffect, useMemo, useRef, useState, type CSSProperties, type Ref } from "react";
+import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type Ref } from "react";
 import { useCoin } from "../coin";
 import type { CrazyArrowColor, CrazyBonusData, WheelState, WheelTarget } from "../types";
 import { img } from "../utils";
@@ -63,8 +63,10 @@ const GAP = 8;
 
 const SPIN_DELAY = 2000;
 const BONUS_ANIM = 7500;
+/** Must match the 5000 ms in wheel_set_arrow() and wheel_state() (crazy_timing.sql). */
 const CRAZY_PICK_WINDOW = 5000;
-const CRAZY_ANIM = 20000;
+/** Upper limit only: the real length is whatever the round gives (see crazy_timing.sql). */
+const CRAZY_ANIM = 60000;
 /** The finished result stays on screen this long before the next round starts. */
 const RESULT_HOLD = 3000;
 
@@ -273,9 +275,9 @@ const tierOfValue = (v: number): CrazyTile["tier"] => (v < 20 ? "10" : v < 30 ? 
  * Deterministic per round. After every spin round the 3 tiles under the arrows are exactly what
  * the red / green / blue arrows landed on (an arrow that does not respin keeps its last tile).
  */
-function buildCrazyTiles(roundId: number, bonus: CrazyBonusData, plan: CrazyPlan, boost: number): CrazyTile[] {
+function buildCrazyTiles(roundId: number, doubleCount: number, plan: CrazyPlan | null, boost: number): CrazyTile[] {
   const rng = mulberry32(roundId * 6364136223 + 4242);
-  const doubles = Math.max(1, bonus.doubleCount || 5);
+  const doubles = Math.max(1, doubleCount || 7);
   const bag: [number | "double", number][] = [
     [10, 10],
     [20, 5],
@@ -301,7 +303,7 @@ function buildCrazyTiles(roundId: number, bonus: CrazyBonusData, plan: CrazyPlan
       : { text: `${pick * boost}x`, tier: String(pick) as CrazyTile["tier"] };
   });
 
-  for (let k = 0; k < plan.segCount; k++) {
+  for (let k = 0; plan && k < plan.segCount; k++) {
     ARROW_ORDER.forEach((c, i) => {
       const list = plan.texts[c];
       const t = list[k] ?? list[list.length - 1];
@@ -317,14 +319,33 @@ function buildCrazyTiles(roundId: number, bonus: CrazyBonusData, plan: CrazyPlan
   return tiles;
 }
 
+const easeOutQuad = (t: number) => 1 - Math.pow(1 - Math.min(Math.max(t, 0), 1), 2);
+
+/** Splits the Crazy Time animation into one time slice per spin round. */
+function crazyTimeline(segCount: number, totalMs: number) {
+  const weights = Array.from({ length: segCount }, (_, k) => (k === 0 ? 1.4 : 1));
+  const sum = weights.reduce((a, b) => a + b, 0);
+  const durs = weights.map((w) => (totalMs * w) / sum);
+  const starts: number[] = [];
+  let t = 0;
+  for (const d of durs) {
+    starts.push(t);
+    t += d;
+  }
+  return { starts, durs, total: totalMs };
+}
+
+type CrazyTimeline = ReturnType<typeof crazyTimeline>;
+
 /** Strip position (as a tile index) `elapsed` ms after the Crazy Time spin starts. */
-function crazyStripIndex(plan: CrazyPlan, elapsed: number, segDur: number): number {
-  const spinLen = segDur * CRAZY_SPIN_FRAC;
+function crazyStripIndex(plan: CrazyPlan, elapsed: number, tl: CrazyTimeline): number {
   for (let k = 0; k < plan.segCount; k++) {
-    const s = k * segDur;
+    const s = tl.starts[k];
+    const spinLen = tl.durs[k] * CRAZY_SPIN_FRAC;
     if (elapsed >= s + spinLen) continue;
     if (elapsed <= s) return plan.idx[k];
-    return plan.idx[k] + (plan.idx[k + 1] - plan.idx[k]) * easeOutSoft((elapsed - s) / spinLen);
+    const ease = k === 0 ? easeOutSoft : easeOutQuad; // respins glide gently so you can follow them
+    return plan.idx[k] + (plan.idx[k + 1] - plan.idx[k]) * ease((elapsed - s) / spinLen);
   }
   return plan.idx[plan.segCount];
 }
@@ -527,6 +548,7 @@ export default function WheelPage({
   } | null>(null);
 
   const reported = useRef(0);
+  const crazyStartRef = useRef<{ id: number; at: number } | null>(null);
 
   const tile = width < 560 ? 72 : 80;
   const step = tile + GAP;
@@ -617,13 +639,20 @@ export default function WheelPage({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [result, crazyKey, roundId, resultBoost]);
 
-  const crazyPlan: CrazyPlan | null = useMemo(() => (crazyBonus ? buildCrazyPlan(crazyBonus) : null), [crazyBonus]);
+  // The server only reveals the arrow results after the pick window closes. Until then the strip shows
+  // a preview board; the spin plan is built from the real result only, so nothing ever jumps.
+  const realBonus: CrazyBonusData | null = useMemo(
+    () => (result === "crazytime" ? (state?.crazy_bonus ?? null) : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [result, crazyKey]
+  );
+  const crazyPlan: CrazyPlan | null = useMemo(() => (realBonus ? buildCrazyPlan(realBonus) : null), [realBonus]);
 
   /** Crazy Time: once the strip has landed on CRAZY, the same strip turns into the Crazy Time multipliers. */
-  const crazyMode = spun && result === "crazytime" && !!crazyPlan;
+  const crazyMode = spun && result === "crazytime";
   const crazyTiles = useMemo<StripTile[]>(
-    () => (crazyBonus && crazyPlan ? buildCrazyTiles(roundId, crazyBonus, crazyPlan, resultBoost) : []),
-    [crazyBonus, crazyPlan, roundId, resultBoost]
+    () => (crazyMode ? buildCrazyTiles(roundId, realBonus?.doubleCount ?? 7, crazyPlan, resultBoost) : []),
+    [crazyMode, realBonus, crazyPlan, roundId, resultBoost]
   );
 
   const chosenCrazyMult =
@@ -643,7 +672,7 @@ export default function WheelPage({
         ? state.mult * resultBoost
         : null;
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!state || crazyMode) return;
     const track = trackRef.current;
     if (!track) return;
@@ -728,10 +757,16 @@ export default function WheelPage({
       Math.max(0, state.ends_at - (Date.now() + offsetRef.current)) + 400
     );
 
+    const reveal = Math.max(0, state.spin_ends_at + CRAZY_PICK_WINDOW - (Date.now() + offsetRef.current));
+    const t4 = setTimeout(onRefresh, reveal + 120);
+    const t5 = setTimeout(onRefresh, reveal + 600);
+
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);
       clearTimeout(t3);
+      clearTimeout(t4);
+      clearTimeout(t5);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state?.id, state?.betting_ends_at, state?.ends_at]);
@@ -742,7 +777,7 @@ export default function WheelPage({
   const bonusDone = bonusElapsed >= animDuration || phase === "ended";
 
   /* Crazy Time: the strip spins under the 3 arrows; DOUBLE hits respin it */
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!crazyMode || !crazyPlan) {
       setCrazyStage(-1);
       return;
@@ -750,21 +785,30 @@ export default function WheelPage({
     const track = trackRef.current;
     if (!track) return;
 
-    const segDur = Math.max(1, (animDuration - pickWindow) / crazyPlan.segCount);
+    // The spin starts when the pick window closes, or when the result arrives if that is a bit later.
+    // Remembered per round so a resize or re-render never restarts it.
+    if (!crazyStartRef.current || crazyStartRef.current.id !== roundId) {
+      const earliest = spinEnds + pickWindow;
+      crazyStartRef.current = { id: roundId, at: Math.max(earliest, Math.min(Date.now() + offsetRef.current, earliest + 2500)) };
+    }
+    const startAt = crazyStartRef.current.at;
+
+    const tl = crazyTimeline(crazyPlan.segCount, Math.max(1, animDuration - pickWindow));
     let raf = 0;
     let last = -2;
 
     const frame = () => {
       const n = Date.now() + offsetRef.current;
-      const elapsed = n - spinEnds - pickWindow;
+      const elapsed = n - startAt;
 
-      const x = width / 2 - (crazyStripIndex(crazyPlan, elapsed, segDur) * step + tile / 2);
+      const x = width / 2 - (crazyStripIndex(crazyPlan, elapsed, tl) * step + tile / 2);
       track.style.transform = `translate3d(${x}px,0,0)`;
 
       let stage = -1;
       if (elapsed >= 0) {
-        const seg = Math.min(crazyPlan.segCount - 1, Math.floor(elapsed / segDur));
-        const spinning = elapsed - seg * segDur < segDur * CRAZY_SPIN_FRAC;
+        let seg = 0;
+        for (let k = 0; k < crazyPlan.segCount; k++) if (elapsed >= tl.starts[k]) seg = k;
+        const spinning = elapsed - tl.starts[seg] < tl.durs[seg] * CRAZY_SPIN_FRAC;
         stage = seg * 2 + (spinning ? 0 : 1);
       }
       if (stage !== last) {
@@ -772,12 +816,12 @@ export default function WheelPage({
         setCrazyStage(stage);
       }
 
-      if (elapsed < segDur * crazyPlan.segCount) raf = requestAnimationFrame(frame);
+      if (elapsed < tl.total) raf = requestAnimationFrame(frame);
     };
 
     frame();
     return () => cancelAnimationFrame(raf);
-  }, [crazyMode, crazyPlan, spinEnds, pickWindow, animDuration, step, tile, width]);
+  }, [crazyMode, crazyPlan, roundId, spinEnds, pickWindow, animDuration, step, tile, width]);
 
   useEffect(() => {
     if (!state || !result || effectiveMult == null) return;
@@ -1041,18 +1085,18 @@ export default function WheelPage({
           </div>
 
           {crazyMode ? (
-            ARROW_ORDER.map((c, i) => (
-              <div key={c} aria-hidden="true">
-                <div
-                  className="wstrip__marker wstrip__marker--crazy"
-                  style={{ left: `calc(50% + ${(i - 1) * step}px)`, "--mc": ARROW_HEX[c] } as CSSProperties}
-                />
-                <div
-                  className="wstrip__line wstrip__line--crazy"
-                  style={{ left: `calc(50% + ${(i - 1) * step}px)`, "--mc": ARROW_HEX[c] } as CSSProperties}
-                />
-              </div>
-            ))
+            ARROW_ORDER.map((c, i) => {
+              const respinning = crazySpinSeg > 0 && (crazyPlan?.paths[c].length ?? 0) > crazySpinSeg;
+              const idle = crazySpinSeg > 0 && !respinning;
+              const cls = respinning ? "is-respin" : idle ? "is-idle" : "";
+              const style = { left: `calc(50% + ${(i - 1) * step}px)`, "--mc": ARROW_HEX[c] } as CSSProperties;
+              return (
+                <div key={c} aria-hidden="true">
+                  <div className={`wstrip__marker wstrip__marker--crazy ${cls}`} style={style} />
+                  <div className={`wstrip__line wstrip__line--crazy ${cls}`} style={style} />
+                </div>
+              );
+            })
           ) : (
             <>
               <div className="wstrip__marker" aria-hidden="true" />
@@ -1063,7 +1107,7 @@ export default function WheelPage({
           <div className="wstrip__fade wstrip__fade--r" aria-hidden="true" />
 
           <Strip
-            key={`${roundId}-${crazyMode ? "c" : "n"}`}
+            key={roundId}
             tiles={crazyMode ? crazyTiles : shownTiles}
             tile={tile}
             winIndex={winIndex}
