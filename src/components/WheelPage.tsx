@@ -199,7 +199,7 @@ const ARROW_HEX: Record<CrazyArrowColor, string> = {
 
 /** Share of each spin segment the strip is moving; the rest is a pause to show where it landed. */
 const CRAZY_SPIN_FRAC = 0.75;
-/** The strip is a repeating RED, GREEN, BLUE pattern. The centre marker always rests on a GREEN tile. */
+/** The strip shows the Crazy Time multipliers. The 3 arrows sit on neighbouring tiles: red, green (centre), blue. */
 const CRAZY_TILES = 96;
 const CRAZY_START = 7;
 const CRAZY_FIRST_TRAVEL = 18;
@@ -216,14 +216,28 @@ interface CrazyPlan {
   doubleHits: CrazyArrowColor[][];
   /** strip position (tile index under the centre marker): [start, end of spin 0, end of spin 1, ...] */
   idx: number[];
+  /** what each arrow landed on, in order, e.g. ["DOUBLE (x2)", "40x"] */
+  texts: Record<CrazyArrowColor, string[]>;
+}
+
+/** One tile of the Crazy Time strip: a multiplier (or a DOUBLE). */
+interface CrazyTile {
+  text: string;
+  tier: "10" | "20" | "30" | "50" | "100" | "double";
+  /** set on the tiles an arrow lands on */
+  arrow?: CrazyArrowColor;
+  /** the spin round that arrow lands there */
+  seg?: number;
 }
 
 /** Turns the round's result (each arrow's steps, e.g. ["DOUBLE (x2)", "40x"]) into a spin plan. */
 function buildCrazyPlan(bonus: CrazyBonusData): CrazyPlan {
   const paths: CrazyPlan["paths"] = { red: [], green: [], blue: [] };
+  const texts: CrazyPlan["texts"] = { red: [], green: [], blue: [] };
   for (const color of ARROW_ORDER) {
     const info = bonus.arrows[color];
     const steps = info?.steps?.length ? info.steps : [`${info?.finalMult ?? 10}x`];
+    texts[color] = steps;
     paths[color] = steps.map((t) => ({ double: t.startsWith("DOUBLE") }));
   }
 
@@ -236,11 +250,61 @@ function buildCrazyPlan(bonus: CrazyBonusData): CrazyPlan {
     factors.push(factors[k] * Math.pow(2, hits.length));
   }
 
-  // every move is a multiple of 3 tiles, so RED / GREEN / BLUE always stay under their own marker
-  const idx = [CRAZY_START];
+    const idx = [CRAZY_START];
   for (let k = 0; k < segCount; k++) idx.push(idx[k] + (k === 0 ? CRAZY_FIRST_TRAVEL : CRAZY_RESPIN_TRAVEL));
 
-  return { paths, segCount, factors, doubleHits, idx };
+  return { paths, segCount, factors, doubleHits, idx, texts };
+}
+
+const tierOfValue = (v: number): CrazyTile["tier"] => (v < 20 ? "10" : v < 30 ? "20" : v < 50 ? "30" : v < 100 ? "50" : "100");
+
+/**
+ * The strip while Crazy Time plays: the multipliers of the Crazy Time board (and DOUBLE tiles).
+ * Deterministic per round. After every spin round the 3 tiles under the arrows are exactly what
+ * the red / green / blue arrows landed on (an arrow that does not respin keeps its last tile).
+ */
+function buildCrazyTiles(roundId: number, bonus: CrazyBonusData, plan: CrazyPlan, boost: number): CrazyTile[] {
+  const rng = mulberry32(roundId * 6364136223 + 4242);
+  const doubles = Math.max(1, bonus.doubleCount || 5);
+  const bag: [number | "double", number][] = [
+    [10, 10],
+    [20, 5],
+    [30, 3],
+    [50, 2],
+    [100, 1],
+    ["double", doubles],
+  ];
+  const total = bag.reduce((a, [, w]) => a + w, 0);
+
+  const tiles: CrazyTile[] = Array.from({ length: CRAZY_TILES }, () => {
+    let x = rng() * total;
+    let pick: number | "double" = 10;
+    for (const [v, w] of bag) {
+      if (x < w) {
+        pick = v;
+        break;
+      }
+      x -= w;
+    }
+    return pick === "double"
+      ? { text: "x2", tier: "double" as const }
+      : { text: `${pick * boost}x`, tier: String(pick) as CrazyTile["tier"] };
+  });
+
+  for (let k = 0; k < plan.segCount; k++) {
+    ARROW_ORDER.forEach((c, i) => {
+      const list = plan.texts[c];
+      const t = list[k] ?? list[list.length - 1];
+      const slot = plan.idx[k + 1] - 1 + i; // red = left of centre, green = centre, blue = right
+      if (t.startsWith("DOUBLE")) {
+        tiles[slot] = { text: "x2", tier: "double", arrow: c, seg: k };
+      } else {
+        const v = parseFloat(t);
+        tiles[slot] = { text: t, tier: tierOfValue(Number.isFinite(v) ? v / Math.max(1, plan.factors[k]) : 10), arrow: c, seg: k };
+      }
+    });
+  }
+  return tiles;
 }
 
 /** Strip position (as a tile index) `elapsed` ms after the Crazy Time spin starts. */
@@ -359,7 +423,7 @@ function PeopleIcon() {
 
 /* ---------- the strip ---------- */
 
-type StripTile = WheelTarget | CrazyArrowColor;
+type StripTile = WheelTarget | CrazyTile;
 
 const Strip = memo(function Strip({
   tiles,
@@ -367,27 +431,28 @@ const Strip = memo(function Strip({
   winIndex,
   trackRef,
   pick,
+  done,
 }: {
   tiles: StripTile[];
   tile: number;
   winIndex: number | null;
   trackRef: Ref<HTMLDivElement>;
   pick: CrazyArrowColor | null;
+  /** Crazy Time: how many spin rounds have landed */
+  done: number;
 }) {
   return (
     <div className="wstrip__track" ref={trackRef} style={{ gap: GAP }}>
       {tiles.map((t, i) => {
-        if (t === "red" || t === "green" || t === "blue") {
+        if (typeof t !== "string") {
+          const landed = t.arrow !== undefined && t.seg !== undefined && t.seg < done;
           return (
             <div
               key={i}
-              className={`wtile wtile--arrow-${t} ${pick === t ? "is-pick" : ""}`}
-              style={{ width: tile, height: tile }}
+              className={`wtile wtile--cz-${t.tier} ${landed ? "is-landed" : ""} ${landed && pick === t.arrow ? "is-pick" : ""}`}
+              style={{ width: tile, height: tile, ...(landed && t.arrow ? ({ "--ac": ARROW_HEX[t.arrow] } as CSSProperties) : null) }}
             >
-              <svg viewBox="0 0 24 24" className="wicon" aria-hidden="true">
-                <path d="M12 2L19 13h-4.5v9h-5v-9H5L12 2z" fill="currentColor" />
-              </svg>
-              <span className="wtile__label">{t.toUpperCase()}</span>
+              <span className="wtile__cz">{t.text}</span>
             </div>
           );
         }
@@ -541,11 +606,11 @@ export default function WheelPage({
 
   const crazyPlan: CrazyPlan | null = useMemo(() => (crazyBonus ? buildCrazyPlan(crazyBonus) : null), [crazyBonus]);
 
-  /** Crazy Time: once the strip has landed on CRAZY, the same strip turns into RED / GREEN / BLUE choices. */
+  /** Crazy Time: once the strip has landed on CRAZY, the same strip turns into the Crazy Time multipliers. */
   const crazyMode = spun && result === "crazytime" && !!crazyPlan;
   const crazyTiles = useMemo<StripTile[]>(
-    () => Array.from({ length: CRAZY_TILES }, (_, i) => ARROW_ORDER[i % 3]),
-    []
+    () => (crazyBonus && crazyPlan ? buildCrazyTiles(roundId, crazyBonus, crazyPlan, resultBoost) : []),
+    [crazyBonus, crazyPlan, roundId, resultBoost]
   );
 
   const chosenCrazyMult =
@@ -994,6 +1059,7 @@ export default function WheelPage({
             winIndex={winIndex}
             trackRef={trackRef}
             pick={crazyMode ? chosenArrow : null}
+            done={crazyMode ? crazyDone : 0}
           />
         </div>
 

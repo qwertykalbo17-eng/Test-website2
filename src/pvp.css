@@ -1561,12 +1561,19 @@
 
 /* ---------- Crazy Time on the main strip: RED / GREEN / BLUE choices + 3 arrows ---------- */
 
-.wtile--arrow-red   { background: #4a1d26; color: #ff5c6c; border-color: rgba(255, 92, 108, 0.35); }
-.wtile--arrow-green { background: #12402a; color: #2ee27d; border-color: rgba(46, 226, 125, 0.35); }
-.wtile--arrow-blue  { background: #143550; color: #38bdf8; border-color: rgba(56, 189, 248, 0.35); }
-.wtile.is-pick {
-  box-shadow: 0 0 0 2px #fff, 0 0 18px currentColor;
-  transform: scale(1.04);
+/* multiplier tiles of the Crazy Time strip */
+.wtile--cz-10     { background: #1f3550; color: #7fb4e6; }
+.wtile--cz-20     { background: #15432f; color: #3de0a0; }
+.wtile--cz-30     { background: #3a2c5a; color: #b79bf2; }
+.wtile--cz-50     { background: #5a3329; color: #ff9a55; }
+.wtile--cz-100    { background: #4a3a14; color: #ffd54a; border-color: rgba(240, 198, 74, 0.35); }
+.wtile--cz-double { background: #4a1d26; color: #ff7a8c; border-color: rgba(255, 92, 108, 0.35); }
+.wtile__cz { font-size: 22px; font-weight: 900; letter-spacing: 0.02em; }
+.wtile.is-landed {
+  border-color: var(--ac);
+  box-shadow: 0 0 0 2px var(--ac), 0 0 16px var(--ac);
+  z-index: 1;
 }
+.wtile.is-pick { box-shadow: 0 0 0 3px #fff, 0 0 0 5px var(--ac), 0 0 20px var(--ac); transform: scale(1.05); }
 .wstrip__marker--crazy { border-top-color: var(--mc); filter: drop-shadow(0 0 6px var(--mc)); }
 .wstrip__line--crazy { background: var(--mc); opacity: 0.7; }
