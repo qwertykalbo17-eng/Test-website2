@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { adminGiveCoins, adminListPlayers, adminSetStock } from "../api";
+import { adminGiveCoins, adminListPlayers, adminSetStock, adminWheelGetNext, adminWheelSetNext } from "../api";
+import type { WheelNext } from "../api";
 import { useCoin } from "../coin";
-import type { AdminPlayer, Item } from "../types";
+import type { AdminPlayer, Item, WheelTarget } from "../types";
 import { formatValue, img } from "../utils";
 
 interface Props {
@@ -12,7 +13,7 @@ interface Props {
 }
 
 export default function AdminPage({ catalog, onItemsChanged, onError }: Props) {
-  const [tab, setTab] = useState<"stock" | "players">("stock");
+  const [tab, setTab] = useState<"stock" | "players" | "wheel">("stock");
 
   return (
     <>
@@ -30,12 +31,17 @@ export default function AdminPage({ catalog, onItemsChanged, onError }: Props) {
         <button className={`auth-tabs__tab ${tab === "players" ? "is-active" : ""}`} onClick={() => setTab("players")}>
           Players
         </button>
+        <button className={`auth-tabs__tab ${tab === "wheel" ? "is-active" : ""}`} onClick={() => setTab("wheel")}>
+          Wheel
+        </button>
       </div>
 
       {tab === "stock" ? (
         <StockTab catalog={catalog} onChanged={onItemsChanged} onError={onError} />
-      ) : (
+      ) : tab === "players" ? (
         <PlayersTab onError={onError} />
+      ) : (
+        <WheelTab onError={onError} />
       )}
     </>
   );
@@ -221,5 +227,133 @@ function StockTab({ catalog, onChanged, onError }: { catalog: Item[]; onChanged:
         })}
       </ul>
     </section>
+  );
+}
+
+const SEGMENTS: WheelTarget[] = ["2x", "3x", "5x", "10x", "coinflip", "bonus"];
+const BOOSTS = [2, 3, 4, 5, 7, 10, 15, 25, 50];
+const segLabel = (t: WheelTarget) => (t === "coinflip" ? "Coinflip" : t === "bonus" ? "Bonus" : t);
+
+function WheelTab({ onError }: { onError: (m: string) => void }) {
+  const [result, setResult] = useState<string>("");
+  const [mult, setMult] = useState<string>("");
+  const [boost, setBoost] = useState<string>("");
+  const [boostTarget, setBoostTarget] = useState<string>("");
+  const [queued, setQueued] = useState<WheelNext | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState("");
+
+  const load = () => adminWheelGetNext().then(setQueued).catch((e) => onError(e.message));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { void load(); }, []);
+
+  const boostOn = boost !== "" && boost !== "1";
+
+  const save = async (n: WheelNext, text: string) => {
+    setBusy(true);
+    setMsg("");
+    try {
+      await adminWheelSetNext(n);
+      await load();
+      setMsg(text);
+    } catch (e) {
+      onError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const apply = () =>
+    save(
+      {
+        result: (result || null) as WheelTarget | null,
+        mult: (result === "bonus" || result === "coinflip") && mult ? Number(mult) : null,
+        boost_target: boostOn && boostTarget ? (boostTarget as WheelTarget) : null,
+        boost_mult: boost ? Number(boost) : null,
+      },
+      "Saved. This applies to the next round that starts, once."
+    );
+
+  const clear = () => {
+    setResult("");
+    setMult("");
+    setBoost("");
+    setBoostTarget("");
+    return save({ result: null, mult: null, boost_target: null, boost_mult: null }, "Cleared. The next round is random.");
+  };
+
+  const describe = (n: WheelNext) => {
+    const parts: string[] = [];
+    if (n.result) parts.push(`Result: ${segLabel(n.result)}${n.mult ? ` ${n.mult}x` : ""}`);
+    if (n.boost_mult === 1) parts.push("Boost: none");
+    else if (n.boost_mult) parts.push(`Boost: ${n.boost_mult}x on ${n.boost_target ? segLabel(n.boost_target) : "a random segment"}`);
+    return parts.length ? parts.join(" · ") : "Nothing queued, the next round is random.";
+  };
+
+  return (
+    <div className="panel admin-wheel">
+      <h2>Next wheel round</h2>
+      <p className="muted">
+        Pick what happens in the next round that starts. It is used once, then the wheel goes back to random. A round that is
+        already running is not changed.
+      </p>
+
+      <div className="admin-wheel__grid">
+        <label className="admin-wheel__field">
+          <span>Winning segment</span>
+          <select className="input" value={result} onChange={(e) => { setResult(e.target.value); setMult(""); }}>
+            <option value="">Random</option>
+            {SEGMENTS.map((s) => <option key={s} value={s}>{segLabel(s)}</option>)}
+          </select>
+        </label>
+
+        {result === "coinflip" && (
+          <label className="admin-wheel__field">
+            <span>Coinflip result</span>
+            <select className="input" value={mult} onChange={(e) => setMult(e.target.value)}>
+              <option value="">Random</option>
+              <option value="7">Heads · 7x</option>
+              <option value="25">Tails · 25x</option>
+            </select>
+          </label>
+        )}
+        {result === "bonus" && (
+          <label className="admin-wheel__field">
+            <span>Bonus multiplier</span>
+            <select className="input" value={mult} onChange={(e) => setMult(e.target.value)}>
+              <option value="">Random</option>
+              {Array.from({ length: 89 }, (_, i) => i + 11).map((m) => <option key={m} value={m}>{m}x</option>)}
+            </select>
+          </label>
+        )}
+
+        <label className="admin-wheel__field">
+          <span>Boost multiplier</span>
+          <select className="input" value={boost} onChange={(e) => { setBoost(e.target.value); if (e.target.value === "" || e.target.value === "1") setBoostTarget(""); }}>
+            <option value="">Random</option>
+            <option value="1">No boost</option>
+            {BOOSTS.map((b) => <option key={b} value={b}>{b}x</option>)}
+          </select>
+        </label>
+
+        <label className="admin-wheel__field">
+          <span>Boost goes on</span>
+          <select className="input" value={boostTarget} disabled={!boostOn} onChange={(e) => setBoostTarget(e.target.value)}>
+            <option value="">Random segment</option>
+            {SEGMENTS.map((s) => <option key={s} value={s}>{segLabel(s)}</option>)}
+          </select>
+        </label>
+      </div>
+
+      <div className="admin-wheel__actions">
+        <button className="btn btn--primary" disabled={busy} onClick={apply}>Set next round</button>
+        <button className="btn btn--ghost" disabled={busy} onClick={clear}>Clear (random)</button>
+      </div>
+
+      <p className="admin-wheel__queued">
+        <strong>Queued:</strong> {queued ? describe(queued) : "…"}
+      </p>
+      {msg && <p className="muted">{msg}</p>}
+    </div>
   );
 }

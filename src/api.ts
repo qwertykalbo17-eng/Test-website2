@@ -71,3 +71,22 @@ export const adminUpdateItem = (i: ItemInfoInput) =>
     p_stability: i.stability,
     p_range: i.range,
   });
+
+export interface WheelNext {
+  result: WheelTarget | null;
+  mult: number | null;
+  boost_target: WheelTarget | null;
+  boost_mult: number | null;
+}
+
+/** What is queued for the next wheel round (null = random). */
+export const adminWheelGetNext = () => rpc<WheelNext>("admin_wheel_get_next", {});
+
+/** Fix the next round's result and / or boost. Used once. All null = random. */
+export const adminWheelSetNext = (n: WheelNext) =>
+  rpc<void>("admin_wheel_set_next", {
+    p_result: n.result,
+    p_mult: n.mult,
+    p_boost_target: n.boost_target,
+    p_boost_mult: n.boost_mult,
+  });
