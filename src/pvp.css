@@ -1404,3 +1404,157 @@
   box-shadow: 0 0 12px rgba(46, 226, 125, 0.35);
 }
 .wheel-bet__note { flex-basis: 100%; font-size: 12px; font-weight: 700; color: #ffb066; }
+
+/* ---------- Crash ---------- */
+
+.crash-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+.crash-history { display: flex; flex-wrap: wrap; gap: 6px; min-height: 26px; }
+.crash-totals { font-size: 13px; font-weight: 700; color: var(--muted); }
+.chist { padding: 5px 9px; border-radius: 8px; font-size: 12px; font-weight: 800; border: 1px solid var(--border); background: var(--surface-2); color: var(--muted); }
+.chist--mid { background: #143a2c; color: #3de0a0; border-color: #1b5440; }
+.chist--big { background: #33264d; color: #b79bf2; border-color: #43326a; }
+
+.crash { padding: 12px 14px; margin-bottom: 10px; }
+.crash-stage {
+  position: relative;
+  height: 380px;
+  overflow: hidden;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background:
+    radial-gradient(ellipse at 85% 0%, rgba(0, 245, 180, 0.14), transparent 55%),
+    radial-gradient(ellipse at 10% 100%, rgba(120, 90, 255, 0.16), transparent 55%),
+    #0a0e1a;
+}
+.crash-stage__canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.crash-stage__planet {
+  position: absolute;
+  right: -60px;
+  top: -70px;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #2c3a63, #121a33 70%);
+  box-shadow: inset -18px -14px 40px rgba(0, 0, 0, 0.5), 0 0 60px rgba(0, 245, 180, 0.12);
+  transition: transform 6s ease-out, opacity 1s;
+}
+.crash-stage[data-phase="flying"] .crash-stage__planet { transform: translate(40px, 60px); opacity: 0.55; }
+.crash-stage__pad {
+  position: absolute;
+  left: calc(14% - 62px);
+  bottom: 14px;
+  width: 124px;
+  height: 10px;
+  border-radius: 6px;
+  background: linear-gradient(#3a456b, #232b46);
+  box-shadow: 0 0 20px rgba(0, 245, 180, 0.25);
+  transition: opacity 0.6s;
+}
+.crash-stage:not([data-phase="betting"]) .crash-stage__pad { opacity: 0; }
+
+.crash-readout { position: absolute; top: 18px; left: 0; right: 0; text-align: center; pointer-events: none; z-index: 3; }
+.crash-readout__sub { min-height: 18px; font-weight: 800; letter-spacing: 0.14em; font-size: 13px; color: var(--muted); }
+.crash-readout__mult {
+  font-size: 64px;
+  font-weight: 900;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+  color: #fff;
+  text-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+}
+.crash-readout__mult[data-tier="idle"] { font-size: 44px; color: #cfd6ea; }
+.crash-readout__mult[data-tier="2"] { color: #3de0a0; }
+.crash-readout__mult[data-tier="3"] { color: #ffd54a; }
+.crash-readout__mult[data-tier="4"] { color: #ff9a55; text-shadow: 0 0 26px rgba(255, 140, 60, 0.6); }
+.crash-readout__mult[data-tier="5"] { color: #f472b6; text-shadow: 0 0 30px rgba(244, 114, 182, 0.7); }
+.crash-readout__mult[data-tier="crashed"] { color: #ff5a5a; text-shadow: 0 0 30px rgba(255, 90, 90, 0.6); animation: crashPop 0.4s ease-out; }
+.crash-readout__bar { width: 220px; height: 4px; margin: 8px auto 0; border-radius: 3px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+.crash-readout__bar > div { height: 100%; background: #2ee27d; box-shadow: 0 0 10px rgba(46, 226, 125, 0.7); }
+.crash-stage:not([data-phase="betting"]) .crash-readout__bar { opacity: 0; }
+@keyframes crashPop { 0% { transform: scale(1.35); } 100% { transform: scale(1); } }
+
+/* astronaut: the wrapper is moved by code, the body does the idle / flight / crash animations */
+.astro { position: absolute; left: 0; top: 0; width: 84px; height: 98px; z-index: 2; will-change: transform; }
+.astro__body { width: 100%; height: 100%; animation: astroIdle 2.6s ease-in-out infinite; }
+.astro svg { display: block; overflow: visible; }
+.astro__flame { transform-origin: 60px 112px; opacity: 0; }
+.astro__arm { transform-box: fill-box; }
+.astro__arm--l { transform-origin: 85% 50%; }
+.astro__arm--r { transform-origin: 15% 50%; }
+
+.crash-stage[data-phase="betting"] .astro__arm--r { animation: astroWave 1.4s ease-in-out infinite; }
+
+.crash-stage[data-phase="flying"] .astro__body { animation: astroFly 0.22s ease-in-out infinite alternate; }
+.crash-stage[data-phase="flying"] .astro__flame { opacity: 1; animation: flameFlicker 0.09s steps(2) infinite alternate; }
+.crash-stage[data-phase="flying"] .astro__arm--l { transform: rotate(-35deg); }
+.crash-stage[data-phase="flying"] .astro__arm--r { transform: rotate(35deg); }
+
+.crash-stage[data-phase="crashed"] .astro__body { animation: astroCrash 0.9s ease-in forwards; }
+
+@keyframes astroIdle { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-5px) rotate(2deg); } }
+@keyframes astroFly { from { transform: translate(-1.5px, 1px) rotate(-1.5deg); } to { transform: translate(1.5px, -1px) rotate(1.5deg); } }
+@keyframes flameFlicker { from { transform: scale(1, 0.8); } to { transform: scale(1.15, 1.25); } }
+@keyframes astroWave { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-28deg); } }
+@keyframes astroCrash {
+  0% { transform: scale(1) rotate(0deg); opacity: 1; filter: none; }
+  25% { transform: scale(1.25) rotate(120deg); filter: brightness(2.4); }
+  100% { transform: translate(40px, -60px) scale(0.1) rotate(900deg); opacity: 0; }
+}
+
+/* screen shake */
+.crash-stage.is-shake { animation: crashShake 0.55s linear; }
+.crash-stage.is-shake-soft { animation: crashShakeSoft 0.45s linear; }
+@keyframes crashShake {
+  0%, 100% { transform: translate(0, 0); }
+  15% { transform: translate(-9px, 5px); }
+  30% { transform: translate(8px, -6px); }
+  45% { transform: translate(-6px, -4px); }
+  60% { transform: translate(5px, 6px); }
+  80% { transform: translate(-3px, 2px); }
+}
+@keyframes crashShakeSoft {
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(-2px, 3px); }
+  50% { transform: translate(2px, -2px); }
+  75% { transform: translate(-1px, 2px); }
+}
+
+/* the little astronaut that floats away when you cash out */
+.floater { position: absolute; width: 60px; z-index: 4; pointer-events: none; animation: floatAway 3.1s ease-out forwards; }
+.floater__body { width: 60px; transform: rotate(-12deg); animation: floatSpin 3.1s ease-in-out forwards; }
+.floater__body svg { width: 100%; height: auto; display: block; }
+.floater__body .astro__flame { opacity: 0; }
+.floater__body .astro__arm--r { animation: astroWave 0.5s ease-in-out infinite; }
+.floater__tag {
+  margin: 0 auto 4px;
+  width: max-content;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: rgba(61, 224, 160, 0.18);
+  border: 1px solid rgba(61, 224, 160, 0.6);
+  color: #3de0a0;
+  font-weight: 900;
+  font-size: 13px;
+}
+@keyframes floatAway {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(120px, -150px) scale(0.55); opacity: 0; }
+}
+@keyframes floatSpin { 0% { transform: rotate(-12deg); } 50% { transform: rotate(14deg); } 100% { transform: rotate(-20deg); } }
+
+/* bet panel */
+.crash-bet { padding: 12px 14px; }
+.crash-bet__row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
+.crash-bet__row .wheel-bet__input { flex: 1 1 200px; max-width: none; }
+.crash-bet__chips { margin-bottom: 12px; }
+.crash-go { width: 100%; padding: 15px 18px; font-size: 15px; font-weight: 800; letter-spacing: 0.04em; }
+.crash-go--cash { background: #ffb347; color: #1a1205; box-shadow: 0 0 22px rgba(255, 179, 71, 0.45); animation: cashPulse 0.8s ease-in-out infinite; }
+.crash-go--won { color: #3de0a0; border-color: rgba(61, 224, 160, 0.5); }
+.crash-go--lost { color: #ff7a7a; border-color: rgba(255, 90, 90, 0.5); }
+@keyframes cashPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.015); } }
+
+@media (max-width: 800px) {
+  .crash-stage { height: 320px; }
+  .crash-readout__mult { font-size: 52px; }
+  .crash-readout__mult[data-tier="idle"] { font-size: 36px; }
+}

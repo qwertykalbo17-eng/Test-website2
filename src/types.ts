@@ -151,3 +151,18 @@ export interface WheelOdds {
   coinflip: Record<string, number>;
   crazytime?: Record<string, number>;
 }
+
+/** What the `crash_state()` function returns. Times are milliseconds since 1970 (server clock). */
+export interface CrashState {
+  now: number;
+  id: number;
+  /** the moment the astronaut launches */
+  betting_ends_at: number;
+  ends_at: number;
+  crashed: boolean;
+  /** null until the crash has really happened */
+  crash_point: number | null;
+  totals: { coins: number; players: number };
+  mine: { amount: number; auto: number | null; cashed_mult: number | null; payout: number } | null;
+  history: { id: number; crash_point: number }[];
+}

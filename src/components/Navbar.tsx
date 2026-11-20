@@ -1,6 +1,6 @@
 import { formatValue } from "../utils";
 
-export type Page = "coinflip" | "wheel" | "market" | "values" | "leaderboard" | "admin";
+export type Page = "coinflip" | "wheel" | "crash" | "market" | "values" | "leaderboard" | "admin";
 
 interface Props {
   page: Page;
@@ -59,18 +59,18 @@ export default function Navbar({
               <span aria-hidden="true"></span> <span className="nav-link__text">Wheel</span>
             </button>
             <button
+              className={`nav-link ${page === "crash" ? "is-active" : ""}`}
+              onClick={() => onNavigate("crash")}
+              title="Crash"
+            >
+              <span aria-hidden="true">🚀</span> <span className="nav-link__text">Crash</span>
+            </button>
+            <button
               className={`nav-link ${page === "market" ? "is-active" : ""}`}
               onClick={() => onNavigate("market")}
               title="Marketplace"
             >
               <span aria-hidden="true"></span> <span className="nav-link__text">Marketplace</span>
-            </button>
-            <button
-              className={`nav-link ${page === "values" ? "is-active" : ""}`}
-              onClick={() => onNavigate("values")}
-              title="Value List"
-            >
-              <span aria-hidden="true"></span> <span className="nav-link__text">Value List</span>
             </button>
             <button
               className={`nav-link ${page === "leaderboard" ? "is-active" : ""}`}
@@ -135,13 +135,13 @@ export default function Navbar({
           <span className="tabbar__icon"></span>
           <span>Wheel</span>
         </button>
+        <button className={`tabbar__item ${page === "crash" ? "is-active" : ""}`} onClick={() => onNavigate("crash")}>
+          <span className="tabbar__icon">🚀</span>
+          <span>Crash</span>
+        </button>
         <button className={`tabbar__item ${page === "market" ? "is-active" : ""}`} onClick={() => onNavigate("market")}>
           <span className="tabbar__icon"></span>
           <span>Market</span>
-        </button>
-        <button className={`tabbar__item ${page === "values" ? "is-active" : ""}`} onClick={() => onNavigate("values")}>
-          <span className="tabbar__icon"></span>
-          <span>Values</span>
         </button>
         <button
           className={`tabbar__item ${page === "leaderboard" ? "is-active" : ""}`}

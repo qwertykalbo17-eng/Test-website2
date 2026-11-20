@@ -1,5 +1,5 @@
 import { supabase } from "./supabase";
-import type { AdminPlayer, CrazyArrowColor, Match, Side, WheelState, WheelTarget } from "./types";
+import type { AdminPlayer, CrashState, CrazyArrowColor, Match, Side, WheelState, WheelTarget } from "./types";
 
 /** Calls a database function. Errors carry the readable message the function raised. */
 async function rpc<T>(fn: string, args: Record<string, unknown>): Promise<T> {
@@ -44,6 +44,18 @@ export const wheelBet = (roundId: number, target: WheelTarget, amount: number) =
 /** Save the Red / Green / Blue arrow you picked for Crazy Time in this round. */
 export const wheelSetArrow = (roundId: number, arrow: CrazyArrowColor) =>
   rpc<void>("wheel_set_arrow", { p_round: roundId, p_arrow: arrow });
+
+// ---- Crash ----
+
+/** Current crash round: times, totals, your bet, and the crash point once it has crashed. */
+export const crashState = () => rpc<CrashState>("crash_state", {});
+
+/** Bet coins on the current round (betting phase only). Returns your new coin balance. */
+export const crashBet = (roundId: number, amount: number, autoCashout: number | null) =>
+  rpc<number>("crash_bet", { p_round: roundId, p_amount: amount, p_auto: autoCashout });
+
+/** Cash out at the server's current multiplier. Returns your new coin balance. */
+export const crashCashout = (roundId: number) => rpc<number>("crash_cashout", { p_round: roundId });
 
 // ---- Admin ----
 

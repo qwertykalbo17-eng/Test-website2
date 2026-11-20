@@ -3,6 +3,8 @@ import {
   buyItems,
   callBot,
   cancelMatch,
+  crashBet,
+  crashCashout,
   createMatch,
   joinMatch,
   markSeen,
@@ -15,6 +17,7 @@ import AdminPage from "./components/AdminPage";
 import AuthModal from "./components/AuthModal";
 import BattleModal from "./components/BattleModal";
 import ChristmasDecor from "./components/ChristmasDecor";
+import CrashPage from "./components/CrashPage";
 import HalloweenDecor from "./components/HalloweenDecor";
 import HistoryModal from "./components/HistoryModal";
 import InventoryModal from "./components/InventoryModal";
@@ -27,6 +30,7 @@ import MatchViewModal from "./components/MatchViewModal";
 import WheelPage from "./components/WheelPage";
 import Navbar, { type Page } from "./components/Navbar";
 import { useAuth } from "./hooks/useAuth";
+import { useCrash } from "./hooks/useCrash";
 import { useItems } from "./hooks/useItems";
 import { useMatchById } from "./hooks/useMatchById";
 import { useMatches } from "./hooks/useMatches";
@@ -77,6 +81,7 @@ export default function App() {
 
   const [page, setPage] = useState<Page>("coinflip");
   const wheel = useWheel(page === "wheel");
+  const crash = useCrash(page === "crash");
   const [postOpen, setPostOpen] = useState(false);
   const [joinTarget, setJoinTarget] = useState<Match | null>(null);
   const [viewInventoryOpen, setViewInventoryOpen] = useState(false);
@@ -269,6 +274,24 @@ export default function App() {
     return ok;
   }
 
+  function handleCrashBet(amount: number, autoCashout: number | null) {
+    return act(async () => {
+      const roundId = crash.state?.id;
+      if (!roundId) throw new Error("The game is loading, try again in a second.");
+      await crashBet(roundId, amount, autoCashout);
+      await Promise.all([refreshProfile(), crash.refresh()]);
+    });
+  }
+
+  function handleCrashCashout() {
+    return act(async () => {
+      const roundId = crash.state?.id;
+      if (!roundId) return;
+      await crashCashout(roundId);
+      await Promise.all([refreshProfile(), crash.refresh()]);
+    });
+  }
+
   if (!ready) return <div className="splash">Loading…</div>;
 
   /** Guests can look around; anything that needs an account opens the login popup. */
@@ -301,7 +324,23 @@ export default function App() {
       />
 
       <main className="container">
-        {page === "wheel" ? (
+        {page === "crash" ? (
+          <CrashPage
+            state={crash.state}
+            offset={crash.offset}
+            coins={data.coins}
+            loggedIn={!!user}
+            busy={busy}
+            onLogin={() => setAuthOpen(true)}
+            onBet={handleCrashBet}
+            onCashout={handleCrashCashout}
+            onRefresh={crash.refresh}
+            onRoundEnd={() => {
+              crash.refresh();
+              refreshProfile();
+            }}
+          />
+        ) : page === "wheel" ? (
           <WheelPage
             state={wheel.state}
             offset={wheel.offset}
