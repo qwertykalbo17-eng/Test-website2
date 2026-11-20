@@ -123,42 +123,9 @@ function writeJson(key: string, value: unknown) {
 const betList = (b: Bets): [WheelTarget, number][] =>
   TARGETS.filter((t) => (b[t] ?? 0) > 0).map((t) => [t, b[t] as number]);
 
-/* ---------- 50x time ---------- */
+/* ---------- best multiplier of the last 100 rounds ---------- */
 
-function timeAgo(timestamp: string | null) {
-  if (!timestamp) {
-    return "50x has not appeared yet";
-  }
-
-  const seconds = Math.max(
-    0,
-    Math.floor(
-      (Date.now() - new Date(timestamp).getTime()) / 1000
-    )
-  );
-
-  if (seconds < 60) {
-    return "50x was just now";
-  }
-
-  const minutes = Math.floor(seconds / 60);
-
-  if (minutes === 1) {
-    return "50x was a minute ago";
-  }
-
-  if (minutes < 60) {
-    return `50x was ${minutes} minutes ago`;
-  }
-
-  const hours = Math.floor(minutes / 60);
-
-  if (hours === 1) {
-    return "50x was an hour ago";
-  }
-
-  return `50x was ${hours} hours ago`;
-}
+const bestText = (m: number | null) => (m ? `Highest in last 100: ${m}x` : "Highest in last 100: —");
 
 /* ---------- icons ---------- */
 
@@ -1026,10 +993,7 @@ export default function WheelPage({
         </div>
 
         <span className="wheel-50x">
-          {timeAgo(
-            state?.last_50x_at ??
-              null
-          )}
+          {bestText(state?.best_mult ?? null)}
         </span>
 
         <span
