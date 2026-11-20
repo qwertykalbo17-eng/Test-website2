@@ -62,9 +62,17 @@ const RES = 52;
 const GAP = 8;
 
 const SPIN_DELAY = 2000;
-const BONUS_ANIM = 5500;
-const CRAZY_PICK_WINDOW = 3500;
-const CRAZY_ANIM = 13000;
+const BONUS_ANIM = 7500;
+const CRAZY_PICK_WINDOW = 5000;
+const CRAZY_ANIM = 20000;
+/** The finished result stays on screen this long before the next round starts. */
+const RESULT_HOLD = 3000;
+
+/** How long a bonus animation plays, leaving RESULT_HOLD of the round for showing the result. */
+function bonusAnimMs(result: WheelTarget | null, windowMs: number): number {
+  const full = result === "crazytime" ? CRAZY_ANIM : BONUS_ANIM;
+  return Math.max(1500, Math.min(full, Math.max(1000, windowMs) - RESULT_HOLD));
+}
 
 type BoardSlot =
   | { kind: "mult"; baseValue: number }
@@ -99,6 +107,8 @@ function pickWeighted(r: number): WheelTarget {
 
 const easeOut = (t: number) =>
   1 - Math.pow(1 - Math.min(Math.max(t, 0), 1), 4);
+
+const easeOutSoft = (t: number) => 1 - Math.pow(1 - Math.min(Math.max(t, 0), 1), 3);
 
 const easeInOutCubic = (t: number) => {
   const c = Math.min(Math.max(t, 0), 1);
@@ -202,8 +212,8 @@ const CRAZY_SPIN_FRAC = 0.75;
 /** The strip shows the Crazy Time multipliers. The 3 arrows sit on neighbouring tiles: red, green (centre), blue. */
 const CRAZY_TILES = 96;
 const CRAZY_START = 7;
-const CRAZY_FIRST_TRAVEL = 18;
-const CRAZY_RESPIN_TRAVEL = 9;
+const CRAZY_FIRST_TRAVEL = 12;
+const CRAZY_RESPIN_TRAVEL = 6;
 
 interface CrazyPlan {
   /** for each arrow: one entry per landing (a DOUBLE is followed by a respin) */
@@ -314,7 +324,7 @@ function crazyStripIndex(plan: CrazyPlan, elapsed: number, segDur: number): numb
     const s = k * segDur;
     if (elapsed >= s + spinLen) continue;
     if (elapsed <= s) return plan.idx[k];
-    return plan.idx[k] + (plan.idx[k + 1] - plan.idx[k]) * easeOut((elapsed - s) / spinLen);
+    return plan.idx[k] + (plan.idx[k + 1] - plan.idx[k]) * easeOutSoft((elapsed - s) / spinLen);
   }
   return plan.idx[plan.segCount];
 }
@@ -432,6 +442,7 @@ const Strip = memo(function Strip({
   trackRef,
   pick,
   done,
+  startX,
 }: {
   tiles: StripTile[];
   tile: number;
@@ -440,9 +451,11 @@ const Strip = memo(function Strip({
   pick: CrazyArrowColor | null;
   /** Crazy Time: how many spin rounds have landed */
   done: number;
+  /** where the strip starts, so a new strip never flashes at x = 0 before the animation takes over */
+  startX: number;
 }) {
   return (
-    <div className="wstrip__track" ref={trackRef} style={{ gap: GAP }}>
+    <div className="wstrip__track" ref={trackRef} style={{ gap: GAP, transform: `translate3d(${startX}px,0,0)` }}>
       {tiles.map((t, i) => {
         if (typeof t !== "string") {
           const landed = t.arrow !== undefined && t.seg !== undefined && t.seg < done;
@@ -674,12 +687,13 @@ export default function WheelPage({
     if (!el) return;
 
     const targetOffset = state?.mult === 25 ? 180 : 0;
+    const coinDur = bonusAnimMs("coinflip", roundEnds - spinEnds);
     let raf = 0;
 
     const tickCoin = () => {
       const n = Date.now() + offsetRef.current;
       const elapsed = Math.max(0, n - spinEnds);
-      const p = Math.min(1, elapsed / BONUS_ANIM);
+      const p = Math.min(1, elapsed / coinDur);
       const eased = easeInOutCubic(p);
       const angle = 360 * 6 * eased + targetOffset * eased;
       const lift = Math.sin(p * Math.PI) * 14;
@@ -696,7 +710,7 @@ export default function WheelPage({
 
     raf = requestAnimationFrame(tickCoin);
     return () => cancelAnimationFrame(raf);
-  }, [spun, result, state?.mult, spinEnds]);
+  }, [spun, result, state?.mult, spinEnds, roundEnds]);
 
   useEffect(() => {
     if (!state) return;
@@ -723,11 +737,7 @@ export default function WheelPage({
   }, [state?.id, state?.betting_ends_at, state?.ends_at]);
 
   const bonusElapsed = Math.max(0, now - spinEnds);
-  const availableRevealWindow = Math.max(1000, roundEnds - spinEnds);
-  const animDuration =
-    result === "crazytime"
-      ? Math.min(CRAZY_ANIM, availableRevealWindow)
-      : Math.min(BONUS_ANIM, availableRevealWindow);
+  const animDuration = bonusAnimMs(result, roundEnds - spinEnds);
   const pickWindow = Math.min(CRAZY_PICK_WINDOW, Math.floor(animDuration * 0.4));
   const bonusDone = bonusElapsed >= animDuration || phase === "ended";
 
@@ -1060,6 +1070,7 @@ export default function WheelPage({
             trackRef={trackRef}
             pick={crazyMode ? chosenArrow : null}
             done={crazyMode ? crazyDone : 0}
+            startX={width / 2 - ((crazyMode ? CRAZY_START : START) * step + tile / 2)}
           />
         </div>
 
