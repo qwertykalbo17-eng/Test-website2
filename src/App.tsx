@@ -253,6 +253,21 @@ export default function App() {
     });
   }
 
+  /** Repeat / Auto bet: place several wheel bets at once. Resolves true when they all went through. */
+  async function handleWheelRepeat(bets: [WheelTarget, number][]) {
+    let ok = false;
+    await act(async () => {
+      const roundId = wheel.state?.id;
+      if (!roundId) throw new Error("The wheel is loading, try again in a second.");
+      const total = bets.reduce((sum, [, n]) => sum + n, 0);
+      if (total > data.coins) throw new Error("Not enough coins to repeat your last bet.");
+      for (const [target, amount] of bets) await wheelBet(roundId, target, amount);
+      ok = true;
+      await Promise.all([refreshProfile(), wheel.refresh()]);
+    });
+    return ok;
+  }
+
   if (!ready) return <div className="splash">Loading…</div>;
 
   /** Guests can look around; anything that needs an account opens the login popup. */
@@ -294,6 +309,7 @@ export default function App() {
             busy={busy}
             onLogin={() => setAuthOpen(true)}
             onBet={handleWheelBet}
+            onRepeat={handleWheelRepeat}
             onRefresh={wheel.refresh}
             onRoundEnd={() => {
               wheel.refresh();

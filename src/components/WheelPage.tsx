@@ -16,6 +16,8 @@ interface Props {
   onRoundEnd: () => void;
   /** reload the wheel (used to fetch the result as soon as betting closes) */
   onRefresh: () => void;
+  /** place several bets in the current round (used by Repeat / Auto). Resolves true when they all went through. */
+  onRepeat: (bets: [WheelTarget, number][]) => Promise<boolean>;
 }
 
 const TARGETS: WheelTarget[] = ["2x", "3x", "5x", "10x", "coinflip", "bonus"];
@@ -93,6 +95,33 @@ const easeInOutCubic = (t: number) => {
 function fmt(n: number) {
   return Math.floor(n).toLocaleString("en-US");
 }
+
+/* ---------- last bet (for Repeat / Auto) ---------- */
+
+type Bets = Partial<Record<WheelTarget, number>>;
+
+const LAST_KEY = "bloxybet.wheel.last";
+const CUR_KEY = "bloxybet.wheel.cur";
+
+function readJson<T>(key: string): T | null {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as T) : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeJson(key: string, value: unknown) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    /* storage unavailable: Repeat just won't survive a reload */
+  }
+}
+
+const betList = (b: Bets): [WheelTarget, number][] =>
+  TARGETS.filter((t) => (b[t] ?? 0) > 0).map((t) => [t, b[t] as number]);
 
 /* ---------- 50x time ---------- */
 
@@ -281,6 +310,7 @@ export default function WheelPage({
   onBet,
   onRoundEnd,
   onRefresh,
+  onRepeat,
 }: Props) {
   const coin = useCoin();
 
@@ -721,6 +751,99 @@ export default function WheelPage({
 
   const canBet =
     phase === "betting";
+
+  /* ---------- Repeat last bet / Auto bet ---------- */
+
+  const [lastBets, setLastBets] = useState<Bets>(() => readJson<Bets>(LAST_KEY) ?? {});
+  const [auto, setAuto] = useState(false);
+  const [autoMsg, setAutoMsg] = useState("");
+  const autoRound = useRef(0);
+  const placing = useRef(false);
+  const mineKey = JSON.stringify(state?.mine ?? {});
+
+  // keep what you bet in this round, and when a new round starts it becomes "your last bet"
+  useEffect(() => {
+    if (!state) return;
+    const cur = readJson<{ id: number; mine: Bets }>(CUR_KEY);
+    if (cur && cur.id !== state.id && betList(cur.mine).length) {
+      writeJson(LAST_KEY, cur.mine);
+      setLastBets(cur.mine);
+      try {
+        localStorage.removeItem(CUR_KEY);
+      } catch {
+        /* ignore */
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state?.id]);
+
+  useEffect(() => {
+    if (state && betList(state.mine).length) writeJson(CUR_KEY, { id: state.id, mine: state.mine });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state?.id, mineKey]);
+
+  const lastList = betList(lastBets);
+  const lastTotal = lastList.reduce((a, [, n]) => a + n, 0);
+  const betThisRound = betList(state?.mine ?? {}).length > 0;
+
+  async function repeat(): Promise<boolean> {
+    if (!lastList.length || placing.current) return false;
+    placing.current = true;
+    try {
+      return await onRepeat(lastList);
+    } finally {
+      placing.current = false;
+    }
+  }
+
+  function repeatClick() {
+    if (!loggedIn) return onLogin();
+    if (!canBet || busy || betThisRound) return;
+    repeat();
+  }
+
+  function autoClick() {
+    if (!loggedIn) return onLogin();
+    if (auto) {
+      setAuto(false);
+      setAutoMsg("");
+      return;
+    }
+    if (!lastList.length) {
+      setAutoMsg("Place a bet first, then turn Auto on.");
+      return;
+    }
+    setAutoMsg("");
+    setAuto(true);
+  }
+
+  // Auto: at the start of every round, place your last bet once
+  useEffect(() => {
+    if (!auto) return;
+    if (!loggedIn) {
+      setAuto(false);
+      return;
+    }
+    if (!state || phase !== "betting" || busy || placing.current) return;
+    if (autoRound.current === state.id) return;
+
+    if (betThisRound) {
+      autoRound.current = state.id; // you already bet this round yourself
+      return;
+    }
+    autoRound.current = state.id;
+    if (!lastList.length) {
+      setAuto(false);
+      return;
+    }
+    if (lastTotal > coins) {
+      setAuto(false);
+      setAutoMsg("Auto bet stopped: not enough coins.");
+      return;
+    }
+    repeat();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auto, state?.id, phase, busy, mineKey, lastBets, coins, loggedIn]);
 
   function setAmt(n: number) {
     setAmount(
@@ -1181,7 +1304,29 @@ export default function WheelPage({
             >
               Clear
             </button>
+
+            <button
+              className="chip-btn chip-btn--repeat"
+              disabled={!!loggedIn && (!canBet || busy || betThisRound || lastList.length === 0)}
+              onClick={repeatClick}
+              title={
+                lastList.length
+                  ? `Repeat your last bet: ${lastList.map(([t, n]) => `${LABEL[t]} ${fmt(n)}`).join(", ")}`
+                  : "No previous bet yet"
+              }
+            >
+              ↻ Repeat{lastTotal > 0 ? ` · ${fmt(lastTotal)}` : ""}
+            </button>
+
+            <button
+              className={`chip-btn chip-btn--auto ${auto ? "is-on" : ""}`}
+              onClick={autoClick}
+              title="Repeat your last bet automatically at the start of every round"
+            >
+              Auto {auto ? "ON" : "OFF"}
+            </button>
           </div>
+          {autoMsg && <span className="wheel-bet__note">{autoMsg}</span>}
         </div>
 
         <div className="wheel-bets">

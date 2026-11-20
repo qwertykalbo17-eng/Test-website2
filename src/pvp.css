@@ -1209,3 +1209,13 @@
   .wbet__head { flex-wrap: wrap; }
   .wbet__stats { flex-direction: row; gap: 10px; margin-left: 0; width: 100%; }
 }
+/* Repeat / Auto bet buttons */
+.chip-btn--repeat { border-color: rgba(0, 245, 180, 0.35); }
+.chip-btn--repeat:disabled { opacity: 0.45; cursor: not-allowed; }
+.chip-btn--auto.is-on {
+  background: rgba(46, 226, 125, 0.18);
+  border-color: #2ee27d;
+  color: #2ee27d;
+  box-shadow: 0 0 12px rgba(46, 226, 125, 0.35);
+}
+.wheel-bet__note { flex-basis: 100%; font-size: 12px; font-weight: 700; color: #ffb066; }
