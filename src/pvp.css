@@ -1577,3 +1577,10 @@
 .wtile.is-pick { box-shadow: 0 0 0 3px #fff, 0 0 0 5px var(--ac), 0 0 20px var(--ac); transform: scale(1.05); }
 .wstrip__marker--crazy { border-top-color: var(--mc); filter: drop-shadow(0 0 6px var(--mc)); }
 .wstrip__line--crazy { background: var(--mc); opacity: 0.7; }
+
+/* during a respin only the arrows that hit DOUBLE stay; the others disappear */
+.wstrip__marker--crazy, .wstrip__line--crazy { transition: opacity 0.4s; }
+.wstrip__marker--crazy.is-gone, .wstrip__line--crazy.is-gone { opacity: 0; }
+.wstrip__marker--crazy.is-respin { animation: czPulse 0.55s ease-in-out infinite alternate; }
+.wstrip__line--crazy.is-respin { opacity: 1; width: 3px; }
+@keyframes czPulse { from { transform: translateX(-50%) scale(1); } to { transform: translateX(-50%) scale(1.45); } }

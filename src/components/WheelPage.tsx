@@ -214,6 +214,8 @@ const CRAZY_SPIN_FRAC = 0.75;
 /** The strip shows the Crazy Time multipliers. The 3 arrows sit on neighbouring tiles: red, green (centre), blue. */
 const CRAZY_TILES = 96;
 const CRAZY_START = 7;
+/** Tiles between the centre arrow and each side arrow. */
+const ARROW_GAP = 2;
 const CRAZY_FIRST_TRAVEL = 12;
 const CRAZY_RESPIN_TRAVEL = 6;
 
@@ -273,7 +275,7 @@ const tierOfValue = (v: number): CrazyTile["tier"] => (v < 20 ? "10" : v < 30 ? 
 /**
  * The strip while Crazy Time plays: the multipliers of the Crazy Time board (and DOUBLE tiles).
  * Deterministic per round. After every spin round the 3 tiles under the arrows are exactly what
- * the red / green / blue arrows landed on (an arrow that does not respin keeps its last tile).
+ * the red / green / blue arrows landed on. Only an arrow that hit DOUBLE spins again.
  */
 function buildCrazyTiles(roundId: number, doubleCount: number, plan: CrazyPlan | null, boost: number): CrazyTile[] {
   const rng = mulberry32(roundId * 6364136223 + 4242);
@@ -305,9 +307,9 @@ function buildCrazyTiles(roundId: number, doubleCount: number, plan: CrazyPlan |
 
   for (let k = 0; plan && k < plan.segCount; k++) {
     ARROW_ORDER.forEach((c, i) => {
-      const list = plan.texts[c];
-      const t = list[k] ?? list[list.length - 1];
-      const slot = plan.idx[k + 1] - 1 + i; // red = left of centre, green = centre, blue = right
+      const t = plan.texts[c][k];
+      if (!t) return; // this arrow is not spinning in this round
+      const slot = plan.idx[k + 1] + (i - 1) * ARROW_GAP; // red = left, green = centre, blue = right
       if (t.startsWith("DOUBLE")) {
         tiles[slot] = { text: "x2", tier: "double", arrow: c, seg: k };
       } else {
@@ -1086,10 +1088,11 @@ export default function WheelPage({
 
           {crazyMode ? (
             ARROW_ORDER.map((c, i) => {
-              const respinning = crazySpinSeg > 0 && (crazyPlan?.paths[c].length ?? 0) > crazySpinSeg;
-              const idle = crazySpinSeg > 0 && !respinning;
-              const cls = respinning ? "is-respin" : idle ? "is-idle" : "";
-              const style = { left: `calc(50% + ${(i - 1) * step}px)`, "--mc": ARROW_HEX[c] } as CSSProperties;
+              // spin round that was last started / landed: after the first one, only arrows that hit DOUBLE stay
+              const lastSeg = crazySpinSeg >= 0 ? crazySpinSeg : crazyStageNow >= 0 ? (crazyStageNow - 1) / 2 : -1;
+              const active = lastSeg <= 0 || (crazyPlan?.paths[c].length ?? 0) > lastSeg;
+              const cls = !active ? "is-gone" : crazySpinSeg > 0 ? "is-respin" : "";
+              const style = { left: `calc(50% + ${(i - 1) * ARROW_GAP * step}px)`, "--mc": ARROW_HEX[c] } as CSSProperties;
               return (
                 <div key={c} aria-hidden="true">
                   <div className={`wstrip__marker wstrip__marker--crazy ${cls}`} style={style} />
