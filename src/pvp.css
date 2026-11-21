@@ -1474,27 +1474,23 @@
 .crash-stage:not([data-phase="betting"]) .crash-readout__bar { opacity: 0; }
 @keyframes crashPop { 0% { transform: scale(1.35); } 100% { transform: scale(1); } }
 
-/* astronaut: the wrapper is moved by code, the body does the idle / flight / crash animations */
+/* rocket: the wrapper is moved by code, the body does the idle / flight / crash animations */
 .astro { position: absolute; left: 0; top: 0; width: 84px; height: 98px; z-index: 2; will-change: transform; }
 .astro__body { width: 100%; height: 100%; animation: astroIdle 2.6s ease-in-out infinite; }
 .astro svg { display: block; overflow: visible; }
 .astro__flame { transform-origin: 60px 112px; opacity: 0; }
-.astro__arm { transform-box: fill-box; }
-.astro__arm--l { transform-origin: 50% 0%; }    /* hangs from the shoulder */
-.astro__arm--r { transform-origin: 50% 100%; }  /* raised arm pivots at the shoulder */
 
-.crash-stage[data-phase="betting"] .astro__arm--r { animation: astroWave 1.4s ease-in-out infinite; }
+/* waiting on the pad: small idle flame */
+.crash-stage[data-phase="betting"] .astro__flame { opacity: 0.6; animation: flameIdle 0.5s ease-in-out infinite alternate; }
 
 .crash-stage[data-phase="flying"] .astro__body { animation: astroFly 0.38s ease-in-out infinite alternate; }
 .crash-stage[data-phase="flying"] .astro__flame { opacity: 1; animation: flameFlicker 0.09s steps(2) infinite alternate; }
-.crash-stage[data-phase="flying"] .astro__arm--r { animation: armWiggle 0.38s ease-in-out infinite alternate; }
-.crash-stage[data-phase="flying"] .astro__arm--l { animation: armWiggle 0.38s ease-in-out infinite alternate-reverse; }
 
 .crash-stage[data-phase="crashed"] .astro__body { animation: astroCrash 0.9s ease-in forwards; }
 
 @keyframes astroIdle { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-5px) rotate(2deg); } }
 @keyframes astroFly { from { transform: translate(-2px, 3px) rotate(-4deg); } to { transform: translate(2px, -3px) rotate(4deg); } }
-@keyframes armWiggle { from { transform: rotate(-5deg); } to { transform: rotate(5deg); } }
+@keyframes flameIdle { from { transform: scale(0.35, 0.3); } to { transform: scale(0.45, 0.42); } }
 @keyframes flameFlicker { from { transform: scale(1, 0.8); } to { transform: scale(1.15, 1.25); } }
 @keyframes astroWave { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-28deg); } }
 @keyframes astroCrash {
@@ -1523,10 +1519,9 @@
 
 /* the little astronaut that floats away when you cash out */
 .floater { position: absolute; width: 60px; z-index: 4; pointer-events: none; animation: floatAway 3.1s ease-out forwards; }
-.floater__body { width: 60px; transform: rotate(-12deg); animation: floatSpin 3.1s ease-in-out forwards; }
+.floater__body { width: 60px; transform: rotate(35deg); animation: floatSpin 3.1s ease-in-out forwards; }
 .floater__body svg { width: 100%; height: auto; display: block; }
-.floater__body .astro__flame { opacity: 0; }
-.floater__body .astro__arm--r { animation: astroWave 0.5s ease-in-out infinite; }
+.floater__body .astro__flame { opacity: 1; animation: flameFlicker 0.09s steps(2) infinite alternate; }
 .floater__tag {
   margin: 0 auto 4px;
   width: max-content;
@@ -1542,7 +1537,7 @@
   0% { transform: translate(0, 0) scale(1); opacity: 1; }
   100% { transform: translate(120px, -150px) scale(0.55); opacity: 0; }
 }
-@keyframes floatSpin { 0% { transform: rotate(-12deg); } 50% { transform: rotate(14deg); } 100% { transform: rotate(-20deg); } }
+@keyframes floatSpin { 0% { transform: rotate(30deg); } 50% { transform: rotate(40deg); } 100% { transform: rotate(34deg); } }
 
 /* bet panel */
 .crash-bet { padding: 12px 14px; }

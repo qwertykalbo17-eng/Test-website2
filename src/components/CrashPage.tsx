@@ -50,48 +50,42 @@ interface Particle {
   color: string;
 }
 
-/* ---------- the astronaut (original character, drawn in code) ---------- */
+/* ---------- the rocket (original design, drawn in code) ---------- */
 
-function Astronaut() {
+function Rocket() {
   return (
     <svg viewBox="0 0 120 140" width={ASTRO_W} height={ASTRO_H} aria-hidden="true">
+      <defs>
+        <clipPath id="rocket-body">
+          <path d="M60 4 C86 22 92 60 88 112 L32 112 C28 60 34 22 60 4 Z" />
+        </clipPath>
+      </defs>
       {/* flame */}
       <g className="astro__flame">
-        <path d="M44 112 Q60 170 76 112 Z" fill="#ff7a2f" />
-        <path d="M50 112 Q60 150 70 112 Z" fill="#ffd54a" />
-        <path d="M55 112 Q60 134 65 112 Z" fill="#fff6d0" />
+        <path d="M42 114 Q60 178 78 114 Z" fill="#ff7a2f" />
+        <path d="M49 114 Q60 154 71 114 Z" fill="#ffd54a" />
+        <path d="M55 114 Q60 136 65 114 Z" fill="#fff6d0" />
       </g>
-      {/* backpack */}
-      <rect x="26" y="56" width="68" height="52" rx="14" fill="#2b3350" />
-      <rect x="36" y="104" width="12" height="9" rx="3" fill="#424c73" />
-      <rect x="72" y="104" width="12" height="9" rx="3" fill="#424c73" />
-      {/* legs + boots */}
-      <rect x="40" y="92" width="16" height="22" rx="7" fill="#e9edf7" />
-      <rect x="64" y="92" width="16" height="22" rx="7" fill="#e9edf7" />
-      <rect x="38" y="106" width="20" height="10" rx="5" fill="#00f5b4" />
-      <rect x="62" y="106" width="20" height="10" rx="5" fill="#00f5b4" />
+      {/* fins */}
+      <path d="M33 74 L10 116 L35 106 Z" fill="#00d89d" />
+      <path d="M87 74 L110 116 L85 106 Z" fill="#00d89d" />
+      {/* engine */}
+      <rect x="42" y="108" width="36" height="10" rx="4" fill="#2b3350" />
       {/* body */}
-      <rect x="32" y="58" width="56" height="42" rx="18" fill="#f4f6fc" />
-      <rect x="32" y="76" width="56" height="7" fill="#00f5b4" opacity="0.9" />
-      <circle cx="60" cy="68" r="4.5" fill="#00f5b4" />
-      {/* arms: left hand down at the side, right arm pointing up */}
-      <g className="astro__arm astro__arm--l">
-        <rect x="20" y="62" width="14" height="30" rx="7" fill="#e9edf7" />
-        <circle cx="27" cy="93" r="7" fill="#00f5b4" />
+      <path d="M60 4 C86 22 92 60 88 112 L32 112 C28 60 34 22 60 4 Z" fill="#f4f6fc" />
+      <g clipPath="url(#rocket-body)">
+        {/* nose cone */}
+        <rect x="20" y="0" width="80" height="36" fill="#00f5b4" />
+        {/* bands */}
+        <rect x="20" y="92" width="80" height="9" fill="#00f5b4" opacity="0.9" />
+        {/* shading */}
+        <rect x="68" y="0" width="30" height="120" fill="#cfd6ea" opacity="0.45" />
       </g>
-      <g className="astro__arm astro__arm--r">
-        <rect x="86" y="26" width="14" height="42" rx="7" fill="#e9edf7" />
-        <circle cx="93" cy="24" r="7.5" fill="#00f5b4" />
-      </g>
-      {/* helmet */}
-      <circle cx="60" cy="38" r="31" fill="#f4f6fc" />
-      <circle cx="60" cy="38" r="31" fill="none" stroke="#cfd6ea" strokeWidth="2" />
-      <rect x="35" y="22" width="50" height="33" rx="16" fill="#141a2c" />
-      <path d="M42 30 Q47 25 56 25" stroke="#7fe9ff" strokeWidth="3.2" strokeLinecap="round" fill="none" opacity="0.85" />
-      <circle cx="68" cy="45" r="2.2" fill="#7fe9ff" opacity="0.6" />
-      {/* antenna */}
-      <rect x="58.5" y="2" width="3" height="9" rx="1.5" fill="#cfd6ea" />
-      <circle cx="60" cy="3" r="4" fill="#00f5b4" />
+      <path d="M60 4 C86 22 92 60 88 112 L32 112 C28 60 34 22 60 4 Z" fill="none" stroke="#cfd6ea" strokeWidth="2" />
+      {/* porthole */}
+      <circle cx="60" cy="64" r="15" fill="#cfd6ea" />
+      <circle cx="60" cy="64" r="11.5" fill="#141a2c" />
+      <path d="M52 60 Q55 55 61 55" stroke="#7fe9ff" strokeWidth="3" strokeLinecap="round" fill="none" opacity="0.85" />
     </svg>
   );
 }
@@ -487,7 +481,7 @@ export default function CrashPage({ state, offset, coins, loggedIn, busy, onLogi
 
           <div className="astro" ref={astroRef}>
             <div className="astro__body">
-              <Astronaut />
+              <Rocket />
             </div>
           </div>
 
@@ -495,7 +489,7 @@ export default function CrashPage({ state, offset, coins, loggedIn, busy, onLogi
             <div key={f.key} className="floater" style={{ left: f.x - 30, top: f.y - 36 }}>
               <div className="floater__tag">{f.mult}x</div>
               <div className="floater__body">
-                <Astronaut />
+                <Rocket />
               </div>
             </div>
           ))}
