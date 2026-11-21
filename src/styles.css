@@ -196,8 +196,8 @@ img {
 }
 
 .navbar {
-  position: sticky;
-  top: 0;
+  /* stays at the top of the page and scrolls away with it (was sticky: it followed you down) */
+  position: relative;
   z-index: 50;
   background: rgba(13, 15, 20, 0.85);
   backdrop-filter: blur(12px);

@@ -879,12 +879,13 @@
   border: 1px solid var(--border);
   color: var(--muted);
 }
-.whist--3x { background: #3a2520; color: #d98b73; border-color: #4d3029; }
-.whist--5x { background: #1c3045; color: #7fb4e6; border-color: #254059; }
-.whist--10x { background: #33264d; color: #b79bf2; border-color: #43326a; }
-.whist--bonus { background: #143a2c; color: #3de0a0; border-color: #1b5440; }
-.whist--coinflip { background: #3d3112; color: #f0c64a; border-color: #5a4818; }
-.whist--crazytime { background: #4a1634; color: #ff6ec7; border-color: #7a2256; }
+.whist--2x { background: #2a3142; color: #8a94b0; border-color: #394158; }
+.whist--3x { background: #5a3412; color: #ffa34d; border-color: #7a4a1e; }
+.whist--5x { background: #1b3a66; color: #5aa9ff; border-color: #25508c; }
+.whist--10x { background: #3c2a66; color: #b08cff; border-color: #523a8a; }
+.whist--bonus { background: #14452c; color: #3de0a0; border-color: #1b6642; }
+.whist--coinflip { background: #4d3f0f; color: #ffd23f; border-color: #6e5a16; }
+.whist--crazytime { background: #5a1519; color: #ff3b47; border-color: #8a1f26; }
 
 /* the roulette strip */
 .wstrip {
@@ -954,13 +955,13 @@
 .wtile .wicon, .wbet__icon .wicon { width: 46%; height: 46%; }
 .wtile .wicon--img { object-fit: contain; border-radius: 50%; }
 .wtile__label { font-size: 12px; font-weight: 800; letter-spacing: 0.04em; opacity: 0.85; }
-.wtile--2x { background: #262d3f; color: #6c7590; }
-.wtile--3x { background: #5a3329; color: #94675a; border-color: rgba(255, 130, 90, 0.12); }
-.wtile--5x { background: #1f3550; color: #6e9ccc; }
-.wtile--10x { background: #3a2c5a; color: #9a83d6; }
-.wtile--bonus { background: #15432f; color: #3de0a0; border-color: rgba(61, 224, 160, 0.18); }
-.wtile--coinflip { background: #4a3a14; color: #f0c64a; border-color: rgba(240, 198, 74, 0.18); }
-.wtile--crazytime { background: #4d1738; color: #ff6ec7; border-color: rgba(255, 110, 199, 0.28); }
+.wtile--2x { background: #2a3142; color: #8a94b0; }
+.wtile--3x { background: #5a3412; color: #ffa34d; border-color: rgba(255, 163, 77, 0.3); }
+.wtile--5x { background: #1b3a66; color: #5aa9ff; border-color: rgba(90, 169, 255, 0.3); }
+.wtile--10x { background: #3c2a66; color: #b08cff; border-color: rgba(176, 140, 255, 0.3); }
+.wtile--bonus { background: #14452c; color: #3de0a0; border-color: rgba(61, 224, 160, 0.3); }
+.wtile--coinflip { background: #4d3f0f; color: #ffd23f; border-color: rgba(255, 210, 63, 0.3); }
+.wtile--crazytime { background: #5a1519; color: #ff3b47; border-color: rgba(255, 59, 71, 0.4); }
 .wtile.is-dim { opacity: 0.45; }
 .wtile.is-win {
   background: linear-gradient(160deg, #ff9763, #e0592d);
@@ -1051,8 +1052,8 @@
 }
 .wbonus--coinflip { background: radial-gradient(ellipse at 50% 0%, rgba(240, 198, 74, 0.18), transparent 70%), var(--surface-2); border-color: rgba(240, 198, 74, 0.35); }
 .wbonus--crazytime {
-  background: radial-gradient(ellipse at 50% 0%, rgba(255, 110, 199, 0.2), transparent 72%), var(--surface-2);
-  border-color: rgba(255, 110, 199, 0.4);
+  background: radial-gradient(ellipse at 50% 0%, rgba(255, 59, 71, 0.2), transparent 72%), var(--surface-2);
+  border-color: rgba(255, 59, 71, 0.45);
 }
 .wbonus__title { font-weight: 800; letter-spacing: 0.08em; font-size: 13px; color: var(--muted); }
 .wbonus__mult { margin-top: 6px; font-size: 52px; font-weight: 900; line-height: 1.1; color: var(--text); font-variant-numeric: tabular-nums; }
@@ -1153,7 +1154,7 @@
 .wcrazy__caption.is-double { color: #f0c64a; text-shadow: 0 0 14px rgba(240, 198, 74, 0.5); }
 .crazy-wheel-wrap { width: min(100%, 340px); margin: 6px auto 0; }
 .crazy-wheel { display: block; width: 100%; height: auto; filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.45)); }
-.crazy-wheel__bg { fill: #0b0e16; stroke: rgba(255, 110, 199, 0.45); stroke-width: 1.5; }
+.crazy-wheel__bg { fill: #0b0e16; stroke: rgba(255, 59, 71, 0.45); stroke-width: 1.5; }
 .crazy-slot { stroke: rgba(0, 0, 0, 0.55); stroke-width: 1; transition: filter 0.2s; }
 .crazy-slot--10 { fill: #2b4a7a; }
 .crazy-slot--20 { fill: #2f6b4f; }
@@ -1180,9 +1181,9 @@
   stroke-width: 2px;
 }
 .crazy-slot__label--double { fill: #1b1300; stroke: none; }
-.crazy-wheel__hub { fill: #121722; stroke: rgba(255, 110, 199, 0.6); stroke-width: 2; }
+.crazy-wheel__hub { fill: #121722; stroke: rgba(255, 59, 71, 0.6); stroke-width: 2; }
 .crazy-wheel__hub-text {
-  fill: #ff9ad8;
+  fill: #ff6b74;
   font-size: 11px;
   font-weight: 900;
   text-anchor: middle;
@@ -1567,7 +1568,7 @@
 .wtile--cz-30     { background: #3a2c5a; color: #b79bf2; }
 .wtile--cz-50     { background: #5a3329; color: #ff9a55; }
 .wtile--cz-100    { background: #4a3a14; color: #ffd54a; border-color: rgba(240, 198, 74, 0.35); }
-.wtile--cz-double { background: #4a1d26; color: #ff7a8c; border-color: rgba(255, 92, 108, 0.35); }
+.wtile--cz-double { background: #0f4552; color: #22d3ee; border-color: rgba(34, 211, 238, 0.4); }
 .wtile__cz { font-size: 22px; font-weight: 900; letter-spacing: 0.02em; }
 .wtile.is-landed {
   border-color: var(--ac);
