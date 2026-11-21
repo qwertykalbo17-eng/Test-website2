@@ -1405,6 +1405,25 @@
   box-shadow: 0 0 12px rgba(46, 226, 125, 0.35);
 }
 .wheel-bet__note { flex-basis: 100%; font-size: 12px; font-weight: 700; color: #ffb066; }
+/* Admin: slim tab bar right under the site navigation, one row */
+.admin-tabs {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+  max-width: none;
+  margin: -12px 0 16px;
+  padding: 0 0 10px;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  overflow-x: auto;
+}
+.admin-tabs .auth-tabs__tab {
+  flex: 0 0 auto;
+  padding: 8px 18px;
+  border-radius: 9px;
+}
 
 /* ---------- Crash ---------- */
 

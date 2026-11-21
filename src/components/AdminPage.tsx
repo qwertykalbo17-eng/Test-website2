@@ -18,13 +18,6 @@ export default function AdminPage({ catalog, onItemsChanged, onError }: Props) {
 
   return (
     <>
-      <div className="hero">
-        <div>
-          <h1>Admin panel</h1>
-          <p className="muted">Manage marketplace stock and players.</p>
-        </div>
-      </div>
-
       <div className="auth-tabs admin-tabs" role="tablist">
         <button className={`auth-tabs__tab ${tab === "stock" ? "is-active" : ""}`} onClick={() => setTab("stock")}>
           Stock
