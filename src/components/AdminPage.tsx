@@ -404,8 +404,12 @@ function WheelTab({ onError }: { onError: (m: string) => void }) {
             <span>Coinflip result</span>
             <select className="input" value={mult} onChange={(e) => setMult(e.target.value)}>
               <option value="">Random</option>
-              <option value="7">Heads · 7x</option>
-              <option value="25">Tails · 25x</option>
+              <optgroup label="Heads">
+                {Array.from({ length: 8 }, (_, i) => i + 3).map((m) => <option key={m} value={m}>Heads · {m}x</option>)}
+              </optgroup>
+              <optgroup label="Tails">
+                {Array.from({ length: 90 }, (_, i) => i + 11).map((m) => <option key={m} value={m}>Tails · {m}x</option>)}
+              </optgroup>
             </select>
           </label>
         )}
@@ -414,7 +418,7 @@ function WheelTab({ onError }: { onError: (m: string) => void }) {
             <span>Bonus multiplier</span>
             <select className="input" value={mult} onChange={(e) => setMult(e.target.value)}>
               <option value="">Random</option>
-              {Array.from({ length: 89 }, (_, i) => i + 11).map((m) => <option key={m} value={m}>{m}x</option>)}
+              {Array.from({ length: 91 }, (_, i) => i + 10).map((m) => <option key={m} value={m}>{m}x</option>)}
             </select>
           </label>
         )}
@@ -481,8 +485,8 @@ const ODDS_GROUPS: { kind: keyof WheelOdds; title: string; hint: string; label: 
   {
     kind: "coinflip",
     title: "Coinflip result",
-    hint: "Heads pays 7x, Tails pays 25x.",
-    label: (k) => (k === "7" ? "Heads 7x" : "Tails 25x"),
+    hint: "Heads pays 3x-10x, Tails pays 11x-100x (lower multipliers are more common).",
+    label: (k) => (k === "7" ? "Heads 3x-10x" : "Tails 11x-100x"),
     order: ["7", "25"],
   },
 ];
@@ -577,7 +581,7 @@ function OddsPanel({ onError }: { onError: (m: string) => void }) {
       <h2>Wheel odds</h2>
       <p className="muted">
         Type any weights, they do not need to add up to 100. The percentage next to each box is its real chance. Changes apply from
-        the next round that starts. Bonus keeps its 11x–99x spread (lower is more common).
+        the next round that starts. Bonus keeps its 10x–100x spread (lower is more common).
       </p>
       {ODDS_GROUPS.map((g) => {
         const total = g.order.reduce((a, k) => a + (Number(odds[g.kind][k]) || 0), 0);

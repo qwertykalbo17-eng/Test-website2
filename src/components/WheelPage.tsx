@@ -57,8 +57,8 @@ const WEIGHTS: [WheelTarget, number][] = [
 
 const WEIGHT_TOTAL = WEIGHTS.reduce((sum, [, w]) => sum + w, 0);
 
-const BONUS_MIN = 11;
-const BONUS_MAX = 99;
+const BONUS_MIN = 10;
+const BONUS_MAX = 100;
 
 const COUNT = 62;
 const START = 7;
@@ -774,7 +774,7 @@ export default function WheelPage({
     const el = coinRef.current;
     if (!el) return;
 
-    const targetOffset = state?.mult === 25 ? 180 : 0;
+    const targetOffset = (state?.mult ?? 0) >= 11 ? 180 : 0;
     const coinDur = bonusAnimMs("coinflip", roundEnds - spinEnds);
     let raf = 0;
 
@@ -1013,7 +1013,7 @@ export default function WheelPage({
 
   function selectArrowWhenHit(color: CrazyArrowColor) {
     if (!spun || result !== "crazytime") return;
-    if (arrowLocked) return;
+    if (arrowLocked || !hasCrazyPlayer || !inCrazyPickPhase) return;
     setChosenArrow(color);
     setArrowLocked(true);
     if (loggedIn && onChooseArrow && state) {
@@ -1037,7 +1037,7 @@ export default function WheelPage({
     if (target === "3x") return `${3 * m}x`;
     if (target === "5x") return `${5 * m}x`;
     if (target === "10x") return `${10 * m}x`;
-    if (target === "coinflip") return `${7 * m}x / ${25 * m}x`;
+    if (target === "coinflip") return m > 1 ? `Up to ${100 * m}x` : "Up to 100x";
     if (target === "crazytime") {
       return m > 1 ? `Up to ${100 * m}x` : "Up to 100x";
     }
@@ -1048,7 +1048,10 @@ export default function WheelPage({
   const progress = state ? Math.min(1, Math.max(0, (bettingEnds - now) / 11000)) : 0;
   const winIndex = spun && result && !crazyMode ? RES : null;
 
-  const inCrazyPickPhase = spun && result === "crazytime" && bonusElapsed < pickWindow && !arrowLocked;
+  /** only players who bet on Crazy Time pick an arrow; everyone else just watches */
+  const hasCrazyPlayer = (state?.mine?.crazytime ?? 0) > 0;
+  const inCrazyPickPhase = spun && result === "crazytime" && bonusElapsed < pickWindow && (!hasCrazyPlayer || !arrowLocked);
+  const canPickArrow = inCrazyPickPhase && hasCrazyPlayer && !arrowLocked;
   const crazyPickSecondsLeft = Math.max(0, Math.ceil((pickWindow - bonusElapsed) / 1000));
 
   /* Cash Hunt */
@@ -1091,7 +1094,7 @@ export default function WheelPage({
   let crazyCaptionDouble = false;
   if (crazyPlan) {
     if (inCrazyPickPhase) {
-      crazyCaption = `Pick your arrow · ${crazyPickSecondsLeft}s`;
+      crazyCaption = hasCrazyPlayer ? `Pick your arrow · ${crazyPickSecondsLeft}s` : `Players are picking an arrow · ${crazyPickSecondsLeft}s`;
     } else if (crazyStageNow < 0) {
       crazyCaption = "Arrows ready…";
     } else if (crazySpinSeg === 0) {
@@ -1145,7 +1148,9 @@ export default function WheelPage({
                   ? "Bonus round!"
                   : result === "crazytime"
                     ? inCrazyPickPhase
-                      ? `Crazy Time! Pick Arrow · ${crazyPickSecondsLeft}s`
+                      ? hasCrazyPlayer
+                        ? `Crazy Time! Pick Arrow · ${crazyPickSecondsLeft}s`
+                        : "Crazy Time!"
                       : "Crazy Time 3-Arrow Spin!"
                     : result === "cashhunt"
                       ? inHuntPick
@@ -1249,7 +1254,7 @@ export default function WheelPage({
                     const info = crazyBonus.arrows[a.color];
                     const landed = crazyPlan ? crazyPlan.paths[a.color].slice(0, crazyDone) : [];
                     const lastText = info.steps[landed.length - 1];
-                    const isPicked = chosenArrow === a.color;
+                    const isPicked = hasCrazyPlayer && chosenArrow === a.color;
                     const isTop = bonusDone && info.finalMult === highestCrazyMult;
 
                     // real values from the result, no fake counting
@@ -1267,7 +1272,7 @@ export default function WheelPage({
                       <div
                         key={a.color}
                         onClick={() => selectArrowWhenHit(a.color)}
-                        style={{ cursor: inCrazyPickPhase ? "pointer" : "default" }}
+                        style={{ cursor: canPickArrow ? "pointer" : "default" }}
                         className={`wcrazy__card wcrazy__card--${a.color} ${isPicked ? "is-chosen" : ""} ${
                           isTop ? "is-top" : ""
                         }`}
@@ -1285,7 +1290,9 @@ export default function WheelPage({
                           {bonusDone
                             ? info.steps.join(" → ")
                             : inCrazyPickPhase
-                              ? "Tap to pick"
+                              ? hasCrazyPlayer
+                                ? arrowLocked ? "Picked" : "Tap to pick"
+                                : "Waiting…"
                               : landed.length
                                 ? info.steps.slice(0, landed.length).join(" → ")
                                 : "Spinning…"}
@@ -1350,14 +1357,14 @@ export default function WheelPage({
             ) : (
               <>
                 <div className="wbonus__title">
-                  COINFLIP BONUS · Heads {7 * resultBoost}x · Tails {25 * resultBoost}x
+                  COINFLIP BONUS · Heads {3 * resultBoost}x–{10 * resultBoost}x · Tails {11 * resultBoost}x–{100 * resultBoost}x
                 </div>
 
                 <div
                   ref={coinRef}
                   className="wbonus__coin"
                   style={{
-                    transform: `rotateY(${state?.mult === 25 ? 180 : 0}deg)`,
+                    transform: `rotateY(${(state?.mult ?? 0) >= 11 ? 180 : 0}deg)`,
                   }}
                 >
                   <img src={img("heads.webp")} alt="Heads" className="wbonus__face" />
