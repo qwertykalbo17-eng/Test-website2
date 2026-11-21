@@ -321,10 +321,10 @@ function StockTab({ catalog, onChanged, onError }: { catalog: Item[]; onChanged:
   );
 }
 
-const SEGMENTS: WheelTarget[] = ["2x", "3x", "5x", "10x", "coinflip", "bonus", "crazytime", "cashhunt"];
+const SEGMENTS: WheelTarget[] = ["2x", "3x", "5x", "10x", "coinflip", "bonus", "cashhunt", "crazytime"];
 const BOOSTS = [2, 3, 4, 5, 7, 10, 15, 25, 50];
 const segLabel = (t: WheelTarget) =>
-  t === "coinflip" ? "Coinflip" : t === "bonus" ? "Random Multiplier" : t === "crazytime" ? "Triple Arrow" : t === "cashhunt" ? "Box Hunt" : t;
+  t === "coinflip" ? "Coinflip" : t === "bonus" ? "Random Multiplier" : t === "crazytime" ? "Triple Arrow" : t === "cashhunt" ? "Mystery Box" : t;
 
 function WheelTab({ onError }: { onError: (m: string) => void }) {
   const [result, setResult] = useState<string>("");
@@ -473,7 +473,7 @@ const ODDS_GROUPS: { kind: keyof WheelOdds; title: string; hint: string; label: 
     title: "Winning segment",
     hint: "Chance of each segment winning.",
     label: (k) => segLabel(k as WheelTarget),
-    order: ["2x", "3x", "5x", "10x", "coinflip", "bonus", "crazytime", "cashhunt"],
+    order: ["2x", "3x", "5x", "10x", "coinflip", "bonus", "cashhunt", "crazytime"],
   },
   {
     kind: "boost",

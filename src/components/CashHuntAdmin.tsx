@@ -15,7 +15,7 @@ export default function CashHuntAdmin({ onError }: { onError: (m: string) => voi
   const load = () =>
     adminCashHuntGet()
       .then((list) => setRows((list ?? []).map((r) => ({ mult: String(r.mult), weight: String(r.weight) }))))
-      .catch((e) => onError(e instanceof Error ? e.message : "Couldn't load Box Hunt."));
+      .catch((e) => onError(e instanceof Error ? e.message : "Couldn't load Mystery Box."));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { void load(); }, []);
 
@@ -44,7 +44,7 @@ export default function CashHuntAdmin({ onError }: { onError: (m: string) => voi
     try {
       await adminCashHuntSet(out);
       await load();
-      setMsg("Saved. It applies from the next Box Hunt round that starts.");
+      setMsg("Saved. It applies from the next Mystery Box round that starts.");
     } catch (e) {
       onError(e instanceof Error ? e.message : "Something went wrong.");
     } finally {
@@ -57,7 +57,7 @@ export default function CashHuntAdmin({ onError }: { onError: (m: string) => voi
 
   return (
     <div className="panel admin-wheel">
-      <h2>Box Hunt multipliers</h2>
+      <h2>Mystery Box multipliers</h2>
       <p className="muted">
         Each of the 9 boxes is drawn from this list. Weight = how common that multiplier is (they do not need to add up to 100).
         A wheel boost on Cash Hunt multiplies every box. Average box right now: <strong>{avg.toFixed(1)}x</strong>.
@@ -85,7 +85,7 @@ export default function CashHuntAdmin({ onError }: { onError: (m: string) => voi
         <button className="btn btn--ghost" disabled={busy || rows.length >= 40} onClick={() => setRows((all) => [...(all ?? []), { mult: "", weight: "1" }])}>
           Add multiplier
         </button>
-        <button className="btn btn--primary" disabled={busy} onClick={save}>Save Box Hunt</button>
+        <button className="btn btn--primary" disabled={busy} onClick={save}>Save Mystery Box</button>
       </div>
       {msg && <p className="muted">{msg}</p>}
     </div>

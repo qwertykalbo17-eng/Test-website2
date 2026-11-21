@@ -24,7 +24,7 @@ interface Props {
   onRepeat: (bets: [WheelTarget, number][]) => Promise<boolean>;
 }
 
-const TARGETS: WheelTarget[] = ["2x", "3x", "5x", "10x", "coinflip", "bonus", "crazytime", "cashhunt"];
+const TARGETS: WheelTarget[] = ["2x", "3x", "5x", "10x", "coinflip", "bonus", "cashhunt", "crazytime"];
 
 const LABEL: Record<WheelTarget, string> = {
   "2x": "2X",
@@ -34,7 +34,7 @@ const LABEL: Record<WheelTarget, string> = {
   coinflip: "COINFLIP",
   bonus: "RANDOM MULTI",
   crazytime: "TRIPLE ARROW",
-  cashhunt: "BOX HUNT",
+  cashhunt: "MYSTERY BOX",
 };
 
 const ARROWS: { color: CrazyArrowColor; label: string }[] = [
@@ -437,10 +437,25 @@ function Icon({ kind }: { kind: WheelTarget }) {
   if (kind === "cashhunt") {
     return (
       <svg viewBox="0 0 32 32" className="wicon" aria-hidden="true">
-        <path d="M16 3.5l11 5.2v14.6L16 28.5 5 23.3V8.7z" fill="currentColor" opacity="0.4" />
-        <path d="M16 3.5l11 5.2-11 5.2-11-5.2z" fill="currentColor" />
-        <path d="M16 13.9v14.6" stroke="currentColor" strokeWidth="2" fill="none" />
-        <path d="M27 8.7v14.6L16 28.5V13.9z" fill="currentColor" opacity="0.7" />
+        <path
+          d="M11 12.2C11 8.9 13.2 7 16.1 7c2.9 0 5 1.8 5 4.5 0 1.9-1 3-2.6 4.1-1.4 1-2 1.7-2 3.2v.7"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="3.4"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <circle cx="16.5" cy="25" r="2.2" fill="currentColor" />
+      </svg>
+    );
+  }
+
+  if (kind === "coinflip") {
+    return (
+      <svg viewBox="0 0 32 32" className="wicon" aria-hidden="true">
+        <circle cx="16" cy="16" r="11.5" fill="none" stroke="currentColor" strokeWidth="2.6" />
+        <circle cx="16" cy="16" r="6.5" fill="currentColor" opacity="0.4" />
+        <path d="M16 11v10M13.2 13.2c.5-.8 1.4-1.2 2.6-1.2 1.4 0 2.3.6 2.3 1.6 0 2-4.6 1-4.6 3.2 0 1 1 1.6 2.4 1.6 1 0 1.9-.4 2.4-1.2" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
       </svg>
     );
   }
@@ -536,7 +551,7 @@ const Strip = memo(function Strip({
           >
             <Icon kind={t} />
             <span className="wtile__label">
-              {t === "bonus" ? "RANDOM" : t === "coinflip" ? "FLIP" : t === "crazytime" ? "ARROWS" : t === "cashhunt" ? "BOX" : LABEL[t]}
+              {t === "bonus" ? "RANDOM" : t === "coinflip" ? "FLIP" : t === "crazytime" ? "ARROWS" : t === "cashhunt" ? "MYSTERY" : LABEL[t]}
             </span>
           </div>
         );
@@ -1153,8 +1168,8 @@ export default function WheelPage({
                     : result === "cashhunt"
                       ? inHuntPick
                         ? hasHuntBet
-                          ? `Box Hunt! Pick a box · ${huntPickSecondsLeft}s`
-                          : "Box Hunt!"
+                          ? `Mystery Box! Pick a box · ${huntPickSecondsLeft}s`
+                          : "Mystery Box!"
                         : "Opening the boxes…"
                       : "Coinflip bonus!"
                 : result === "crazytime"
@@ -1318,7 +1333,7 @@ export default function WheelPage({
             ) : result === "cashhunt" ? (
               <div className="whunt">
                 <div className="wbonus__title">
-                  BOX HUNT
+                  MYSTERY BOX
                   {resultBoost > 1 ? ` · BOOST ${resultBoost}x` : ""}
                 </div>
 
