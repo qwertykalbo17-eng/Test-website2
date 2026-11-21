@@ -45,6 +45,10 @@ export const wheelBet = (roundId: number, target: WheelTarget, amount: number) =
 export const wheelSetArrow = (roundId: number, arrow: CrazyArrowColor) =>
   rpc<void>("wheel_set_arrow", { p_round: roundId, p_arrow: arrow });
 
+/** Pick one of the 9 Cash Hunt boxes (1-9). You can change it until the pick window closes. */
+export const wheelHuntPick = (roundId: number, box: number) =>
+  rpc<void>("wheel_hunt_pick", { p_round: roundId, p_box: box });
+
 // ---- Crash ----
 
 /** Current crash round: times, totals, your bet, and the crash point once it has crashed. */
@@ -124,3 +128,13 @@ export const adminCrashGetQueue = () => rpc<number[]>("admin_crash_get_queue", {
 
 /** Replace the queue (max 5 crash points, 1.00 to 15000). Pass [] to clear. */
 export const adminCrashSetQueue = (points: number[]) => rpc<void>("admin_crash_set_queue", { p_points: points });
+export interface CashHuntRow {
+  mult: number;
+  weight: number;
+}
+
+/** The pool of multipliers the 9 Cash Hunt boxes are drawn from. */
+export const adminCashHuntGet = () => rpc<CashHuntRow[]>("admin_cashhunt_get", {});
+
+/** Replace the pool (max 40 rows, unique multipliers, at least one weight above 0). */
+export const adminCashHuntSet = (rows: CashHuntRow[]) => rpc<void>("admin_cashhunt_set", { p_rows: rows });

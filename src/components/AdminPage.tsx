@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { adminCrashGetQueue, adminCrashSetQueue, adminGiveCoins, adminListPlayers, adminSetStock, adminWheelGetNext, adminWheelGetOdds, adminWheelSetNext, adminWheelSetOdds } from "../api";
 import type { WheelNext, WheelOdds } from "../api";
+import CashHuntAdmin from "./CashHuntAdmin";
 import { useCoin } from "../coin";
 import type { AdminPlayer, Item, WheelTarget } from "../types";
 import { formatValue, img } from "../utils";
@@ -49,6 +50,7 @@ export default function AdminPage({ catalog, onItemsChanged, onError }: Props) {
         <>
           <WheelTab onError={onError} />
           <OddsPanel onError={onError} />
+          <CashHuntAdmin onError={onError} />
         </>
       )}
     </>
@@ -326,10 +328,10 @@ function StockTab({ catalog, onChanged, onError }: { catalog: Item[]; onChanged:
   );
 }
 
-const SEGMENTS: WheelTarget[] = ["2x", "3x", "5x", "10x", "coinflip", "bonus", "crazytime"];
+const SEGMENTS: WheelTarget[] = ["2x", "3x", "5x", "10x", "coinflip", "bonus", "crazytime", "cashhunt"];
 const BOOSTS = [2, 3, 4, 5, 7, 10, 15, 25, 50];
 const segLabel = (t: WheelTarget) =>
-  t === "coinflip" ? "Coinflip" : t === "bonus" ? "Bonus" : t === "crazytime" ? "Crazy Time" : t;
+  t === "coinflip" ? "Coinflip" : t === "bonus" ? "Bonus" : t === "crazytime" ? "Crazy Time" : t === "cashhunt" ? "Cash Hunt" : t;
 
 function WheelTab({ onError }: { onError: (m: string) => void }) {
   const [result, setResult] = useState<string>("");
@@ -474,7 +476,7 @@ const ODDS_GROUPS: { kind: keyof WheelOdds; title: string; hint: string; label: 
     title: "Winning segment",
     hint: "Chance of each segment winning.",
     label: (k) => segLabel(k as WheelTarget),
-    order: ["2x", "3x", "5x", "10x", "coinflip", "bonus", "crazytime"],
+    order: ["2x", "3x", "5x", "10x", "coinflip", "bonus", "crazytime", "cashhunt"],
   },
   {
     kind: "boost",
@@ -509,7 +511,7 @@ function OddsPanel({ onError }: { onError: (m: string) => void }) {
         const next: Record<string, Record<string, string>> = {};
         for (const g of ODDS_GROUPS) {
           next[g.kind] = {};
-          for (const k of g.order) next[g.kind][k] = String(raw[g.kind]?.[k] ?? (g.kind === "segment" && k === "crazytime" ? 3 : 0));
+          for (const k of g.order) next[g.kind][k] = String(raw[g.kind]?.[k] ?? (g.kind === "segment" && (k === "crazytime" ? 3 : k === "cashhunt" ? 6 : 0)));
         }
         setOdds(next);
 

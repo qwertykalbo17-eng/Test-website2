@@ -75,7 +75,7 @@ export interface LeaderboardEntry {
   profit: number;
 }
 
-export type WheelTarget = "2x" | "3x" | "5x" | "10x" | "coinflip" | "bonus" | "crazytime";
+export type WheelTarget = "2x" | "3x" | "5x" | "10x" | "coinflip" | "bonus" | "crazytime" | "cashhunt";
 
 export type CrazyArrowColor = "red" | "green" | "blue";
 
@@ -99,6 +99,12 @@ export interface CrazyBonusData {
   arrows: Record<CrazyArrowColor, CrazyArrowOutcome>;
 }
 
+/** Cash Hunt: the 9 boxes (boost already included). Sent once the 8 s pick window has closed. */
+export interface CashHuntData {
+  boxes: number[];
+  boost: number;
+}
+
 /** What the `wheel_state()` function returns. Times are milliseconds since 1970 (server clock). */
 export interface WheelState {
   now: number;
@@ -120,6 +126,10 @@ export interface WheelState {
   crazy_bonus?: CrazyBonusData | null;
   /** The current player's chosen arrow color when Crazy Time hits */
   my_arrow?: CrazyArrowColor | null;
+  /** Cash Hunt: the revealed boxes (null while picking) */
+  cash_hunt?: CashHuntData | null;
+  /** Cash Hunt: the box (1-9) you picked */
+  my_box?: number | null;
   totals: Partial<Record<WheelTarget, { coins: number; players: number }>>;
   mine: Partial<Record<WheelTarget, number>>;
   history: { id: number; result: WheelTarget; mult: number }[];

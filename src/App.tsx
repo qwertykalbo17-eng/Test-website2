@@ -10,6 +10,7 @@ import {
   markSeen,
   sellItems,
   wheelBet,
+  wheelHuntPick,
   wheelSetArrow,
 } from "./api";
 import { CoinContext } from "./coin";
@@ -408,6 +409,7 @@ export default function App() {
             onLogin={() => setAuthOpen(true)}
             onBet={handleWheelBet}
             onChooseArrow={(roundId, arrow) => wheelSetArrow(roundId, arrow)}
+            onChooseBox={(roundId, box) => wheelHuntPick(roundId, box)}
             onRepeat={handleWheelRepeat}
             onRefresh={wheel.refresh}
             onRoundEnd={() => {

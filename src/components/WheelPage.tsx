@@ -14,6 +14,8 @@ interface Props {
   onBet: (target: WheelTarget, amount: number) => Promise<void>;
   /** persists the player's chosen Red/Green/Blue arrow when Crazy Time hits */
   onChooseArrow?: (roundId: number, arrow: CrazyArrowColor) => Promise<void>;
+  /** saves the Cash Hunt box (1-9) the player picked */
+  onChooseBox?: (roundId: number, box: number) => Promise<void>;
   /** the round is over: reload the wheel and your coins */
   onRoundEnd: () => void;
   /** reload the wheel (used to fetch the result as soon as betting closes) */
@@ -22,7 +24,7 @@ interface Props {
   onRepeat: (bets: [WheelTarget, number][]) => Promise<boolean>;
 }
 
-const TARGETS: WheelTarget[] = ["2x", "3x", "5x", "10x", "coinflip", "bonus", "crazytime"];
+const TARGETS: WheelTarget[] = ["2x", "3x", "5x", "10x", "coinflip", "bonus", "crazytime", "cashhunt"];
 
 const LABEL: Record<WheelTarget, string> = {
   "2x": "2X",
@@ -32,6 +34,7 @@ const LABEL: Record<WheelTarget, string> = {
   coinflip: "COINFLIP",
   bonus: "BONUS",
   crazytime: "CRAZY TIME",
+  cashhunt: "CASH HUNT",
 };
 
 const ARROWS: { color: CrazyArrowColor; label: string }[] = [
@@ -49,6 +52,7 @@ const WEIGHTS: [WheelTarget, number][] = [
   ["coinflip", 7],
   ["bonus", 5],
   ["crazytime", 3],
+  ["cashhunt", 3],
 ];
 
 const WEIGHT_TOTAL = WEIGHTS.reduce((sum, [, w]) => sum + w, 0);
@@ -67,12 +71,17 @@ const BONUS_ANIM = 7500;
 const CRAZY_PICK_WINDOW = 5000;
 /** Upper limit only: the real length is whatever the round gives (see crazy_timing.sql). */
 const CRAZY_ANIM = 60000;
+/** Cash Hunt: 8 s to pick a box, then 5 s while the boxes open. Must match wheel_hunt_pick() / wheel_state(). */
+const HUNT_PICK_WINDOW = 8000;
+const HUNT_REVEAL = 5000;
+/** gap between two boxes opening */
+const HUNT_STAGGER = 350;
 /** The finished result stays on screen this long before the next round starts. */
 const RESULT_HOLD = 3000;
 
 /** How long a bonus animation plays, leaving RESULT_HOLD of the round for showing the result. */
 function bonusAnimMs(result: WheelTarget | null, windowMs: number): number {
-  const full = result === "crazytime" ? CRAZY_ANIM : BONUS_ANIM;
+  const full = result === "crazytime" ? CRAZY_ANIM : result === "cashhunt" ? HUNT_PICK_WINDOW + HUNT_REVEAL : BONUS_ANIM;
   return Math.max(1500, Math.min(full, Math.max(1000, windowMs) - RESULT_HOLD));
 }
 
@@ -427,6 +436,17 @@ function Icon({ kind }: { kind: WheelTarget }) {
     );
   }
 
+  if (kind === "cashhunt") {
+    return (
+      <svg viewBox="0 0 32 32" className="wicon" aria-hidden="true">
+        <rect x="4" y="4" width="10" height="10" rx="2.5" fill="currentColor" />
+        <rect x="18" y="4" width="10" height="10" rx="2.5" fill="currentColor" opacity="0.55" />
+        <rect x="4" y="18" width="10" height="10" rx="2.5" fill="currentColor" opacity="0.55" />
+        <rect x="18" y="18" width="10" height="10" rx="2.5" fill="currentColor" />
+      </svg>
+    );
+  }
+
   return <img className="wicon wicon--img" src={img("heads.webp")} alt="" />;
 }
 
@@ -518,7 +538,7 @@ const Strip = memo(function Strip({
           >
             <Icon kind={t} />
             <span className="wtile__label">
-              {t === "bonus" ? "BONUS" : t === "coinflip" ? "FLIP" : t === "crazytime" ? "CRAZY" : LABEL[t]}
+              {t === "bonus" ? "BONUS" : t === "coinflip" ? "FLIP" : t === "crazytime" ? "CRAZY" : t === "cashhunt" ? "HUNT" : LABEL[t]}
             </span>
           </div>
         );
@@ -538,6 +558,7 @@ export default function WheelPage({
   onLogin,
   onBet,
   onChooseArrow,
+  onChooseBox,
   onRoundEnd,
   onRefresh,
   onRepeat,
@@ -551,6 +572,8 @@ export default function WheelPage({
   const [arrowLocked, setArrowLocked] = useState(false);
   /** where the Crazy Time arrows are: -1 = not started, 2k = spin k running, 2k+1 = spin k landed */
   const [crazyStage, setCrazyStage] = useState(-1);
+  /** Cash Hunt: the box (1-9) you clicked, shown at once while the server saves it */
+  const [pickedBox, setPickedBox] = useState<number | null>(null);
 
   const viewportRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
@@ -599,6 +622,14 @@ export default function WheelPage({
     }
   }, [state?.id, state?.my_arrow]);
 
+  useEffect(() => {
+    setPickedBox(null);
+  }, [state?.id]);
+
+  useEffect(() => {
+    if (state?.my_box) setPickedBox(state.my_box);
+  }, [state?.my_box]);
+
   const now = clock + offset;
   const roundId = state?.id ?? 0;
 
@@ -646,7 +677,7 @@ export default function WheelPage({
     return copy;
   }, [tiles, result]);
 
-  const hasBonus = result === "bonus" || result === "coinflip" || result === "crazytime";
+  const hasBonus = result === "bonus" || result === "coinflip" || result === "crazytime" || result === "cashhunt";
   const resultBoost = result && boostTarget === result ? boostMult : 1;
 
   // the wheel is polled every 1.5s and gives a fresh object each time: compare by content
@@ -685,10 +716,18 @@ export default function WheelPage({
       ? crazyBonus.highestMult
       : null;
 
+  /* Cash Hunt: the boxes already include the boost */
+  const huntBoxes = result === "cashhunt" ? (state?.cash_hunt?.boxes ?? null) : null;
+  const myBox = state?.my_box ?? pickedBox;
+  const huntTop = huntBoxes ? Math.max(...huntBoxes) : null;
+  const huntMine = huntBoxes && myBox ? (huntBoxes[myBox - 1] ?? null) : null;
+
   const effectiveMult =
     result === "crazytime"
       ? chosenCrazyMult
-      : state?.mult != null
+      : result === "cashhunt"
+        ? huntMine ?? huntTop
+        : state?.mult != null
         ? state.mult * resultBoost
         : null;
 
@@ -781,12 +820,18 @@ export default function WheelPage({
     const t4 = setTimeout(onRefresh, reveal + 120);
     const t5 = setTimeout(onRefresh, reveal + 600);
 
+    const huntOpen = Math.max(0, state.spin_ends_at + HUNT_PICK_WINDOW - (Date.now() + offsetRef.current));
+    const t6 = setTimeout(onRefresh, huntOpen + 120);
+    const t7 = setTimeout(onRefresh, huntOpen + 600);
+
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);
       clearTimeout(t3);
       clearTimeout(t4);
       clearTimeout(t5);
+      clearTimeout(t6);
+      clearTimeout(t7);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state?.id, state?.betting_ends_at, state?.ends_at]);
@@ -846,7 +891,7 @@ export default function WheelPage({
   useEffect(() => {
     if (!state || !result || effectiveMult == null) return;
     if (phase !== "reveal" || reported.current === state.id) return;
-    if (result === "crazytime" && !bonusDone) return;
+    if ((result === "crazytime" || result === "cashhunt") && !bonusDone) return;
 
     reported.current = state.id;
 
@@ -976,8 +1021,17 @@ export default function WheelPage({
     }
   }
 
+  function pickBox(box: number) {
+    if (!inHuntPick || !hasHuntBet || !state) return;
+    const before = myBox;
+    setPickedBox(box);
+    onChooseBox?.(state.id, box).catch(() => setPickedBox(before));
+  }
+
   function multLabel(target: WheelTarget) {
     const m = boostTarget === target ? boostMult : 1;
+
+    if (target === "cashhunt") return m > 1 ? `Pick 1 of 9 · x${m}` : "Pick 1 of 9";
 
     if (target === "2x") return `${2 * m}x`;
     if (target === "3x") return `${3 * m}x`;
@@ -996,6 +1050,36 @@ export default function WheelPage({
 
   const inCrazyPickPhase = spun && result === "crazytime" && bonusElapsed < pickWindow && !arrowLocked;
   const crazyPickSecondsLeft = Math.max(0, Math.ceil((pickWindow - bonusElapsed) / 1000));
+
+  /* Cash Hunt */
+  const hasHuntBet = (state?.mine?.cashhunt ?? 0) > 0;
+  const inHuntPick = spun && result === "cashhunt" && bonusElapsed < HUNT_PICK_WINDOW;
+  const huntPickSecondsLeft = Math.max(0, Math.ceil((HUNT_PICK_WINDOW - bonusElapsed) / 1000));
+  const huntElapsed = bonusElapsed - HUNT_PICK_WINDOW;
+  /** the order the boxes open in: everyone else's first, your own box last */
+  const huntOrder = Array.from({ length: 9 }, (_, i) => i + 1).filter((b) => b !== myBox);
+  if (myBox && hasHuntBet) huntOrder.push(myBox);
+  const huntOpenAt = (box: number) => {
+    const pos = huntOrder.indexOf(box);
+    return pos * HUNT_STAGGER + (hasHuntBet && box === myBox ? 500 : 0);
+  };
+  const huntOpened = (box: number) => !!huntBoxes && (bonusDone || huntElapsed >= huntOpenAt(box));
+  const huntAllOpen = !!huntBoxes && (bonusDone || huntOrder.every((b) => huntElapsed >= huntOpenAt(b)));
+  const huntCaption = inHuntPick
+    ? hasHuntBet
+      ? `Pick a box · ${huntPickSecondsLeft}s`
+      : `Players are picking a box · ${huntPickSecondsLeft}s`
+    : !huntBoxes
+      ? "Opening the boxes…"
+      : !huntAllOpen
+        ? "Opening the boxes…"
+        : hasHuntBet
+          ? `Your box: ${huntMine ?? "?"}x`
+          : `Best box: ${huntTop}x`;
+  const huntTier = (v: number) => {
+    const b = v / Math.max(1, resultBoost);
+    return b < 10 ? "1" : b < 25 ? "2" : b < 60 ? "3" : "4";
+  };
 
   const crazySegs = crazyPlan?.segCount ?? 1;
   const crazyStageNow = bonusDone ? crazySegs * 2 - 1 : crazyStage;
@@ -1063,10 +1147,20 @@ export default function WheelPage({
                     ? inCrazyPickPhase
                       ? `Crazy Time! Pick Arrow · ${crazyPickSecondsLeft}s`
                       : "Crazy Time 3-Arrow Spin!"
-                    : "Coinflip bonus!"
+                    : result === "cashhunt"
+                      ? inHuntPick
+                        ? hasHuntBet
+                          ? `Cash Hunt! Pick a box · ${huntPickSecondsLeft}s`
+                          : "Cash Hunt!"
+                        : "Opening the boxes…"
+                      : "Coinflip bonus!"
                 : result === "crazytime"
                   ? `Top: ${highestCrazyMult}x`
-                  : `${effectiveMult}x`
+                  : result === "cashhunt"
+                    ? hasHuntBet
+                      ? `Your box: ${huntMine}x`
+                      : `Best box: ${huntTop}x`
+                    : `${effectiveMult}x`
               : "Next round starting…";
 
   return (
@@ -1214,6 +1308,43 @@ export default function WheelPage({
                       <b>{bonusDone ? `${highestCrazyMult}x` : "…"}</b>
                     </>
                   )}
+                </div>
+              </div>
+            ) : result === "cashhunt" ? (
+              <div className="whunt">
+                <div className="wbonus__title">
+                  CASH HUNT
+                  {resultBoost > 1 ? ` · BOOST ${resultBoost}x` : ""}
+                </div>
+
+                <div className="whunt__caption">{huntCaption}</div>
+
+                <div className="whunt__grid">
+                  {Array.from({ length: 9 }, (_, i) => {
+                    const box = i + 1;
+                    const opened = huntOpened(box);
+                    const val = huntBoxes?.[i];
+                    const isMine = myBox === box;
+                    const isTop = huntAllOpen && val != null && val === huntTop;
+                    const clickable = inHuntPick && hasHuntBet;
+                    return (
+                      <button
+                        key={box}
+                        type="button"
+                        disabled={!clickable}
+                        onClick={() => pickBox(box)}
+                        className={`whunt__box ${opened && val != null ? `is-open whunt__box--t${huntTier(val)}` : ""} ${
+                          isMine ? "is-mine" : ""
+                        } ${isTop ? "is-top" : ""} ${clickable ? "is-clickable" : ""} ${
+                          huntAllOpen && !isMine ? "is-dim" : ""
+                        }`}
+                      >
+                        <span className="whunt__num">{box}</span>
+                        <span className="whunt__val">{opened && val != null ? `${val}x` : "?"}</span>
+                        {isMine && <span className="whunt__tag">{opened ? "YOU" : "PICK"}</span>}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             ) : (
