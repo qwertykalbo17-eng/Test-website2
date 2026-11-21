@@ -33,6 +33,31 @@ const ASTRO_H = 98;
 const multAt = (sec: number) => Math.floor(Math.exp(RATE * Math.max(0, sec)) * 100) / 100;
 const fmt = (n: number) => Math.floor(n).toLocaleString("en-US");
 
+/** Heat to freeze: the live multiplier goes from deep red to ice blue as it climbs (log scale). */
+const HEAT: [number, [number, number, number]][] = [
+  [1, [255, 31, 31]],
+  [2, [255, 77, 46]],
+  [4, [255, 138, 61]],
+  [8, [255, 217, 184]],
+  [16, [191, 234, 255]],
+  [40, [111, 211, 255]],
+];
+
+function heatColor(m: number): string {
+  const x = Math.max(1, m);
+  let rgb = HEAT[HEAT.length - 1][1];
+  for (let i = 1; i < HEAT.length; i++) {
+    if (x <= HEAT[i][0]) {
+      const [m0, c0] = HEAT[i - 1];
+      const [m1, c1] = HEAT[i];
+      const t = (Math.log(x) - Math.log(m0)) / (Math.log(m1) - Math.log(m0));
+      rgb = [0, 1, 2].map((k) => Math.round(c0[k] + (c1[k] - c0[k]) * t)) as [number, number, number];
+      break;
+    }
+  }
+  return `${rgb[0]},${rgb[1]},${rgb[2]}`;
+}
+
 function tierOf(m: number): string {
   if (m < 2) return "1";
   if (m < 5) return "2";
@@ -256,6 +281,10 @@ export default function CrashPage({ state, offset, loggedIn, busy, onLogin, onBe
       const counter = counterRef.current;
       const sub = subRef.current;
       if (counter && sub) {
+        if (ph !== "flying") {
+          counter.style.color = "";
+          counter.style.textShadow = "";
+        }
         if (ph === "betting") {
           counter.textContent = `${secsLeft.toFixed(1)}s`;
           counter.dataset.tier = "idle";
@@ -263,6 +292,9 @@ export default function CrashPage({ state, offset, loggedIn, busy, onLogin, onBe
         } else if (ph === "flying") {
           counter.textContent = `${m.toFixed(2)}x`;
           counter.dataset.tier = tierOf(m);
+          const heat = heatColor(m);
+          counter.style.color = `rgb(${heat})`;
+          counter.style.textShadow = `0 0 28px rgba(${heat},0.6)`;
           sub.textContent = "";
         } else if (ph === "crashed") {
           counter.textContent = `${m.toFixed(2)}x`;

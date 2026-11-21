@@ -1922,3 +1922,6 @@ html, body { overflow-x: clip; }
   .wheel-bet__amount { margin-bottom: 6px; }
   .wheel-top { margin-bottom: 6px; gap: 4px 10px; }
 }
+
+/* Crash history: 10x and above is yellow instead of purple */
+.chist--big { background: #4a3d0c; color: #ffd54a; border-color: #6e5a16; }
