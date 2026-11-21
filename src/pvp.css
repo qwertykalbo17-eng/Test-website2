@@ -1483,7 +1483,7 @@
 /* waiting on the pad: small idle flame */
 .crash-stage[data-phase="betting"] .astro__flame { opacity: 0.6; animation: flameIdle 0.5s ease-in-out infinite alternate; }
 
-.crash-stage[data-phase="flying"] .astro__body { animation: astroFly 0.38s ease-in-out infinite alternate; }
+.crash-stage[data-phase="flying"] .astro__body { animation: none; }
 .crash-stage[data-phase="flying"] .astro__flame { opacity: 1; animation: flameFlicker 0.09s steps(2) infinite alternate; }
 
 .crash-stage[data-phase="crashed"] .astro__body { animation: astroCrash 0.9s ease-in forwards; }

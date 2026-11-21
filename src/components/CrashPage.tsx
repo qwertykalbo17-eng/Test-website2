@@ -23,8 +23,6 @@ type Phase = "loading" | "betting" | "flying" | "crashed";
 /** Must match the database: multiplier = e^(RATE * seconds since launch). */
 const RATE = 0.1;
 const BETTING_SECONDS = 10;
-/** The crash point is capped here (same cap in crash.sql). */
-const CRASH_MAX = 15000;
 const ASTRO_W = 84;
 const ASTRO_H = 98;
 
@@ -182,15 +180,15 @@ export default function CrashPage({ state, offset, coins, loggedIn, busy, onLogi
       // position of the astronaut: starts bottom-left, sweeps to the right, then climbs slowly
       // as the multiplier grows (all the way up at the 15000x cap)
       const lnM = Math.log(Math.max(1, m));
-      const xp = 1 - Math.exp(-lnM / 0.9); // ~half way across at 2x, almost there by 10x
-      const prog = Math.min(1, lnM / Math.log(CRASH_MAX)); // slow climb
-      const wob = ph === "flying" ? Math.sin(t / 260) * 4 : ph === "betting" ? Math.sin(t / 500) * 6 : 0;
+      // one straight diagonal, bottom-left to top-right, no wiggle
+      const prog = 1 - Math.exp(-lnM / 2.2);
+      const wob = ph === "betting" ? Math.sin(t / 500) * 6 : 0;
       if (ph !== "crashed") {
-        posRef.current = { x: w * (0.14 + 0.6 * xp), y: h * (0.8 - 0.5 * prog) + wob };
+        posRef.current = { x: w * (0.08 + 0.84 * prog), y: h * (0.86 - 0.72 * prog) + wob };
       }
       const { x: px, y: py } = posRef.current;
       // leans into the flight: nearly sideways at first, more upright as it climbs
-      const tilt = ph === "flying" ? 68 - 26 * prog : ph === "betting" ? 4 : 50;
+      const tilt = ph === "flying" ? 52 : ph === "betting" ? 4 : 50;
       astro.style.transform = `translate(${px - ASTRO_W / 2}px, ${py - ASTRO_H / 2}px) rotate(${tilt}deg)`;
 
       // phase changes
