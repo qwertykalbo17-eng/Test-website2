@@ -1451,7 +1451,7 @@
   box-shadow: 0 0 20px rgba(0, 245, 180, 0.25);
   transition: opacity 0.6s;
 }
-.crash-stage:not([data-phase="betting"]) .crash-stage__pad { opacity: 0; }
+.crash-stage__pad { display: none; }
 
 .crash-readout { position: absolute; top: 18px; left: 0; right: 0; text-align: center; pointer-events: none; z-index: 3; }
 .crash-readout__sub { min-height: 18px; font-weight: 800; letter-spacing: 0.14em; font-size: 13px; color: var(--muted); }
