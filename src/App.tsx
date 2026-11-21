@@ -57,7 +57,7 @@ type Theme = "normal" | "halloween" | "christmas";
 
 // The "as Theme" lets TypeScript accept the comparisons below for every theme
 // (without it, `npm run build` fails with "types have no overlap").
-const ACTIVE_THEME = "christmas" as Theme;
+const ACTIVE_THEME = "normal" as Theme;
 
 /** The coin icon changes with the theme: snowflake at Christmas, candy at Halloween. */
 const COIN_ICON = ACTIVE_THEME === "christmas" ? "❄️" : ACTIVE_THEME === "halloween" ? "🍬" : "🪙";
