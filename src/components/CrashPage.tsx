@@ -12,6 +12,10 @@ interface Props {
   onLogin: () => void;
   onBet: (amount: number, autoCashout: number | null) => Promise<void>;
   onCashout: () => Promise<void>;
+  /** Auto bet is on: your last bet is placed again at the start of every round (even on other pages) */
+  autoBet: boolean;
+  /** turn Auto bet on / off; the current amount and auto cash-out are what it will repeat */
+  onToggleAutoBet: (amount: number, autoCashout: number | null) => void;
   /** reload the round */
   onRefresh: () => void;
   /** the round is over: reload the round and your coins */
@@ -90,7 +94,7 @@ function Rocket() {
 
 /* ---------- the page ---------- */
 
-export default function CrashPage({ state, offset, coins, loggedIn, busy, onLogin, onBet, onCashout, onRefresh, onRoundEnd }: Props) {
+export default function CrashPage({ state, offset, loggedIn, busy, onLogin, onBet, onCashout, autoBet, onToggleAutoBet, onRefresh, onRoundEnd }: Props) {
   const coin = useCoin();
   const [amount, setAmount] = useState("");
   const [auto, setAuto] = useState("");
@@ -511,7 +515,7 @@ export default function CrashPage({ state, offset, coins, loggedIn, busy, onLogi
             <input
               className="input"
               inputMode="decimal"
-              placeholder="Auto cash-out (e.g. 2.5)"
+              placeholder="Auto cash-out"
               value={auto}
               onChange={(e) => setAuto(e.target.value.replace(/[^0-9.]/g, ""))}
             />
@@ -523,7 +527,13 @@ export default function CrashPage({ state, offset, coins, loggedIn, busy, onLogi
           <button className="chip-btn" onClick={() => setAmt(amountNum + 1000)}>+1K</button>
           <button className="chip-btn" onClick={() => setAmt(amountNum / 2)}>½</button>
           <button className="chip-btn" onClick={() => setAmt(amountNum * 2)}>2×</button>
-          <button className="chip-btn" onClick={() => setAmt(coins)}>Max</button>
+          <button
+            className={`chip-btn chip-btn--auto ${autoBet ? "is-on" : ""}`}
+            onClick={() => onToggleAutoBet(amountNum, autoValue)}
+            title="Place your bet again automatically at the start of every round"
+          >
+            Auto bet {autoBet ? "ON" : "OFF"}
+          </button>
           <button className="chip-btn chip-btn--clear" onClick={() => setAmt(0)}>Clear</button>
         </div>
         {action}

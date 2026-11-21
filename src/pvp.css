@@ -1648,3 +1648,110 @@
   .crash-readout__mult { font-size: 40px; }
   .crash-readout__mult[data-tier="idle"] { font-size: 30px; }
 }
+
+/* ---------- Crash: phone layout ---------- */
+@media (max-width: 600px) {
+  /* no accidental zoom / double-tap delay on the game controls */
+  .crash-bet button, .crash-bet input { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+  .crash-bet .input { font-size: 16px; }   /* 16px stops iOS from zooming in when you tap the field */
+
+  .container:has(.crash-stage) { padding-left: 10px; padding-right: 10px; padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px)); }
+
+  /* history: one swipeable row, totals under it */
+  .crash-top { flex-direction: column; align-items: stretch; gap: 4px; flex-wrap: nowrap; }
+  .crash-history {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+  .crash-history::-webkit-scrollbar { display: none; }
+  .chist { flex: none; padding: 4px 8px; font-size: 11px; }
+  .crash-totals { font-size: 12px; }
+
+  /* stage */
+  .crash { padding: 6px; }
+  .crash-stage { height: 250px; border-radius: 14px; }
+  .crash-stage__planet { width: 150px; height: 150px; right: -50px; top: -55px; }
+  .crash-readout__sub { font-size: 11px; letter-spacing: 0.1em; }
+  .crash-readout__mult { font-size: 44px; }
+  .crash-readout__mult[data-tier="idle"] { font-size: 30px; }
+  .crash-readout__bar { width: 60%; max-width: 220px; }
+
+  /* bet panel: amount + auto side by side, quick buttons in a tidy grid, big button last */
+  .crash-bet { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; padding: 10px; }
+  .crash-bet .wheel-bet__input .input { padding-left: 34px; padding-right: 8px; height: 44px; }
+  .crash-bet .wheel-bet__coin { left: 10px; }
+  .crash-bet__chips { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+  .crash-bet__chips .chip-btn { width: 100%; min-height: 38px; padding: 0 4px; font-size: 13px; }
+  .crash-bet__chips .chip-btn--auto { grid-column: span 2; }
+  .crash-go { min-height: 52px; font-size: 14px; padding: 12px 10px; line-height: 1.25; text-align: center; white-space: normal; }
+}
+
+/* very narrow phones: stack the two inputs */
+@media (max-width: 380px) {
+  .crash-bet { grid-template-columns: minmax(0, 1fr); }
+  .crash-readout__mult { font-size: 38px; }
+}
+
+/* ---------- Wheel: phone layout ---------- */
+@media (max-width: 600px) {
+  .wheel-bet button, .wheel-bet input, .wcrazy-pick button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+  .wheel-bet .input { font-size: 16px; }   /* stops iOS zooming in on the amount field */
+
+  .container:has(.wstrip) { padding-left: 10px; padding-right: 10px; padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px)); }
+
+  /* top: history is one swipeable row, best multiplier + phase pill share the row under it */
+  .wheel-top { flex-wrap: wrap; gap: 6px 8px; }
+  .wheel-history {
+    order: 1;
+    flex: 1 0 100%;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    min-height: 0;
+    padding-bottom: 2px;
+  }
+  .wheel-history::-webkit-scrollbar { display: none; }
+  .whist { flex: none; min-width: 32px; padding: 4px 7px; font-size: 11px; }
+  .wheel-50x { order: 2; flex: 1 1 0; padding: 4px 0; font-size: 12px; text-align: left; }
+  .wheel__phase { order: 3; padding: 5px 12px; font-size: 12px; }
+
+  /* strip */
+  .wheel { padding: 8px; }
+  .wstrip { height: 104px; border-radius: 14px; }
+  .wstrip__fade { width: 32px; }
+
+  /* bonus panels */
+  .wbonus { padding: 12px 10px; }
+  .wbonus__mult { font-size: 38px; }
+  .wcrazy-pick { flex-direction: column; align-items: stretch; gap: 8px; }
+  .wcrazy-pick__btns { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .wcrazy-pick__btn { justify-content: center; padding: 10px 6px; }
+
+  /* bet panel: full-width amount, quick buttons in a grid */
+  .wheel-bet { padding: 10px; }
+  .wheel-bet__amount { gap: 8px; margin-bottom: 10px; }
+  .wheel-bet__input { flex: 1 0 100%; max-width: none; }
+  .wheel-bet .wheel-bet__input .input { height: 46px; }
+  .wheel-bet__chips { flex: 1 0 100%; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+  .wheel-bet__chips .chip-btn { width: 100%; min-height: 40px; padding: 0 4px; font-size: 13px; white-space: nowrap; }
+  .wheel-bet__chips .chip-btn--clear,
+  .wheel-bet__chips .chip-btn--repeat,
+  .wheel-bet__chips .chip-btn--auto { grid-column: span 2; }
+
+  /* segment cards: 2 per row, the odd 7th card takes the full row */
+  .wheel-bets { gap: 8px; }
+  .wheel-bets > .wbet:last-child:nth-child(odd) { grid-column: 1 / -1; }
+  .wbet { padding: 8px; }
+  .wbet__head { gap: 8px; }
+  .wbet__icon { width: 32px; height: 32px; border-radius: 9px; }
+  .wbet__name { font-size: 14px; }
+  .wbet__bar { min-height: 42px; padding: 10px 8px; }
+}
+@media (max-width: 380px) {
+  .wbonus__mult { font-size: 32px; }
+  .wcrazy-pick__btn { font-size: 11px; }
+}

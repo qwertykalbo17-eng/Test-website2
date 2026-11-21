@@ -80,8 +80,13 @@ export default function App() {
   const { open, recent, unseen, counts, refresh: refreshMatches } = useMatches(userId);
 
   const [page, setPage] = useState<Page>("coinflip");
+  const [crashAuto, setCrashAuto] = useState(false);
   const wheel = useWheel(page === "wheel");
-  const crash = useCrash(page === "crash");
+  // while Auto bet is on, keep the round fresh (fast) on every page so no round is missed
+  const crash = useCrash(page === "crash" || crashAuto);
+  /** the bet Auto bet repeats: your last crash bet */
+  const crashTemplate = useRef<{ amount: number; auto: number | null } | null>(null);
+  const crashAutoTried = useRef<number | null>(null);
   const [postOpen, setPostOpen] = useState(false);
   const [joinTarget, setJoinTarget] = useState<Match | null>(null);
   const [viewInventoryOpen, setViewInventoryOpen] = useState(false);
@@ -102,6 +107,57 @@ export default function App() {
     setToast(message);
     clearTimeout(toastTimer.current);
     toastTimer.current = setTimeout(() => setToast(null), 4500);
+  }
+
+  /* ----- Crash Auto bet: runs on every page, not only the Crash page ----- */
+  const crashMine = crash.state?.mine ?? null;
+  useEffect(() => {
+    // remember the bet you placed: this is what Auto bet repeats
+    if (crashMine) crashTemplate.current = { amount: crashMine.amount, auto: crashMine.auto };
+  }, [crashMine?.amount, crashMine?.auto]);
+
+  useEffect(() => {
+    if (!userId) setCrashAuto(false);
+  }, [userId]);
+
+  useEffect(() => {
+    const s = crash.state;
+    const tpl = crashTemplate.current;
+    if (!crashAuto || !userId || !s || !tpl || s.mine) return;
+    if (crashAutoTried.current === s.id) return;
+    // only while betting is still open (small margin so the bet isn't sent as it closes)
+    if (Date.now() + crash.offset >= s.betting_ends_at - 400) return;
+    crashAutoTried.current = s.id;
+    if (tpl.amount > data.coins) {
+      setCrashAuto(false);
+      showToast("Auto bet turned off: not enough coins.");
+      return;
+    }
+    crashBet(s.id, tpl.amount, tpl.auto)
+      .then(() => Promise.all([refreshProfile(), crash.refresh()]))
+      .catch((e) => {
+        setCrashAuto(false);
+        showToast(e instanceof Error ? `Auto bet turned off: ${e.message}` : "Auto bet turned off.");
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [crashAuto, crash.state, crash.offset, userId, data.coins]);
+
+  function handleCrashAutoToggle(amount: number, autoCashout: number | null) {
+    if (crashAuto) {
+      setCrashAuto(false);
+      return;
+    }
+    if (!user) {
+      setAuthOpen(true);
+      return;
+    }
+    if (amount >= 1) crashTemplate.current = { amount, auto: autoCashout };
+    if (!crashTemplate.current) {
+      showToast("Enter a bet amount first, then turn Auto bet on.");
+      return;
+    }
+    crashAutoTried.current = null;
+    setCrashAuto(true);
   }
 
   /**
@@ -334,6 +390,8 @@ export default function App() {
             onLogin={() => setAuthOpen(true)}
             onBet={handleCrashBet}
             onCashout={handleCrashCashout}
+            autoBet={crashAuto}
+            onToggleAutoBet={handleCrashAutoToggle}
             onRefresh={crash.refresh}
             onRoundEnd={() => {
               crash.refresh();

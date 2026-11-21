@@ -3,12 +3,15 @@ import { crashState } from "../api";
 import type { CrashState } from "../types";
 
 /**
- * The shared crash round. While `active` (the crash page is open and the tab is visible) it asks
+ * The shared crash round. It always keeps the state fresh while the tab is visible: fast while `active` (the crash page is open), slowly otherwise. It asks
  * the database for the current round about twice a second.
  *
  * `offset` = server clock minus this device's clock, so every player sees the same launch and
  * the same multiplier. Server time now = Date.now() + offset.
  */
+/** How often to ask while the crash page is closed (the server keeps the rounds running by itself). */
+const BACKGROUND_MS = 5000;
+
 export function useCrash(active: boolean) {
   const [state, setState] = useState<CrashState | null>(null);
   const [offset, setOffset] = useState(0);
@@ -29,11 +32,10 @@ export function useCrash(active: boolean) {
   }, []);
 
   useEffect(() => {
-    if (!active) return;
     refresh();
     const t = setInterval(() => {
       if (!document.hidden) refresh();
-    }, 500);
+    }, active ? 500 : BACKGROUND_MS);
     const onVisible = () => {
       if (!document.hidden) refresh();
     };

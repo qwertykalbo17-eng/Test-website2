@@ -3,12 +3,15 @@ import { wheelState } from "../api";
 import type { WheelState } from "../types";
 
 /**
- * The shared wheel. While `active` (the wheel page is open and the tab is visible) it asks the
+ * The shared wheel. It always keeps the state fresh while the tab is visible: fast while `active` (the wheel page is open), slowly otherwise. It asks the
  * database for the current round every second or so.
  *
  * `offset` = server clock minus this device's clock, so every player sees the same countdown and
  * spin no matter what their own clock says. Server time now = Date.now() + offset.
  */
+/** How often to ask while the wheel page is closed (the server keeps the rounds running by itself). */
+const BACKGROUND_MS = 5000;
+
 export function useWheel(active: boolean) {
   const [state, setState] = useState<WheelState | null>(null);
   const [offset, setOffset] = useState(0);
@@ -30,11 +33,10 @@ export function useWheel(active: boolean) {
   }, []);
 
   useEffect(() => {
-    if (!active) return;
     refresh();
     const t = setInterval(() => {
       if (!document.hidden) refresh();
-    }, 1500);
+    }, active ? 1500 : BACKGROUND_MS);
     const onVisible = () => {
       if (!document.hidden) refresh();
     };
