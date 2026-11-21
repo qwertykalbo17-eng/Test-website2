@@ -23,6 +23,8 @@ type Phase = "loading" | "betting" | "flying" | "crashed";
 /** Must match the database: multiplier = e^(RATE * seconds since launch). */
 const RATE = 0.1;
 const BETTING_SECONDS = 10;
+/** The crash point is capped here (same cap in crash.sql). */
+const CRASH_MAX = 15000;
 const ASTRO_W = 84;
 const ASTRO_H = 98;
 
@@ -183,15 +185,18 @@ export default function CrashPage({ state, offset, coins, loggedIn, busy, onLogi
       }
       multRef.current = m;
 
-      // position of the astronaut: climbs up and to the right as the multiplier grows
-      const prog = Math.min(1, Math.log(Math.max(1, m)) / Math.log(25));
-      const e = 1 - (1 - prog) * (1 - prog);
+      // position of the astronaut: starts bottom-left, sweeps to the right, then climbs slowly
+      // as the multiplier grows (all the way up at the 15000x cap)
+      const lnM = Math.log(Math.max(1, m));
+      const xp = 1 - Math.exp(-lnM / 0.9); // ~half way across at 2x, almost there by 10x
+      const prog = Math.min(1, lnM / Math.log(CRASH_MAX)); // slow climb
       const wob = ph === "flying" ? Math.sin(t / 260) * 4 : ph === "betting" ? Math.sin(t / 500) * 6 : 0;
       if (ph !== "crashed") {
-        posRef.current = { x: w * (0.14 + 0.52 * e), y: h * (0.78 - 0.48 * e) + wob };
+        posRef.current = { x: w * (0.14 + 0.6 * xp), y: h * (0.8 - 0.5 * prog) + wob };
       }
       const { x: px, y: py } = posRef.current;
-      const tilt = ph === "flying" ? 18 : ph === "betting" ? 4 : 18;
+      // leans into the flight: nearly sideways at first, more upright as it climbs
+      const tilt = ph === "flying" ? 68 - 26 * prog : ph === "betting" ? 4 : 50;
       astro.style.transform = `translate(${px - ASTRO_W / 2}px, ${py - ASTRO_H / 2}px) rotate(${tilt}deg)`;
 
       // phase changes
@@ -277,24 +282,25 @@ export default function CrashPage({ state, offset, coins, loggedIn, busy, onLogi
       // background: stars rush past faster the higher the multiplier gets
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, w, h);
-      const speed = ph === "flying" ? 0.18 + 0.5 * prog : ph === "betting" ? 0.015 : 0;
+      const rush = Math.min(1, lnM / Math.log(100));
+      const speed = ph === "flying" ? 0.16 + 0.34 * rush : ph === "betting" ? 0.012 : 0;
       for (const st of stars) {
         const f = 0.25 + st.z * 0.9;
-        st.y += speed * f * dt;
-        st.x -= speed * 0.35 * f * dt;
-        if (st.y > 1) {
-          st.y -= 1;
-          st.x = Math.random();
+        st.x -= speed * f * dt;
+        st.y += speed * 0.2 * f * dt;
+        if (st.y > 1) st.y -= 1;
+        if (st.x < 0) {
+          st.x += 1;
+          st.y = Math.random();
         }
-        if (st.x < 0) st.x += 1;
         const sx = st.x * w;
         const sy = st.y * h;
         ctx.strokeStyle = `rgba(255,255,255,${0.25 + st.z * 0.6})`;
         ctx.lineWidth = 0.7 + st.z * 1.3;
         ctx.beginPath();
         ctx.moveTo(sx, sy);
-        const len = speed * 55 * f;
-        ctx.lineTo(sx + len * 0.35, sy - len);
+        const len = speed * 90 * f;
+        ctx.lineTo(sx + len, sy - len * 0.2);
         if (len < 1.5) ctx.lineTo(sx + 0.01, sy - 0.01);
         ctx.stroke();
       }
@@ -305,11 +311,12 @@ export default function CrashPage({ state, offset, coins, loggedIn, busy, onLogi
         const fx = px - Math.sin(th) * 62;
         const fy = py + Math.cos(th) * 62;
         for (let i = 0; i < 3; i++) {
+          const away = 110 + Math.random() * 120; // opposite to the direction of flight
           parts.push({
             x: fx + (Math.random() - 0.5) * 10,
-            y: fy,
-            vx: -40 - Math.random() * 40 + (Math.random() - 0.5) * 30,
-            vy: 90 + Math.random() * 110 + speed * 200,
+            y: fy + (Math.random() - 0.5) * 10,
+            vx: -Math.sin(th) * away + (Math.random() - 0.5) * 30,
+            vy: Math.cos(th) * away + (Math.random() - 0.5) * 30 + 20,
             life: 0.45 + Math.random() * 0.4,
             max: 0.85,
             r: 3 + Math.random() * 5,
