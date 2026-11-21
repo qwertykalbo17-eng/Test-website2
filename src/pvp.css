@@ -1612,3 +1612,39 @@
   .wcrazy__card-mult { font-size: 18px; }
   .wcrazy__card-steps { display: none; }
 }
+/* ---------- Crash: compact layout, so the bet button is on screen without scrolling ---------- */
+
+.container:has(.crash-stage) { padding-top: 14px; padding-bottom: 40px; }
+.crash-top { margin-bottom: 6px; }
+.crash { padding: 8px 10px; margin-bottom: 8px; }
+.crash-stage { height: 270px; }
+.crash-readout { top: 10px; }
+.crash-readout__sub { min-height: 14px; font-size: 12px; }
+.crash-readout__mult { font-size: 50px; }
+.crash-readout__mult[data-tier="idle"] { font-size: 36px; }
+.crash-readout__bar { margin-top: 4px; }
+
+/* amount, auto cash-out and the quick buttons share one row; the big button sits under them */
+.crash-bet {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: 8px 10px;
+  align-items: center;
+  padding: 10px 12px;
+  margin-bottom: 0;
+}
+.crash-bet__row { display: contents; }
+.crash-bet__row .wheel-bet__input { max-width: none; flex: none; }
+.crash-bet__chips { margin: 0; }
+.crash-go { grid-column: 1 / -1; padding: 12px 16px; }
+
+@media (max-width: 1000px) {
+  .crash-bet { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .crash-bet__chips { grid-column: 1 / -1; }
+}
+@media (max-width: 800px) {
+  .container:has(.crash-stage) { padding-top: 10px; }
+  .crash-stage { height: 230px; }
+  .crash-readout__mult { font-size: 40px; }
+  .crash-readout__mult[data-tier="idle"] { font-size: 30px; }
+}
