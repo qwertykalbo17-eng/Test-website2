@@ -1592,3 +1592,26 @@
   55% { transform: scale(1.4); color: #ffd54a; }
   100% { transform: scale(1); }
 }
+
+/* Crazy Time: compact panel, colour names instead of "RED ARROW" */
+.wcrazy__name { font-weight: 900; letter-spacing: 0.06em; }
+.wcrazy__name--red { color: #ff5c6c; }
+.wcrazy__name--green { color: #2ee27d; }
+.wcrazy__name--blue { color: #38bdf8; }
+.wbonus--crazytime { margin-top: 10px; padding: 10px 12px; }
+.wbonus--crazytime .wbonus__title { font-size: 12px; }
+.wbonus--crazytime .wcrazy__caption { margin-top: 4px; min-height: 16px; font-size: 12px; }
+.wcrazy__arrows { margin-top: 8px; gap: 8px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.wcrazy__card { padding: 8px 10px; border-radius: 10px; text-align: center; }
+.wcrazy__card-head { justify-content: center; font-size: 12px; position: relative; }
+.wcrazy__card-mult { margin-top: 4px; font-size: 22px; line-height: 1.1; }
+.wcrazy__card-steps { margin-top: 2px; font-size: 10px; min-height: 12px; }
+.wcrazy__picked-tag, .wcrazy__top-tag { margin-left: 0; font-size: 9px; padding: 1px 5px; }
+.wcrazy__top-tag { border-radius: 6px; background: rgba(255, 213, 74, 0.2); color: #ffd54a; }
+.wcrazy__summary { margin-top: 8px; font-size: 12px; }
+@media (max-width: 700px) {
+  .wcrazy__arrows { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .wcrazy__card { padding: 6px; }
+  .wcrazy__card-mult { font-size: 18px; }
+  .wcrazy__card-steps { display: none; }
+}
