@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { adminGiveCoins, adminListPlayers, adminSetStock, adminWheelGetNext, adminWheelGetOdds, adminWheelSetNext, adminWheelSetOdds } from "../api";
+import { adminCrashGetQueue, adminCrashSetQueue, adminGiveCoins, adminListPlayers, adminSetStock, adminWheelGetNext, adminWheelGetOdds, adminWheelSetNext, adminWheelSetOdds } from "../api";
 import type { WheelNext, WheelOdds } from "../api";
 import { useCoin } from "../coin";
 import type { AdminPlayer, Item, WheelTarget } from "../types";
@@ -13,7 +13,7 @@ interface Props {
 }
 
 export default function AdminPage({ catalog, onItemsChanged, onError }: Props) {
-  const [tab, setTab] = useState<"stock" | "players" | "wheel">("stock");
+  const [tab, setTab] = useState<"stock" | "players" | "wheel" | "crash">("stock");
 
   return (
     <>
@@ -34,12 +34,17 @@ export default function AdminPage({ catalog, onItemsChanged, onError }: Props) {
         <button className={`auth-tabs__tab ${tab === "wheel" ? "is-active" : ""}`} onClick={() => setTab("wheel")}>
           Wheel
         </button>
+        <button className={`auth-tabs__tab ${tab === "crash" ? "is-active" : ""}`} onClick={() => setTab("crash")}>
+          Crash
+        </button>
       </div>
 
       {tab === "stock" ? (
         <StockTab catalog={catalog} onChanged={onItemsChanged} onError={onError} />
       ) : tab === "players" ? (
         <PlayersTab onError={onError} />
+      ) : tab === "crash" ? (
+        <CrashTab onError={onError} />
       ) : (
         <>
           <WheelTab onError={onError} />
@@ -47,6 +52,94 @@ export default function AdminPage({ catalog, onItemsChanged, onError }: Props) {
         </>
       )}
     </>
+  );
+}
+
+const CRASH_QUEUE_SIZE = 5;
+
+function CrashTab({ onError }: { onError: (m: string) => void }) {
+  const [slots, setSlots] = useState<string[]>(() => Array(CRASH_QUEUE_SIZE).fill(""));
+  const [queued, setQueued] = useState<number[] | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState("");
+
+  const load = () =>
+    adminCrashGetQueue()
+      .then((q) => {
+        const list = (q ?? []).map(Number);
+        setQueued(list);
+        setSlots(Array.from({ length: CRASH_QUEUE_SIZE }, (_, i) => (list[i] !== undefined ? String(list[i]) : "")));
+      })
+      .catch((e) => onError(e instanceof Error ? e.message : "Couldn't load the queue."));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { void load(); }, []);
+
+  async function save(points: number[], text: string) {
+    setBusy(true);
+    setMsg("");
+    try {
+      await adminCrashSetQueue(points);
+      await load();
+      setMsg(text);
+    } catch (e) {
+      onError(e instanceof Error ? e.message : "Something went wrong.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function apply() {
+    const points: number[] = [];
+    for (const raw of slots) {
+      if (raw.trim() === "") continue; // empty slots are skipped
+      const n = Number(raw);
+      if (!Number.isFinite(n) || n < 1 || n > 15000) {
+        onError("Each crash point must be between 1.00 and 15000.");
+        return;
+      }
+      points.push(Math.round(n * 100) / 100);
+    }
+    void save(points, points.length ? `Queued ${points.length} round${points.length === 1 ? "" : "s"}.` : "Queue cleared (random).");
+  }
+
+  return (
+    <div className="panel admin-wheel">
+      <h2>Crash queue</h2>
+      <p className="muted">
+        Set the crash point of the next rounds, up to {CRASH_QUEUE_SIZE}. They are used in order, one per new round. Empty slots are
+        skipped, and once the queue runs out rounds are random again. The round that is already running is not changed.
+      </p>
+
+      <div className="admin-odds__grid">
+        {slots.map((v, i) => (
+          <label key={i} className="admin-wheel__field">
+            <span>Round {i + 1}{i === 0 ? " (next)" : ""}</span>
+            <input
+              className="input"
+              type="number"
+              min={1}
+              max={15000}
+              step="0.01"
+              placeholder="Random"
+              value={v}
+              onChange={(e) => setSlots((all) => all.map((x, j) => (j === i ? e.target.value : x)))}
+            />
+          </label>
+        ))}
+      </div>
+
+      <div className="admin-wheel__actions">
+        <button className="btn btn--primary" disabled={busy} onClick={apply}>Save queue</button>
+        <button className="btn btn--ghost" disabled={busy} onClick={() => void save([], "Queue cleared (random).")}>
+          Clear (random)
+        </button>
+      </div>
+
+      <p className="admin-wheel__queued">
+        <strong>Queued:</strong> {queued === null ? "…" : queued.length ? queued.map((x) => `${x.toFixed(2)}x`).join(" → ") : "nothing (random)"}
+      </p>
+      {msg && <p className="muted">{msg}</p>}
+    </div>
   );
 }
 

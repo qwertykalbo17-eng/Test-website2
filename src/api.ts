@@ -119,3 +119,8 @@ export const adminWheelGetOdds = () => rpc<WheelOdds>("admin_wheel_get_odds", {}
 
 /** Save new odds, or pass null to reset to the defaults. */
 export const adminWheelSetOdds = (odds: WheelOdds | null) => rpc<void>("admin_wheel_set_odds", { p_odds: odds });
+/** Crash points queued for the next rounds, in order (empty = random). */
+export const adminCrashGetQueue = () => rpc<number[]>("admin_crash_get_queue", {});
+
+/** Replace the queue (max 5 crash points, 1.00 to 15000). Pass [] to clear. */
+export const adminCrashSetQueue = (points: number[]) => rpc<void>("admin_crash_set_queue", { p_points: points });
