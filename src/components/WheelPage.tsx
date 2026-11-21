@@ -32,9 +32,9 @@ const LABEL: Record<WheelTarget, string> = {
   "5x": "5X",
   "10x": "10X",
   coinflip: "COINFLIP",
-  bonus: "BONUS",
-  crazytime: "CRAZY TIME",
-  cashhunt: "CASH HUNT",
+  bonus: "RANDOM MULTI",
+  crazytime: "TRIPLE ARROW",
+  cashhunt: "BOX HUNT",
 };
 
 const ARROWS: { color: CrazyArrowColor; label: string }[] = [
@@ -429,9 +429,7 @@ function Icon({ kind }: { kind: WheelTarget }) {
   if (kind === "crazytime") {
     return (
       <svg viewBox="0 0 32 32" className="wicon" aria-hidden="true">
-        <circle cx="16" cy="16" r="11" fill="none" stroke="currentColor" strokeWidth="2.6" />
-        <path d="M16 5v6M25.5 16h-6M16 27v-6M6.5 16h6" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
-        <circle cx="16" cy="16" r="3.5" fill="currentColor" />
+        <path d="M18.5 3L7 18h7.5L12.5 29 25 13h-7.8z" fill="currentColor" />
       </svg>
     );
   }
@@ -439,10 +437,10 @@ function Icon({ kind }: { kind: WheelTarget }) {
   if (kind === "cashhunt") {
     return (
       <svg viewBox="0 0 32 32" className="wicon" aria-hidden="true">
-        <rect x="4" y="4" width="10" height="10" rx="2.5" fill="currentColor" />
-        <rect x="18" y="4" width="10" height="10" rx="2.5" fill="currentColor" opacity="0.55" />
-        <rect x="4" y="18" width="10" height="10" rx="2.5" fill="currentColor" opacity="0.55" />
-        <rect x="18" y="18" width="10" height="10" rx="2.5" fill="currentColor" />
+        <path d="M16 3.5l11 5.2v14.6L16 28.5 5 23.3V8.7z" fill="currentColor" opacity="0.4" />
+        <path d="M16 3.5l11 5.2-11 5.2-11-5.2z" fill="currentColor" />
+        <path d="M16 13.9v14.6" stroke="currentColor" strokeWidth="2" fill="none" />
+        <path d="M27 8.7v14.6L16 28.5V13.9z" fill="currentColor" opacity="0.7" />
       </svg>
     );
   }
@@ -538,7 +536,7 @@ const Strip = memo(function Strip({
           >
             <Icon kind={t} />
             <span className="wtile__label">
-              {t === "bonus" ? "BONUS" : t === "coinflip" ? "FLIP" : t === "crazytime" ? "CRAZY" : t === "cashhunt" ? "HUNT" : LABEL[t]}
+              {t === "bonus" ? "RANDOM" : t === "coinflip" ? "FLIP" : t === "crazytime" ? "ARROWS" : t === "cashhunt" ? "BOX" : LABEL[t]}
             </span>
           </div>
         );
@@ -1145,18 +1143,18 @@ export default function WheelPage({
             : phase === "reveal"
               ? hasBonus && !bonusDone
                 ? result === "bonus"
-                  ? "Bonus round!"
+                  ? "Random multiplier!"
                   : result === "crazytime"
                     ? inCrazyPickPhase
                       ? hasCrazyPlayer
-                        ? `Crazy Time! Pick Arrow · ${crazyPickSecondsLeft}s`
-                        : "Crazy Time!"
-                      : "Crazy Time 3-Arrow Spin!"
+                        ? `Triple Arrow! Pick Arrow · ${crazyPickSecondsLeft}s`
+                        : "Triple Arrow!"
+                      : "Triple Arrow spin!"
                     : result === "cashhunt"
                       ? inHuntPick
                         ? hasHuntBet
-                          ? `Cash Hunt! Pick a box · ${huntPickSecondsLeft}s`
-                          : "Cash Hunt!"
+                          ? `Box Hunt! Pick a box · ${huntPickSecondsLeft}s`
+                          : "Box Hunt!"
                         : "Opening the boxes…"
                       : "Coinflip bonus!"
                 : result === "crazytime"
@@ -1235,13 +1233,13 @@ export default function WheelPage({
           <div className={`wbonus wbonus--${result} ${bonusDone ? "is-done" : ""}`}>
             {result === "bonus" ? (
               <>
-                <div className="wbonus__title">BONUS ROUND</div>
+                <div className="wbonus__title">RANDOM MULTIPLIER</div>
                 <div className="wbonus__mult">{rolling}x</div>
               </>
             ) : result === "crazytime" && crazyBonus ? (
               <div className="wcrazy">
                 <div className="wbonus__title">
-                  CRAZY TIME
+                  TRIPLE ARROW
                   {resultBoost > 1 ? ` · BOOST ${resultBoost}x` : ""}
                 </div>
 
@@ -1320,7 +1318,7 @@ export default function WheelPage({
             ) : result === "cashhunt" ? (
               <div className="whunt">
                 <div className="wbonus__title">
-                  CASH HUNT
+                  BOX HUNT
                   {resultBoost > 1 ? ` · BOOST ${resultBoost}x` : ""}
                 </div>
 

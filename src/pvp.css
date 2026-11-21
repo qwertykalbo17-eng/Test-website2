@@ -1887,19 +1887,38 @@
 .nav-ico { flex: none; display: block; }
 .tabbar__item .nav-ico { margin: 1px 0; }
 
-/* ---------- phones: never let the page slide sideways ---------- */
-html, body { max-width: 100%; overflow-x: hidden; }
-.container { max-width: 100%; overflow-x: clip; }
+/* ---------- keep the page from sliding sideways (without creating extra scrollbars) ---------- */
+html, body { overflow-x: clip; }
+
 @media (max-width: 800px) {
   .tabbar__item { min-width: 0; padding-left: 2px; padding-right: 2px; }
   .tabbar__item span:last-child { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .wheel-top { max-width: 100%; }
   /* history wraps onto two rows instead of sliding sideways */
   .wheel-history { flex-wrap: wrap; overflow: visible; max-width: 100%; }
   .whist { min-width: 0; }
   .wheel, .wheel-bet, .wstrip, .wbonus, .wcrazy, .whunt { max-width: 100%; min-width: 0; }
   .wheel-bet__chips { flex-wrap: wrap; }
-  .admin-tabs { max-width: 100%; }
-  .panel { min-width: 0; }
-  img, svg, canvas, video { max-width: 100%; }
+}
+
+/* ---------- wheel page: "Highest in last 100" on its own line above the history, no page scroll ---------- */
+.wheel-top { flex-wrap: wrap; }
+.wheel-50x { order: -1; flex: 1 0 100%; text-align: left; padding: 0 2px; }
+.container:has(.wstrip) { padding-top: 14px; padding-bottom: 16px; }
+.container:has(.wstrip) .panel { margin-bottom: 10px; }
+.container:has(.wstrip) .panel:last-child { margin-bottom: 0; }
+@media (max-width: 800px) {
+  .wheel-50x { order: -1; flex: 1 0 100%; }
+  .container:has(.wstrip) { padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px)); }
+}
+
+/* a little tighter on desktop so everything fits in a normal browser window */
+@media (min-width: 861px) {
+  .container:has(.wstrip) .wheel { padding: 8px 10px; }
+  .whunt__box { min-height: 44px; padding: 4px 2px; }
+  .whunt__caption { margin: 0 0 6px; }
+  .wbonus--cashhunt, .wbonus--crazytime { margin-top: 6px; padding: 6px 10px 8px; }
+  .wbet__bar { margin-top: 5px; padding: 5px 9px; }
+  .wheel-bet { padding: 10px; }
+  .wheel-bet__amount { margin-bottom: 6px; }
+  .wheel-top { margin-bottom: 6px; gap: 4px 10px; }
 }

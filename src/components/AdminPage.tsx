@@ -324,7 +324,7 @@ function StockTab({ catalog, onChanged, onError }: { catalog: Item[]; onChanged:
 const SEGMENTS: WheelTarget[] = ["2x", "3x", "5x", "10x", "coinflip", "bonus", "crazytime", "cashhunt"];
 const BOOSTS = [2, 3, 4, 5, 7, 10, 15, 25, 50];
 const segLabel = (t: WheelTarget) =>
-  t === "coinflip" ? "Coinflip" : t === "bonus" ? "Bonus" : t === "crazytime" ? "Crazy Time" : t === "cashhunt" ? "Cash Hunt" : t;
+  t === "coinflip" ? "Coinflip" : t === "bonus" ? "Random Multiplier" : t === "crazytime" ? "Triple Arrow" : t === "cashhunt" ? "Box Hunt" : t;
 
 function WheelTab({ onError }: { onError: (m: string) => void }) {
   const [result, setResult] = useState<string>("");
@@ -415,7 +415,7 @@ function WheelTab({ onError }: { onError: (m: string) => void }) {
         )}
         {result === "bonus" && (
           <label className="admin-wheel__field">
-            <span>Bonus multiplier</span>
+            <span>Random multiplier</span>
             <select className="input" value={mult} onChange={(e) => setMult(e.target.value)}>
               <option value="">Random</option>
               {Array.from({ length: 91 }, (_, i) => i + 10).map((m) => <option key={m} value={m}>{m}x</option>)}
@@ -555,7 +555,7 @@ function OddsPanel({ onError }: { onError: (m: string) => void }) {
     for (const k of CRAZY_BOARD_ORDER) {
       const n = Number(crazyOdds[k]);
       if (!Number.isFinite(n) || n < 0) {
-        onError("Crazy Time odds must be numbers of 0 or more.");
+        onError("Triple Arrow odds must be numbers of 0 or more.");
         return;
       }
       crazyOut[k] = n;
@@ -581,7 +581,7 @@ function OddsPanel({ onError }: { onError: (m: string) => void }) {
       <h2>Wheel odds</h2>
       <p className="muted">
         Type any weights, they do not need to add up to 100. The percentage next to each box is its real chance. Changes apply from
-        the next round that starts. Bonus keeps its 10x–100x spread (lower is more common).
+        the next round that starts. Random Multiplier keeps its 10x–100x spread (lower is more common).
       </p>
       {ODDS_GROUPS.map((g) => {
         const total = g.order.reduce((a, k) => a + (Number(odds[g.kind][k]) || 0), 0);
@@ -612,7 +612,7 @@ function OddsPanel({ onError }: { onError: (m: string) => void }) {
       })}
 
       <div className="admin-odds__group">
-        <h3>Crazy Time board odds</h3>
+        <h3>Triple Arrow board odds</h3>
         <p className="muted">
           Weights for each slot each Red, Green, and Blue arrow can land on (including DOUBLE respins). Pre-spin wheel boosts apply on top before arrows spin.
         </p>
