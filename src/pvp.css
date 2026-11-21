@@ -1833,3 +1833,32 @@
 /* admin: Cash Hunt multiplier pool */
 .hunt-admin__row { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; align-items: end; margin-bottom: 8px; }
 .hunt-admin__pct { font-size: 12px; color: var(--muted); }
+
+/* =========================================================
+   COMPACT BET CARDS: all 8 segments fit on screen (4 per row)
+   ========================================================= */
+@media (min-width: 861px) {
+  .wheel-bets { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+  .wbet { padding: 8px; border-radius: 12px; }
+  .wbet__head { gap: 8px; }
+  .wbet__icon { width: 30px; height: 30px; border-radius: 9px; }
+  .wbet__icon .wicon { width: 18px; height: 18px; }
+  .wbet__name { font-size: 13px; letter-spacing: 0.02em; white-space: nowrap; }
+  .wbet__name small { font-size: 10px; }
+  .wbet__stats { font-size: 11px; gap: 0; }
+  .wbet__stats span { gap: 3px; }
+  .wbet__bar { margin-top: 6px; padding: 7px 9px; font-size: 10px; letter-spacing: 0.03em; border-radius: 9px; }
+  .wbet__boost-pill { font-size: 9px; padding: 0 4px; }
+  .wheel { margin-bottom: 8px; }
+  .wheel-bet { padding: 12px; }
+  .wheel-bet__amount { margin-bottom: 8px; }
+}
+
+/* Cash Hunt: the 9 boxes in one row on wide screens so the bet cards stay in view */
+@media (min-width: 700px) {
+  .whunt__grid { grid-template-columns: repeat(9, minmax(0, 1fr)); max-width: none; gap: 6px; }
+  .whunt__box { min-height: 52px; padding: 6px 2px; border-radius: 10px; }
+  .whunt__val { font-size: 15px; }
+  .whunt__caption { margin: 2px 0 8px; }
+  .wbonus--cashhunt { margin-top: 8px; padding: 8px 10px 12px; }
+}
