@@ -74,14 +74,14 @@ function Astronaut() {
       <rect x="32" y="58" width="56" height="42" rx="18" fill="#f4f6fc" />
       <rect x="32" y="76" width="56" height="7" fill="#00f5b4" opacity="0.9" />
       <circle cx="60" cy="68" r="4.5" fill="#00f5b4" />
-      {/* arms */}
+      {/* arms: left hand down at the side, right arm pointing up */}
       <g className="astro__arm astro__arm--l">
-        <rect x="14" y="62" width="22" height="13" rx="6.5" fill="#e9edf7" />
-        <circle cx="16" cy="69" r="7" fill="#00f5b4" />
+        <rect x="20" y="62" width="14" height="30" rx="7" fill="#e9edf7" />
+        <circle cx="27" cy="93" r="7" fill="#00f5b4" />
       </g>
       <g className="astro__arm astro__arm--r">
-        <rect x="84" y="62" width="22" height="13" rx="6.5" fill="#e9edf7" />
-        <circle cx="104" cy="69" r="7" fill="#00f5b4" />
+        <rect x="86" y="26" width="14" height="42" rx="7" fill="#e9edf7" />
+        <circle cx="93" cy="24" r="7.5" fill="#00f5b4" />
       </g>
       {/* helmet */}
       <circle cx="60" cy="38" r="31" fill="#f4f6fc" />

@@ -1480,20 +1480,21 @@
 .astro svg { display: block; overflow: visible; }
 .astro__flame { transform-origin: 60px 112px; opacity: 0; }
 .astro__arm { transform-box: fill-box; }
-.astro__arm--l { transform-origin: 85% 50%; }
-.astro__arm--r { transform-origin: 15% 50%; }
+.astro__arm--l { transform-origin: 50% 0%; }    /* hangs from the shoulder */
+.astro__arm--r { transform-origin: 50% 100%; }  /* raised arm pivots at the shoulder */
 
 .crash-stage[data-phase="betting"] .astro__arm--r { animation: astroWave 1.4s ease-in-out infinite; }
 
-.crash-stage[data-phase="flying"] .astro__body { animation: astroFly 0.22s ease-in-out infinite alternate; }
+.crash-stage[data-phase="flying"] .astro__body { animation: astroFly 0.38s ease-in-out infinite alternate; }
 .crash-stage[data-phase="flying"] .astro__flame { opacity: 1; animation: flameFlicker 0.09s steps(2) infinite alternate; }
-.crash-stage[data-phase="flying"] .astro__arm--l { transform: rotate(-35deg); }
-.crash-stage[data-phase="flying"] .astro__arm--r { transform: rotate(35deg); }
+.crash-stage[data-phase="flying"] .astro__arm--r { animation: armWiggle 0.38s ease-in-out infinite alternate; }
+.crash-stage[data-phase="flying"] .astro__arm--l { animation: armWiggle 0.38s ease-in-out infinite alternate-reverse; }
 
 .crash-stage[data-phase="crashed"] .astro__body { animation: astroCrash 0.9s ease-in forwards; }
 
 @keyframes astroIdle { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-5px) rotate(2deg); } }
-@keyframes astroFly { from { transform: translate(-1.5px, 1px) rotate(-1.5deg); } to { transform: translate(1.5px, -1px) rotate(1.5deg); } }
+@keyframes astroFly { from { transform: translate(-2px, 3px) rotate(-4deg); } to { transform: translate(2px, -3px) rotate(4deg); } }
+@keyframes armWiggle { from { transform: rotate(-5deg); } to { transform: rotate(5deg); } }
 @keyframes flameFlicker { from { transform: scale(1, 0.8); } to { transform: scale(1.15, 1.25); } }
 @keyframes astroWave { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-28deg); } }
 @keyframes astroCrash {
