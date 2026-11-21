@@ -1584,3 +1584,11 @@
 .wstrip__marker--crazy.is-respin { animation: czPulse 0.55s ease-in-out infinite alternate; }
 .wstrip__line--crazy.is-respin { opacity: 1; width: 3px; }
 @keyframes czPulse { from { transform: translateX(-50%) scale(1); } to { transform: translateX(-50%) scale(1.45); } }
+
+/* Crazy Time: every DOUBLE doubles all multipliers on the strip */
+.wtile__cz.is-pop { animation: czDouble 0.7s ease-out; }
+@keyframes czDouble {
+  0% { transform: scale(0.55); color: #ffd54a; text-shadow: 0 0 14px rgba(255, 213, 74, 0.9); }
+  55% { transform: scale(1.4); color: #ffd54a; }
+  100% { transform: scale(1); }
+}

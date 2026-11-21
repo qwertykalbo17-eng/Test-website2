@@ -110,8 +110,6 @@ function pickWeighted(r: number): WheelTarget {
 const easeOut = (t: number) =>
   1 - Math.pow(1 - Math.min(Math.max(t, 0), 1), 4);
 
-const easeOutSoft = (t: number) => 1 - Math.pow(1 - Math.min(Math.max(t, 0), 1), 3);
-
 const easeInOutCubic = (t: number) => {
   const c = Math.min(Math.max(t, 0), 1);
 
@@ -209,22 +207,29 @@ const ARROW_HEX: Record<CrazyArrowColor, string> = {
   blue: "#38bdf8",
 };
 
-/** Share of each spin segment the strip is moving; the rest is a pause to show where it landed. */
-const CRAZY_SPIN_FRAC = 0.75;
 /** The strip shows the Crazy Time multipliers. The 3 arrows sit on neighbouring tiles: red, green (centre), blue. */
 const CRAZY_TILES = 96;
 const CRAZY_START = 7;
 /** Tiles between the centre arrow and each side arrow. */
 const ARROW_GAP = 2;
-const CRAZY_FIRST_TRAVEL = 12;
-const CRAZY_RESPIN_TRAVEL = 6;
+/**
+ * Same feel as the main wheel: the main strip travels 45 tiles in 8 s with a fast start and a long slow stop.
+ * A respin is shorter (5 s), so it travels 28 tiles to start just as fast.
+ */
+const CRAZY_FIRST_TRAVEL = 45;
+const CRAZY_RESPIN_TRAVEL = 28;
+/** Moving time and the pause (to look at where the arrows landed) of every spin round. Must match crazy_fix.sql. */
+const CZ_SPIN = (k: number) => (k === 0 ? 8000 : 5000);
+const CZ_PAUSE = (k: number) => (k === 0 ? 2000 : 1500);
+
+const CZ_BASES = [10, 20, 30, 50, 100];
 
 interface CrazyPlan {
   /** for each arrow: one entry per landing (a DOUBLE is followed by a respin) */
   paths: Record<CrazyArrowColor, { double: boolean }[]>;
   /** number of spin rounds: 1 = first spin, each extra one is a respin */
   segCount: number;
-  /** board double factor before segment j (index segCount = final) */
+  /** board double factor after spin round j (index 0 = before the first spin, segCount = final) */
   factors: number[];
   /** arrows that hit DOUBLE in each segment */
   doubleHits: CrazyArrowColor[][];
@@ -232,12 +237,13 @@ interface CrazyPlan {
   idx: number[];
   /** what each arrow landed on, in order, e.g. ["DOUBLE (x2)", "40x"] */
   texts: Record<CrazyArrowColor, string[]>;
+  /** the multiplier (10, 20, 30, 50 or 100) each arrow ends on, before the boost and the doubles */
+  bases: Record<CrazyArrowColor, number>;
 }
 
-/** One tile of the Crazy Time strip: a multiplier (or a DOUBLE). */
+/** One tile of the Crazy Time strip: a multiplier (shown with the boost and every DOUBLE so far) or a DOUBLE. */
 interface CrazyTile {
-  text: string;
-  tier: "10" | "20" | "30" | "50" | "100" | "double";
+  base: number | "double";
   /** set on the tiles an arrow lands on */
   arrow?: CrazyArrowColor;
   /** the spin round that arrow lands there */
@@ -245,7 +251,7 @@ interface CrazyTile {
 }
 
 /** Turns the round's result (each arrow's steps, e.g. ["DOUBLE (x2)", "40x"]) into a spin plan. */
-function buildCrazyPlan(bonus: CrazyBonusData): CrazyPlan {
+function buildCrazyPlan(bonus: CrazyBonusData, boost: number): CrazyPlan {
   const paths: CrazyPlan["paths"] = { red: [], green: [], blue: [] };
   const texts: CrazyPlan["texts"] = { red: [], green: [], blue: [] };
   for (const color of ARROW_ORDER) {
@@ -264,20 +270,27 @@ function buildCrazyPlan(bonus: CrazyBonusData): CrazyPlan {
     factors.push(factors[k] * Math.pow(2, hits.length));
   }
 
-    const idx = [CRAZY_START];
+  const idx = [CRAZY_START];
   for (let k = 0; k < segCount; k++) idx.push(idx[k] + (k === 0 ? CRAZY_FIRST_TRAVEL : CRAZY_RESPIN_TRAVEL));
 
-  return { paths, segCount, factors, doubleHits, idx, texts };
+  // final multiplier = base x boost x every DOUBLE, so the base each arrow ended on follows from the result
+  const bases = { red: 10, green: 10, blue: 10 } as Record<CrazyArrowColor, number>;
+  for (const c of ARROW_ORDER) {
+    const raw = (bonus.arrows[c]?.finalMult ?? 10) / Math.max(1, boost) / Math.max(1, factors[segCount]);
+    bases[c] = CZ_BASES.reduce((best, v) => (Math.abs(v - raw) < Math.abs(best - raw) ? v : best), 10);
+  }
+
+  return { paths, segCount, factors, doubleHits, idx, texts, bases };
 }
 
-const tierOfValue = (v: number): CrazyTile["tier"] => (v < 20 ? "10" : v < 30 ? "20" : v < 50 ? "30" : v < 100 ? "50" : "100");
+const tierOfValue = (v: number): "10" | "20" | "30" | "50" | "100" => (v < 20 ? "10" : v < 30 ? "20" : v < 50 ? "30" : v < 100 ? "50" : "100");
 
 /**
  * The strip while Crazy Time plays: the multipliers of the Crazy Time board (and DOUBLE tiles).
- * Deterministic per round. After every spin round the 3 tiles under the arrows are exactly what
+ * Deterministic per round. After every spin round the tiles under the arrows are exactly what
  * the red / green / blue arrows landed on. Only an arrow that hit DOUBLE spins again.
  */
-function buildCrazyTiles(roundId: number, doubleCount: number, plan: CrazyPlan | null, boost: number): CrazyTile[] {
+function buildCrazyTiles(roundId: number, doubleCount: number, plan: CrazyPlan | null): CrazyTile[] {
   const rng = mulberry32(roundId * 6364136223 + 4242);
   const doubles = Math.max(1, doubleCount || 7);
   const bag: [number | "double", number][] = [
@@ -289,8 +302,9 @@ function buildCrazyTiles(roundId: number, doubleCount: number, plan: CrazyPlan |
     ["double", doubles],
   ];
   const total = bag.reduce((a, [, w]) => a + w, 0);
+  const count = Math.max(CRAZY_TILES, plan ? plan.idx[plan.segCount] + ARROW_GAP + 14 : 0);
 
-  const tiles: CrazyTile[] = Array.from({ length: CRAZY_TILES }, () => {
+  const tiles: CrazyTile[] = Array.from({ length: count }, () => {
     let x = rng() * total;
     let pick: number | "double" = 10;
     for (const [v, w] of bag) {
@@ -300,9 +314,7 @@ function buildCrazyTiles(roundId: number, doubleCount: number, plan: CrazyPlan |
       }
       x -= w;
     }
-    return pick === "double"
-      ? { text: "x2", tier: "double" as const }
-      : { text: `${pick * boost}x`, tier: String(pick) as CrazyTile["tier"] };
+    return { base: pick };
   });
 
   for (let k = 0; plan && k < plan.segCount; k++) {
@@ -310,44 +322,39 @@ function buildCrazyTiles(roundId: number, doubleCount: number, plan: CrazyPlan |
       const t = plan.texts[c][k];
       if (!t) return; // this arrow is not spinning in this round
       const slot = plan.idx[k + 1] + (i - 1) * ARROW_GAP; // red = left, green = centre, blue = right
-      if (t.startsWith("DOUBLE")) {
-        tiles[slot] = { text: "x2", tier: "double", arrow: c, seg: k };
-      } else {
-        const v = parseFloat(t);
-        tiles[slot] = { text: t, tier: tierOfValue(Number.isFinite(v) ? v / Math.max(1, plan.factors[k]) : 10), arrow: c, seg: k };
-      }
+      tiles[slot] = { base: t.startsWith("DOUBLE") ? "double" : plan.bases[c], arrow: c, seg: k };
     });
   }
   return tiles;
 }
 
-const easeOutQuad = (t: number) => 1 - Math.pow(1 - Math.min(Math.max(t, 0), 1), 2);
-
-/** Splits the Crazy Time animation into one time slice per spin round. */
-function crazyTimeline(segCount: number, totalMs: number) {
-  const weights = Array.from({ length: segCount }, (_, k) => (k === 0 ? 1.4 : 1));
-  const sum = weights.reduce((a, b) => a + b, 0);
-  const durs = weights.map((w) => (totalMs * w) / sum);
+/** Splits the Crazy Time animation into one time slice per spin round (a moving part and a pause). */
+function crazyTimeline(segCount: number, availMs: number) {
+  let need = 0;
+  for (let k = 0; k < segCount; k++) need += CZ_SPIN(k) + CZ_PAUSE(k);
+  // an old, shorter round is squeezed to fit instead of running over
+  const f = need > availMs ? Math.max(0.3, availMs / Math.max(1, need)) : 1;
   const starts: number[] = [];
+  const spins: number[] = [];
   let t = 0;
-  for (const d of durs) {
+  for (let k = 0; k < segCount; k++) {
     starts.push(t);
-    t += d;
+    spins.push(CZ_SPIN(k) * f);
+    t += (CZ_SPIN(k) + CZ_PAUSE(k)) * f;
   }
-  return { starts, durs, total: totalMs };
+  return { starts, spins, total: t };
 }
 
 type CrazyTimeline = ReturnType<typeof crazyTimeline>;
 
-/** Strip position (as a tile index) `elapsed` ms after the Crazy Time spin starts. */
+/** Strip position (as a tile index) `elapsed` ms after the Crazy Time spin starts. Same easing as the main wheel. */
 function crazyStripIndex(plan: CrazyPlan, elapsed: number, tl: CrazyTimeline): number {
   for (let k = 0; k < plan.segCount; k++) {
     const s = tl.starts[k];
-    const spinLen = tl.durs[k] * CRAZY_SPIN_FRAC;
+    const spinLen = tl.spins[k];
     if (elapsed >= s + spinLen) continue;
     if (elapsed <= s) return plan.idx[k];
-    const ease = k === 0 ? easeOutSoft : easeOutQuad; // respins glide gently so you can follow them
-    return plan.idx[k] + (plan.idx[k + 1] - plan.idx[k]) * ease((elapsed - s) / spinLen);
+    return plan.idx[k] + (plan.idx[k + 1] - plan.idx[k]) * easeOut((elapsed - s) / spinLen);
   }
   return plan.idx[plan.segCount];
 }
@@ -466,6 +473,8 @@ const Strip = memo(function Strip({
   pick,
   done,
   startX,
+  boost,
+  factor,
 }: {
   tiles: StripTile[];
   tile: number;
@@ -476,19 +485,32 @@ const Strip = memo(function Strip({
   done: number;
   /** where the strip starts, so a new strip never flashes at x = 0 before the animation takes over */
   startX: number;
+  /** Crazy Time: the boost every multiplier already has */
+  boost: number;
+  /** Crazy Time: every DOUBLE so far (all multipliers on the strip are multiplied by it) */
+  factor: number;
 }) {
   return (
     <div className="wstrip__track" ref={trackRef} style={{ gap: GAP, transform: `translate3d(${startX}px,0,0)` }}>
       {tiles.map((t, i) => {
         if (typeof t !== "string") {
           const landed = t.arrow !== undefined && t.seg !== undefined && t.seg < done;
+          const isDouble = t.base === "double";
+          const text = isDouble ? "x2" : `${(t.base as number) * boost * factor}x`;
+          const tier = isDouble ? "double" : tierOfValue(t.base as number);
           return (
             <div
               key={i}
-              className={`wtile wtile--cz-${t.tier} ${landed ? "is-landed" : ""} ${landed && pick === t.arrow ? "is-pick" : ""}`}
+              className={`wtile wtile--cz-${tier} ${landed ? "is-landed" : ""} ${landed && pick === t.arrow ? "is-pick" : ""}`}
               style={{ width: tile, height: tile, ...(landed && t.arrow ? ({ "--ac": ARROW_HEX[t.arrow] } as CSSProperties) : null) }}
             >
-              <span className="wtile__cz">{t.text}</span>
+              <span
+                key={isDouble ? "d" : factor}
+                className={`wtile__cz ${!isDouble && factor > 1 ? "is-pop" : ""}`}
+                style={text.length >= 7 ? { fontSize: 13 } : text.length === 6 ? { fontSize: 15 } : text.length === 5 ? { fontSize: 18 } : undefined}
+              >
+                {text}
+              </span>
             </div>
           );
         }
@@ -648,13 +670,13 @@ export default function WheelPage({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [result, crazyKey]
   );
-  const crazyPlan: CrazyPlan | null = useMemo(() => (realBonus ? buildCrazyPlan(realBonus) : null), [realBonus]);
+  const crazyPlan: CrazyPlan | null = useMemo(() => (realBonus ? buildCrazyPlan(realBonus, resultBoost) : null), [realBonus, resultBoost]);
 
   /** Crazy Time: once the strip has landed on CRAZY, the same strip turns into the Crazy Time multipliers. */
   const crazyMode = spun && result === "crazytime";
   const crazyTiles = useMemo<StripTile[]>(
-    () => (crazyMode ? buildCrazyTiles(roundId, realBonus?.doubleCount ?? 7, crazyPlan, resultBoost) : []),
-    [crazyMode, realBonus, crazyPlan, roundId, resultBoost]
+    () => (crazyMode ? buildCrazyTiles(roundId, realBonus?.doubleCount ?? 7, crazyPlan) : []),
+    [crazyMode, realBonus, crazyPlan, roundId]
   );
 
   const chosenCrazyMult =
@@ -810,7 +832,7 @@ export default function WheelPage({
       if (elapsed >= 0) {
         let seg = 0;
         for (let k = 0; k < crazyPlan.segCount; k++) if (elapsed >= tl.starts[k]) seg = k;
-        const spinning = elapsed - tl.starts[seg] < tl.durs[seg] * CRAZY_SPIN_FRAC;
+        const spinning = elapsed - tl.starts[seg] < tl.spins[seg];
         stage = seg * 2 + (spinning ? 0 : 1);
       }
       if (stage !== last) {
@@ -1118,6 +1140,8 @@ export default function WheelPage({
             pick={crazyMode ? chosenArrow : null}
             done={crazyMode ? crazyDone : 0}
             startX={width / 2 - ((crazyMode ? CRAZY_START : START) * step + tile / 2)}
+            boost={crazyMode ? resultBoost : 1}
+            factor={crazyMode && crazyPlan ? (crazyPlan.factors[Math.min(crazyDone, crazyPlan.segCount)] ?? 1) : 1}
           />
         </div>
 
@@ -1181,7 +1205,9 @@ export default function WheelPage({
                           ? "…"
                           : lastText.startsWith("DOUBLE")
                             ? "RESPIN"
-                            : lastText;
+                            : crazyPlan
+                              ? `${crazyPlan.bases[a.color] * resultBoost * (crazyPlan.factors[crazyDone] ?? 1)}x`
+                              : lastText;
 
                     return (
                       <div
