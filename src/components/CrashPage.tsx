@@ -187,12 +187,20 @@ export default function CrashPage({ state, offset, loggedIn, busy, onLogin, onBe
       // one straight diagonal, bottom-left to top-right, no wiggle
       const prog = 1 - Math.exp(-lnM / 2.2);
       const wob = ph === "betting" ? Math.sin(t / 500) * 6 : 0;
+      // the real direction of travel on screen: from the pad (bottom-left) to the top-right end of the path.
+      // The rocket, its flame and the star streaks all follow this one angle, whatever the stage's shape.
+      const tvx = 0.84 * w;
+      const tvy = -0.72 * h;
+      const tlen = Math.hypot(tvx, tvy) || 1;
+      const ux = tvx / tlen;
+      const uy = tvy / tlen;
+      const flightTilt = (Math.atan2(ux, -uy) * 180) / Math.PI; // degrees from straight up
       if (ph !== "crashed") {
         posRef.current = { x: w * (0.08 + 0.84 * prog), y: h * (0.86 - 0.72 * prog) + wob };
       }
       const { x: px, y: py } = posRef.current;
       // leans into the flight: nearly sideways at first, more upright as it climbs
-      const tilt = ph === "flying" ? 52 : ph === "betting" ? 4 : 50;
+      const tilt = ph === "betting" ? 4 : flightTilt;
       astro.style.transform = `translate(${px - ASTRO_W / 2}px, ${py - ASTRO_H / 2}px) rotate(${tilt}deg)`;
 
       // phase changes
@@ -282,9 +290,14 @@ export default function CrashPage({ state, offset, loggedIn, busy, onLogin, onBe
       const speed = ph === "flying" ? 0.16 + 0.34 * rush : ph === "betting" ? 0.012 : 0;
       for (const st of stars) {
         const f = 0.25 + st.z * 0.9;
-        st.x -= speed * f * dt;
-        st.y += speed * 0.2 * f * dt;
-        if (st.y > 1) st.y -= 1;
+        // stars drift against the direction the rocket flies
+        const move = speed * f * dt * Math.max(w, 1);
+        st.x -= (ux * move) / Math.max(w, 1);
+        st.y -= (uy * move) / Math.max(h, 1);
+        if (st.y > 1) {
+          st.y -= 1;
+          st.x = Math.random();
+        }
         if (st.x < 0) {
           st.x += 1;
           st.y = Math.random();
@@ -296,7 +309,7 @@ export default function CrashPage({ state, offset, loggedIn, busy, onLogin, onBe
         ctx.beginPath();
         ctx.moveTo(sx, sy);
         const len = speed * 90 * f;
-        ctx.lineTo(sx + len, sy - len * 0.2);
+        ctx.lineTo(sx + ux * len, sy + uy * len);
         if (len < 1.5) ctx.lineTo(sx + 0.01, sy - 0.01);
         ctx.stroke();
       }
