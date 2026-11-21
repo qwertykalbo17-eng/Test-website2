@@ -27,6 +27,13 @@ type Phase = "loading" | "betting" | "flying" | "crashed";
 /** Must match the database: multiplier = e^(RATE * seconds since launch). */
 const RATE = 0.1;
 const BETTING_SECONDS = 10;
+/**
+ * The page shows the flight this much behind the server. The crash point stays secret until the crash has
+ * really happened and the page only learns it on its next poll (about 0.5 s + network). Without this delay
+ * the counter ran past the crash point and then jumped back (2.00x, then "crashed at 1.97x"). With it the
+ * counter never passes the crash point, so the crash lands exactly where the counter is.
+ */
+const DISPLAY_LAG_MS = 1000;
 const ASTRO_W = 84;
 const ASTRO_H = 98;
 
@@ -195,13 +202,17 @@ export default function CrashPage({ state, offset, loggedIn, busy, onLogin, onBe
         if (n < s.betting_ends_at) {
           ph = "betting";
           secsLeft = (s.betting_ends_at - n) / 1000;
-        } else if (s.crashed && s.crash_point != null) {
-          ph = "crashed";
-          m = s.crash_point;
         } else {
-          ph = "flying";
-          m = multAt((n - s.betting_ends_at) / 1000);
-          if (s.crash_point != null) m = Math.min(m, s.crash_point);
+          // what the page shows is DISPLAY_LAG_MS behind the server, so the crash is always known in time
+          const el = Math.max(0, (n - s.betting_ends_at - DISPLAY_LAG_MS) / 1000);
+          if (s.crashed && s.crash_point != null && el >= Math.log(Math.max(1, s.crash_point)) / RATE) {
+            ph = "crashed";
+            m = s.crash_point;
+          } else {
+            ph = "flying";
+            m = multAt(el);
+            if (s.crash_point != null) m = Math.min(m, s.crash_point);
+          }
         }
       }
       multRef.current = m;
