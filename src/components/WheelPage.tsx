@@ -28,7 +28,7 @@ const TARGETS: WheelTarget[] = ["2x", "3x", "5x", "10x", "coinflip", "bonus", "c
 
 const LABEL: Record<WheelTarget, string> = {
   "2x": "2X",
-  "3x": "3X",
+  "3x": "2X",
   "5x": "5X",
   "10x": "10X",
   coinflip: "COINFLIP",
@@ -394,7 +394,7 @@ const bestText = (m: number | null) => (m ? `Highest in last 100: ${m}x` : "High
 /* ---------- icons ---------- */
 
 function Icon({ kind }: { kind: WheelTarget }) {
-  if (kind === "2x" || kind === "5x") {
+  if (kind === "2x" || kind === "3x" || kind === "5x") {
     return (
       <svg viewBox="0 0 32 32" className="wicon" aria-hidden="true">
         <path
@@ -405,7 +405,7 @@ function Icon({ kind }: { kind: WheelTarget }) {
     );
   }
 
-  if (kind === "3x" || kind === "10x") {
+  if (kind === "10x") {
     return (
       <svg viewBox="0 0 32 32" className="wicon" aria-hidden="true">
         <path d="M28 4 L17.8 19.8 L12.2 14.2 Z" fill="currentColor" />
@@ -1047,7 +1047,7 @@ export default function WheelPage({
     if (target === "cashhunt") return m > 1 ? `Pick 1 of 9 · x${m}` : "Pick 1 of 9";
 
     if (target === "2x") return `${2 * m}x`;
-    if (target === "3x") return `${3 * m}x`;
+    if (target === "3x") return `${2 * m}x`;
     if (target === "5x") return `${5 * m}x`;
     if (target === "10x") return `${10 * m}x`;
     if (target === "coinflip") return m > 1 ? `Up to ${100 * m}x` : "Up to 100x";
