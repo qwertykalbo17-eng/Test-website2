@@ -84,49 +84,78 @@ interface Particle {
   color: string;
 }
 
-/* ---------- the astronaut (original design, drawn in code) ---------- */
+/* ---------- the monkey astronaut (original design, drawn in code) ---------- */
 
 function Rocket() {
   return (
     <svg viewBox="0 0 120 140" width={ASTRO_W} height={ASTRO_H} aria-hidden="true">
-      {/* flame, from the jetpack nozzles (the jetpack sits on the astronaut's back) */}
-      <g className="astro__flame" style={{ transformOrigin: "41px 100px" }}>
-        <path d="M31 100 Q41 172 51 100 Z" fill="#ff7a2f" />
-        <path d="M35 100 Q41 150 47 100 Z" fill="#ffd54a" />
-        <path d="M38 100 Q41 130 44 100 Z" fill="#fff6d0" />
+      {/* two thruster flames (one per side of the jetpack) */}
+      <g className="astro__flame" style={{ transformOrigin: "35px 106px" }}>
+        <path d="M29 106 Q35 160 41 106 Z" fill="#ff7a2f" />
+        <path d="M31.5 106 Q35 142 38.5 106 Z" fill="#ffd54a" />
+        <path d="M33.5 106 Q35 126 36.5 106 Z" fill="#fff6d0" />
       </g>
-      {/* the astronaut is drawn flying to the right, then turned so it points up like the old rocket */}
-      <g transform="rotate(-90 60 70)">
-        {/* legs trail behind */}
-        <rect x="12" y="64" width="30" height="11" rx="5.5" fill="#cfd6ea" />
-        <rect x="12" y="75" width="30" height="11" rx="5.5" fill="#f4f6fc" />
-        <rect x="7" y="63" width="10" height="13" rx="4" fill="#00d89d" />
-        <rect x="7" y="74" width="10" height="13" rx="4" fill="#00d89d" />
-        {/* body */}
-        <rect x="34" y="55" width="48" height="32" rx="14" fill="#f4f6fc" />
-        <rect x="34" y="78" width="48" height="9" rx="4.5" fill="#cfd6ea" opacity="0.55" />
-        <rect x="52" y="64" width="14" height="10" rx="3" fill="#00f5b4" />
-        <rect x="55" y="67" width="8" height="4" rx="2" fill="#141a2c" opacity="0.55" />
-        {/* jetpack on the back */}
-        <rect x="30" y="45" width="10" height="5" rx="2" fill="#6b7599" />
-        <rect x="30" y="52" width="10" height="5" rx="2" fill="#6b7599" />
-        <rect x="38" y="42" width="26" height="16" rx="5" fill="#2b3350" />
-        <rect x="42" y="46" width="18" height="4" rx="2" fill="#00f5b4" />
-        {/* neck ring + helmet */}
-        <rect x="74" y="60" width="8" height="18" rx="3" fill="#cfd6ea" />
-        <circle cx="92" cy="64" r="17" fill="rgba(170,225,255,0.3)" stroke="#dfe4f2" strokeWidth="3" />
-        {/* face, hair, headset */}
-        <circle cx="94" cy="65" r="11" fill="#ffd2b0" />
-        <path d="M83 66 C81 53 93 49 103 56 C97 55 91 58 89 66 Z" fill="#ff7a2f" />
-        <circle cx="100" cy="64" r="1.8" fill="#141a2c" />
-        <path d="M98 70 Q102 74 105 69" stroke="#141a2c" strokeWidth="1.6" strokeLinecap="round" fill="none" />
-        <circle cx="87" cy="66" r="4.5" fill="#3aa0ff" stroke="#1d6fd1" strokeWidth="1" />
-        <path d="M87 70 Q90 77 98 76" stroke="#ff9a3d" strokeWidth="2" strokeLinecap="round" fill="none" />
-        <path d="M80 56 Q86 47 97 47" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.7" />
-        {/* arm reaching forward */}
-        <rect x="72" y="77" width="30" height="10" rx="5" fill="#f4f6fc" stroke="#cfd6ea" strokeWidth="1.5" />
-        <circle cx="105" cy="82" r="6" fill="#00d89d" />
+      <g className="astro__flame" style={{ transformOrigin: "85px 106px" }}>
+        <path d="M79 106 Q85 160 91 106 Z" fill="#ff7a2f" />
+        <path d="M81.5 106 Q85 142 88.5 106 Z" fill="#ffd54a" />
+        <path d="M83.5 106 Q85 126 86.5 106 Z" fill="#fff6d0" />
       </g>
+      {/* jetpack, peeking out behind the body */}
+      <rect x="27" y="70" width="16" height="30" rx="5" fill="#9aa3c0" />
+      <rect x="77" y="70" width="16" height="30" rx="5" fill="#9aa3c0" />
+      <rect x="29" y="98" width="12" height="9" rx="3" fill="#2b3350" />
+      <rect x="79" y="98" width="12" height="9" rx="3" fill="#2b3350" />
+      <rect x="31" y="100" width="8" height="5" rx="2" fill="#ffcf4a" />
+      <rect x="81" y="100" width="8" height="5" rx="2" fill="#ffcf4a" />
+      {/* legs + boots */}
+      <rect x="44" y="96" width="14" height="22" rx="6" fill="#f4f6fc" />
+      <rect x="62" y="96" width="14" height="22" rx="6" fill="#f4f6fc" />
+      <rect x="42" y="113" width="18" height="11" rx="5" fill="#dfe4f2" />
+      <rect x="60" y="113" width="18" height="11" rx="5" fill="#dfe4f2" />
+      <rect x="42" y="120" width="18" height="4" rx="2" fill="#2b3350" />
+      <rect x="60" y="120" width="18" height="4" rx="2" fill="#2b3350" />
+      {/* body */}
+      <rect x="39" y="60" width="42" height="42" rx="15" fill="#f4f6fc" />
+      <rect x="70" y="62" width="11" height="38" rx="5" fill="#cfd6ea" opacity="0.55" />
+      {/* harness: two black straps, a silver buckle and a belt */}
+      <path d="M45 64 L58 84" stroke="#141a2c" strokeWidth="5" strokeLinecap="round" fill="none" />
+      <path d="M75 64 L62 84" stroke="#141a2c" strokeWidth="5" strokeLinecap="round" fill="none" />
+      <rect x="39" y="93" width="42" height="6" rx="3" fill="#141a2c" />
+      <rect x="55" y="79" width="10" height="9" rx="2.5" fill="#c6cde0" stroke="#141a2c" strokeWidth="1.5" />
+      {/* arm down (right side of the picture) */}
+      <path d="M78 68 Q90 78 84 91" stroke="#cfd6ea" strokeWidth="14" strokeLinecap="round" fill="none" />
+      <path d="M78 68 Q90 78 84 91" stroke="#f4f6fc" strokeWidth="11" strokeLinecap="round" fill="none" />
+      <circle cx="84" cy="94" r="6.5" fill="#dfe4f2" />
+      {/* arm up, waving */}
+      <path d="M42 68 Q28 64 26 50" stroke="#cfd6ea" strokeWidth="14" strokeLinecap="round" fill="none" />
+      <path d="M42 68 Q28 64 26 50" stroke="#f4f6fc" strokeWidth="11" strokeLinecap="round" fill="none" />
+      <circle cx="26" cy="46" r="7" fill="#dfe4f2" />
+      <path d="M21 41 L19 35 M26 39 L26 32 M31 41 L33 35" stroke="#dfe4f2" strokeWidth="3.5" strokeLinecap="round" />
+      {/* helmet shell */}
+      <circle cx="60" cy="36" r="29" fill="#f4f6fc" stroke="#cfd6ea" strokeWidth="2" />
+      {/* monkey: ears, fur, face mask, eyes, grin */}
+      <circle cx="40" cy="38" r="6.5" fill="#b5652f" />
+      <circle cx="80" cy="38" r="6.5" fill="#b5652f" />
+      <circle cx="40" cy="38" r="3.4" fill="#f0b98a" />
+      <circle cx="80" cy="38" r="3.4" fill="#f0b98a" />
+      <circle cx="60" cy="36" r="21" fill="#c8743a" />
+      <path d="M53 16 Q60 8 67 16 Q60 13 53 16 Z" fill="#a85a26" />
+      <circle cx="54" cy="35" r="9.5" fill="#f6d3a8" />
+      <circle cx="66" cy="35" r="9.5" fill="#f6d3a8" />
+      <ellipse cx="60" cy="45" rx="13" ry="9" fill="#f6d3a8" />
+      <circle cx="54.5" cy="34" r="3" fill="#141a2c" />
+      <circle cx="65.5" cy="34" r="3" fill="#141a2c" />
+      <circle cx="55.4" cy="33" r="1" fill="#ffffff" />
+      <circle cx="66.4" cy="33" r="1" fill="#ffffff" />
+      <path d="M49 29 Q54 26 58 29" stroke="#8a4a1f" strokeWidth="1.8" strokeLinecap="round" fill="none" />
+      <path d="M62 29 Q66 26 71 29" stroke="#8a4a1f" strokeWidth="1.8" strokeLinecap="round" fill="none" />
+      <circle cx="58" cy="41" r="1" fill="#8a4a1f" />
+      <circle cx="62" cy="41" r="1" fill="#8a4a1f" />
+      <path d="M49 45 Q60 58 71 45 Z" fill="#ffffff" stroke="#6b3516" strokeWidth="1.8" strokeLinejoin="round" />
+      <path d="M60 46 L60 53 M54 46 L54.5 51.5 M66 46 L65.5 51.5" stroke="#6b3516" strokeWidth="1" />
+      {/* blue helmet rim + glass shine */}
+      <circle cx="60" cy="36" r="24" fill="none" stroke="#3aa0ff" strokeWidth="4.5" />
+      <path d="M41 24 Q46 15 58 13" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" fill="none" opacity="0.75" />
     </svg>
   );
 }
@@ -367,9 +396,8 @@ export default function CrashPage({ state, offset, loggedIn, busy, onLogin, onBe
       // flame trail while flying
       if (ph === "flying") {
         const th = (tilt * Math.PI) / 180;
-        // the jetpack sits ~13px to the side of the centre line
-        const fx = px - Math.cos(th) * 13 - Math.sin(th) * 62;
-        const fy = py - Math.sin(th) * 13 + Math.cos(th) * 62;
+        const fx = px - Math.sin(th) * 62;
+        const fy = py + Math.cos(th) * 62;
         for (let i = 0; i < 3; i++) {
           const away = 110 + Math.random() * 120; // opposite to the direction of flight
           parts.push({
