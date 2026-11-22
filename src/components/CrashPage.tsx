@@ -25,7 +25,7 @@ interface Props {
 type Phase = "loading" | "betting" | "flying" | "crashed";
 
 /** Must match the database: multiplier = e^(RATE * seconds since launch). */
-const RATE = 0.1;
+const RATE = 0.06;
 const BETTING_SECONDS = 10;
 /**
  * The page shows the flight this much behind the server. The crash point stays secret until the crash has
