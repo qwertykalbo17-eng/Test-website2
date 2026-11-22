@@ -34,8 +34,8 @@ const BETTING_SECONDS = 10;
  * counter never passes the crash point, so the crash lands exactly where the counter is.
  */
 const DISPLAY_LAG_MS = 1000;
-const ASTRO_W = 84;
-const ASTRO_H = 98;
+const ASTRO_W = 96;
+const ASTRO_H = 120;
 
 const multAt = (sec: number) => Math.floor(Math.exp(RATE * Math.max(0, sec)) * 100) / 100;
 const fmt = (n: number) => Math.floor(n).toLocaleString("en-US");
@@ -84,83 +84,100 @@ interface Particle {
   color: string;
 }
 
-/* ---------- the monkey (animated sprite in /public/monkey-waiting.gif) ---------- */
+/* ---------- the rocket (original design, drawn in code, points up) ---------- */
 
-/** `w` x `h` is the box the game moves around; the picture is centred in it and may be bigger than the box. */
-function Rocket({ w = ASTRO_W, h = ASTRO_H, size = 150 }: { w?: number; h?: number; size?: number }) {
+function Rocket() {
+  const hull = "M60 6 C84 22 92 56 90 108 L30 108 C28 56 36 22 60 6 Z";
   return (
-    <div style={{ position: "relative", width: w, height: h }}>
-      <img
-        src="/monkey-waiting.gif"
-        alt=""
-        draggable={false}
-        style={{
-          position: "absolute",
-          left: "50%",
-          top: "50%",
-          width: size,
-          height: size,
-          maxWidth: "none",
-          transform: "translate(-50%, -50%)",
-          pointerEvents: "none",
-          userSelect: "none",
-        }}
-      />
-    </div>
-  );
-}
+    <svg viewBox="0 0 120 150" width={ASTRO_W} height={ASTRO_H} aria-hidden="true" style={{ overflow: "visible" }}>
+      <defs>
+        <linearGradient id="rk-hull" x1="0" x2="1" y1="0" y2="0">
+          <stop offset="0" stopColor="#c9d1e6" />
+          <stop offset="0.35" stopColor="#ffffff" />
+          <stop offset="0.7" stopColor="#eef1fa" />
+          <stop offset="1" stopColor="#a9b3cf" />
+        </linearGradient>
+        <linearGradient id="rk-nose" x1="0" x2="1" y1="0" y2="0">
+          <stop offset="0" stopColor="#00b98a" />
+          <stop offset="0.4" stopColor="#2dffc6" />
+          <stop offset="1" stopColor="#00a47c" />
+        </linearGradient>
+        <linearGradient id="rk-fin" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0" stopColor="#2dffc6" />
+          <stop offset="1" stopColor="#008f6c" />
+        </linearGradient>
+        <radialGradient id="rk-glass" cx="0.35" cy="0.3" r="0.8">
+          <stop offset="0" stopColor="#7fe9ff" />
+          <stop offset="0.45" stopColor="#2a6fb0" />
+          <stop offset="1" stopColor="#0d1530" />
+        </radialGradient>
+        <clipPath id="rk-clip">
+          <path d={hull} />
+        </clipPath>
+      </defs>
 
-/* the flying monkey: side view, drawn facing right (used from the launch until the crash) */
-function FlyingMonkey({ w = ASTRO_W, h = ASTRO_H }: { w?: number; h?: number }) {
-  const W = 150;
-  const H = (W * 70) / 120;
-  return (
-    <svg
-      viewBox="0 0 120 70"
-      width={W}
-      height={H}
-      aria-hidden="true"
-      style={{ position: "absolute", left: (w - W) / 2, top: (h - H) / 2, overflow: "visible" }}
-    >
-      {/* jet flame, streaming back from the jetpack */}
-      <g className="astro__flame" style={{ transformOrigin: "30px 21px" }}>
-        <path d="M30 15 Q8 19 -8 21 Q8 23 30 27 Z" fill="#ff7a2f" />
-        <path d="M30 17.5 Q14 20 0 21 Q14 22 30 24.5 Z" fill="#ffd54a" />
-        <path d="M30 19.5 Q18 20.6 8 21 Q18 21.4 30 22.5 Z" fill="#fff6d0" />
+      {/* flame: glow + three layers, streams out of the nozzle */}
+      <g className="astro__flame">
+        <ellipse cx="60" cy="136" rx="22" ry="30" fill="#ff7a2f" opacity="0.25" />
+        <path d="M42 120 Q60 190 78 120 Z" fill="#ff5a1f" />
+        <path d="M47 120 Q60 172 73 120 Z" fill="#ff9a3a" />
+        <path d="M52 120 Q60 154 68 120 Z" fill="#ffd54a" />
+        <path d="M56 120 Q60 138 64 120 Z" fill="#fff6d0" />
       </g>
-      {/* legs trailing behind + boots */}
-      <rect x="16" y="33" width="28" height="9" rx="4.5" fill="#cfd6ea" />
-      <rect x="14" y="40" width="30" height="9" rx="4.5" fill="#f4f6fc" />
-      <rect x="9" y="32" width="9" height="11" rx="4" fill="#dfe4f2" />
-      <rect x="7" y="39" width="9" height="11" rx="4" fill="#dfe4f2" />
-      {/* body */}
-      <rect x="38" y="22" width="44" height="28" rx="13" fill="#f4f6fc" />
-      <rect x="38" y="43" width="44" height="7" rx="3.5" fill="#cfd6ea" opacity="0.55" />
-      <rect x="55" y="22" width="5" height="28" fill="#141a2c" opacity="0.9" />
-      <rect x="53.5" y="32" width="8" height="8" rx="2" fill="#c6cde0" stroke="#141a2c" strokeWidth="1.2" />
-      {/* jetpack on the back */}
-      <rect x="36" y="12" width="26" height="14" rx="5" fill="#9aa3c0" />
-      <rect x="29" y="15" width="9" height="5" rx="2" fill="#2b3350" />
-      <rect x="29" y="21" width="9" height="5" rx="2" fill="#2b3350" />
-      <rect x="27" y="16" width="4" height="3" rx="1" fill="#ffcf4a" />
-      <rect x="27" y="22" width="4" height="3" rx="1" fill="#ffcf4a" />
-      {/* helmet, monkey face looking forward */}
-      <circle cx="94" cy="24" r="19" fill="#f4f6fc" stroke="#cfd6ea" strokeWidth="2" />
-      <circle cx="87" cy="24" r="5" fill="#b5652f" />
-      <circle cx="87" cy="24" r="2.6" fill="#f0b98a" />
-      <circle cx="97" cy="24" r="14" fill="#c8743a" />
-      <path d="M86 13 Q92 7 99 11 Q92 10 86 13 Z" fill="#a85a26" />
-      <ellipse cx="101" cy="27" rx="9.5" ry="9" fill="#f6d3a8" />
-      <circle cx="103" cy="22.5" r="2.5" fill="#141a2c" />
-      <circle cx="103.8" cy="21.6" r="0.9" fill="#ffffff" />
-      <path d="M98 18.5 Q103 16 108 19.5" stroke="#8a4a1f" strokeWidth="1.6" strokeLinecap="round" fill="none" />
-      <circle cx="109.5" cy="27.5" r="1.2" fill="#8a4a1f" />
-      <path d="M99 31 Q105 38 111 30.5 Z" fill="#ffffff" stroke="#6b3516" strokeWidth="1.5" strokeLinejoin="round" />
-      <circle cx="96" cy="24" r="16" fill="none" stroke="#3aa0ff" strokeWidth="3.5" />
-      <path d="M82 15 Q87 8 97 7" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.75" />
-      {/* arm reaching forward */}
-      <rect x="70" y="39" width="28" height="9" rx="4.5" fill="#f4f6fc" stroke="#cfd6ea" strokeWidth="1.5" />
-      <circle cx="100" cy="43.5" r="5.5" fill="#dfe4f2" />
+
+      {/* side boosters */}
+      <g>
+        <path d="M24 70 C18 78 17 96 19 112 L33 112 L33 76 Z" fill="url(#rk-hull)" stroke="#a9b3cf" strokeWidth="1.2" />
+        <path d="M24 70 C26 62 30 58 33 56 L33 76 Z" fill="#ff4d5e" />
+        <rect x="19" y="104" width="14" height="8" rx="2" fill="#2b3350" />
+        <path d="M96 70 C102 78 103 96 101 112 L87 112 L87 76 Z" fill="url(#rk-hull)" stroke="#a9b3cf" strokeWidth="1.2" />
+        <path d="M96 70 C94 62 90 58 87 56 L87 76 Z" fill="#ff4d5e" />
+        <rect x="87" y="104" width="14" height="8" rx="2" fill="#2b3350" />
+      </g>
+
+      {/* big fins */}
+      <path d="M34 78 L8 126 L12 132 L38 118 Z" fill="url(#rk-fin)" stroke="#007a5c" strokeWidth="1.2" strokeLinejoin="round" />
+      <path d="M86 78 L112 126 L108 132 L82 118 Z" fill="url(#rk-fin)" stroke="#007a5c" strokeWidth="1.2" strokeLinejoin="round" />
+      <path d="M34 90 L16 124" stroke="#9ffbe3" strokeWidth="1.4" opacity="0.6" />
+      <path d="M86 90 L104 124" stroke="#9ffbe3" strokeWidth="1.4" opacity="0.6" />
+
+      {/* engine nozzle with ribs */}
+      <path d="M42 108 L38 122 Q60 128 82 122 L78 108 Z" fill="#2b3350" />
+      <path d="M42 108 L38 122 Q60 128 82 122 L78 108 Z" fill="none" stroke="#5a6690" strokeWidth="1.2" />
+      <path d="M48 110 L46 124 M60 110 L60 127 M72 110 L74 124" stroke="#5a6690" strokeWidth="1.2" opacity="0.8" />
+
+      {/* hull */}
+      <path d={hull} fill="url(#rk-hull)" />
+      <g clipPath="url(#rk-clip)">
+        {/* nose cone */}
+        <rect x="20" y="0" width="80" height="40" fill="url(#rk-nose)" />
+        <path d="M24 40 Q60 48 96 40" stroke="#007a5c" strokeWidth="2.5" fill="none" />
+        {/* stripe bands near the engine */}
+        <rect x="20" y="88" width="80" height="7" fill="url(#rk-nose)" />
+        <rect x="20" y="97" width="80" height="3" fill="#ff4d5e" />
+        {/* panel lines + rivets */}
+        <path d="M60 40 L60 56 M60 96 L60 108" stroke="#a9b3cf" strokeWidth="1.2" />
+        <path d="M30 80 L90 80" stroke="#c4cce0" strokeWidth="1" />
+        {[38, 48, 72, 82].map((x) => (
+          <circle key={x} cx={x} cy="84" r="1.5" fill="#9aa5c4" />
+        ))}
+        {/* soft shadow on the right side + highlight on the left */}
+        <rect x="74" y="0" width="30" height="120" fill="#0d1530" opacity="0.12" />
+        <path d="M40 30 C36 50 36 78 38 100" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" fill="none" opacity="0.7" />
+      </g>
+      <path d={hull} fill="none" stroke="#a9b3cf" strokeWidth="2" />
+
+      {/* porthole */}
+      <circle cx="60" cy="62" r="17" fill="#8d98b8" />
+      <circle cx="60" cy="62" r="14.5" fill="#dfe4f2" stroke="#6b7699" strokeWidth="1" />
+      <circle cx="60" cy="62" r="11.5" fill="url(#rk-glass)" />
+      <path d="M52 58 Q55 52 62 52" stroke="#ffffff" strokeWidth="2.6" strokeLinecap="round" fill="none" opacity="0.85" />
+      {[0, 60, 120, 180, 240, 300].map((deg) => (
+        <circle key={deg} cx={60 + 16 * Math.cos((deg * Math.PI) / 180)} cy={62 + 16 * Math.sin((deg * Math.PI) / 180)} r="1.1" fill="#6b7699" />
+      ))}
+
+      {/* little star badge */}
+      <path d="M60 24 L62.2 29 L67.5 29.4 L63.4 32.8 L64.8 38 L60 35.2 L55.2 38 L56.6 32.8 L52.5 29.4 L57.8 29 Z" fill="#ffffff" opacity="0.9" />
     </svg>
   );
 }
@@ -177,8 +194,6 @@ export default function CrashPage({ state, offset, loggedIn, busy, onLogin, onBe
   const stageRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const astroRef = useRef<HTMLDivElement>(null);
-  const waitRef = useRef<HTMLDivElement>(null); // the waiting GIF (betting)
-  const flyRef = useRef<HTMLDivElement>(null); // the side-view monkey (flying / crashed)
   const counterRef = useRef<HTMLDivElement>(null);
   const subRef = useRef<HTMLDivElement>(null);
   const barRef = useRef<HTMLDivElement>(null);
@@ -280,11 +295,7 @@ export default function CrashPage({ state, offset, loggedIn, busy, onLogin, onBe
       const { x: px, y: py } = posRef.current;
       // leans into the flight: nearly sideways at first, more upright as it climbs
       const tilt = ph === "betting" ? 4 : flightTilt;
-      // betting: the waiting GIF, upright. From the launch on: the side-view monkey, turned along the flight path.
-      const waiting = ph === "betting" || ph === "loading";
-      if (waitRef.current) waitRef.current.style.display = waiting ? "" : "none";
-      if (flyRef.current) flyRef.current.style.display = waiting ? "none" : "";
-      const rot = waiting ? 4 : tilt - 90;
+      const rot = ph === "betting" || ph === "loading" ? 4 : tilt; // the rocket points up, so it turns by the flight angle
       astro.style.transform = `translate(${px - ASTRO_W / 2}px, ${py - ASTRO_H / 2}px) rotate(${rot}deg)`;
 
       // phase changes
@@ -408,8 +419,8 @@ export default function CrashPage({ state, offset, loggedIn, busy, onLogin, onBe
       // flame trail while flying
       if (ph === "flying") {
         const th = (tilt * Math.PI) / 180;
-        const fx = px - Math.sin(th) * 46;
-        const fy = py + Math.cos(th) * 46;
+        const fx = px - Math.sin(th) * (ASTRO_H * 0.42);
+        const fy = py + Math.cos(th) * (ASTRO_H * 0.42);
         for (let i = 0; i < 3; i++) {
           const away = 110 + Math.random() * 120; // opposite to the direction of flight
           parts.push({
@@ -585,14 +596,9 @@ export default function CrashPage({ state, offset, loggedIn, busy, onLogin, onBe
             </div>
           </div>
 
-          <div className="astro" ref={astroRef}>
+          <div className="astro" ref={astroRef} style={{ width: ASTRO_W, height: ASTRO_H }}>
             <div className="astro__body">
-              <div ref={waitRef} style={{ position: "absolute", left: 0, top: 0 }}>
-                <Rocket />
-              </div>
-              <div ref={flyRef} style={{ position: "absolute", left: 0, top: 0, display: "none" }}>
-                <FlyingMonkey />
-              </div>
+              <Rocket />
             </div>
           </div>
 
@@ -600,7 +606,7 @@ export default function CrashPage({ state, offset, loggedIn, busy, onLogin, onBe
             <div key={f.key} className="floater" style={{ left: f.x - 30, top: f.y - 36 }}>
               <div className="floater__tag">{f.mult}x</div>
               <div className="floater__body">
-                <Rocket w={60} h={70} size={90} />
+                <Rocket />
               </div>
             </div>
           ))}
