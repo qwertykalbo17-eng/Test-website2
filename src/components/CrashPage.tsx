@@ -87,97 +87,61 @@ interface Particle {
 /* ---------- the rocket (original design, drawn in code, points up) ---------- */
 
 function Rocket() {
-  const hull = "M60 6 C84 22 92 56 90 108 L30 108 C28 56 36 22 60 6 Z";
+  const hull = "M60 6 C88 28 94 70 88 114 L32 114 C26 70 32 28 60 6 Z";
   return (
     <svg viewBox="0 0 120 150" width={ASTRO_W} height={ASTRO_H} aria-hidden="true" style={{ overflow: "visible" }}>
       <defs>
         <linearGradient id="rk-hull" x1="0" x2="1" y1="0" y2="0">
-          <stop offset="0" stopColor="#c9d1e6" />
-          <stop offset="0.35" stopColor="#ffffff" />
-          <stop offset="0.7" stopColor="#eef1fa" />
-          <stop offset="1" stopColor="#a9b3cf" />
+          <stop offset="0" stopColor="#d9e6e0" />
+          <stop offset="0.4" stopColor="#ffffff" />
+          <stop offset="1" stopColor="#aebfb8" />
         </linearGradient>
         <linearGradient id="rk-nose" x1="0" x2="1" y1="0" y2="0">
-          <stop offset="0" stopColor="#00b98a" />
-          <stop offset="0.4" stopColor="#2dffc6" />
-          <stop offset="1" stopColor="#00a47c" />
+          <stop offset="0" stopColor="#2ee27d" />
+          <stop offset="0.45" stopColor="#7dffb0" />
+          <stop offset="1" stopColor="#16a85a" />
         </linearGradient>
-        <linearGradient id="rk-fin" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0" stopColor="#2dffc6" />
-          <stop offset="1" stopColor="#008f6c" />
+        <linearGradient id="rk-fin" x1="0" x2="1" y1="0" y2="0">
+          <stop offset="0" stopColor="#2ee27d" />
+          <stop offset="1" stopColor="#12924d" />
         </linearGradient>
-        <radialGradient id="rk-glass" cx="0.35" cy="0.3" r="0.8">
-          <stop offset="0" stopColor="#7fe9ff" />
-          <stop offset="0.45" stopColor="#2a6fb0" />
-          <stop offset="1" stopColor="#0d1530" />
+        <radialGradient id="rk-glass" cx="0.35" cy="0.3" r="0.85">
+          <stop offset="0" stopColor="#a6ffd0" />
+          <stop offset="0.5" stopColor="#1aa85f" />
+          <stop offset="1" stopColor="#0a2a1a" />
         </radialGradient>
         <clipPath id="rk-clip">
           <path d={hull} />
         </clipPath>
       </defs>
 
-      {/* flame: glow + three layers, streams out of the nozzle */}
+      {/* flame */}
       <g className="astro__flame">
-        <ellipse cx="60" cy="136" rx="22" ry="30" fill="#ff7a2f" opacity="0.25" />
-        <path d="M42 120 Q60 190 78 120 Z" fill="#ff5a1f" />
-        <path d="M47 120 Q60 172 73 120 Z" fill="#ff9a3a" />
-        <path d="M52 120 Q60 154 68 120 Z" fill="#ffd54a" />
-        <path d="M56 120 Q60 138 64 120 Z" fill="#fff6d0" />
+        <path d="M44 116 Q60 184 76 116 Z" fill="#22c55e" />
+        <path d="M50 116 Q60 160 70 116 Z" fill="#8dffb8" />
+        <path d="M55 116 Q60 140 65 116 Z" fill="#eafff3" />
       </g>
 
-      {/* side boosters */}
-      <g>
-        <path d="M24 70 C18 78 17 96 19 112 L33 112 L33 76 Z" fill="url(#rk-hull)" stroke="#a9b3cf" strokeWidth="1.2" />
-        <path d="M24 70 C26 62 30 58 33 56 L33 76 Z" fill="#ff4d5e" />
-        <rect x="19" y="104" width="14" height="8" rx="2" fill="#2b3350" />
-        <path d="M96 70 C102 78 103 96 101 112 L87 112 L87 76 Z" fill="url(#rk-hull)" stroke="#a9b3cf" strokeWidth="1.2" />
-        <path d="M96 70 C94 62 90 58 87 56 L87 76 Z" fill="#ff4d5e" />
-        <rect x="87" y="104" width="14" height="8" rx="2" fill="#2b3350" />
-      </g>
+      {/* fins */}
+      <path d="M32 80 C14 92 10 110 12 128 C22 124 30 120 36 112 Z" fill="url(#rk-fin)" />
+      <path d="M88 80 C106 92 110 110 108 128 C98 124 90 120 84 112 Z" fill="url(#rk-fin)" />
 
-      {/* big fins */}
-      <path d="M34 78 L8 126 L12 132 L38 118 Z" fill="url(#rk-fin)" stroke="#007a5c" strokeWidth="1.2" strokeLinejoin="round" />
-      <path d="M86 78 L112 126 L108 132 L82 118 Z" fill="url(#rk-fin)" stroke="#007a5c" strokeWidth="1.2" strokeLinejoin="round" />
-      <path d="M34 90 L16 124" stroke="#9ffbe3" strokeWidth="1.4" opacity="0.6" />
-      <path d="M86 90 L104 124" stroke="#9ffbe3" strokeWidth="1.4" opacity="0.6" />
+      {/* nozzle */}
+      <path d="M46 112 L42 124 Q60 130 78 124 L74 112 Z" fill="#1b2a24" />
 
-      {/* engine nozzle with ribs */}
-      <path d="M42 108 L38 122 Q60 128 82 122 L78 108 Z" fill="#2b3350" />
-      <path d="M42 108 L38 122 Q60 128 82 122 L78 108 Z" fill="none" stroke="#5a6690" strokeWidth="1.2" />
-      <path d="M48 110 L46 124 M60 110 L60 127 M72 110 L74 124" stroke="#5a6690" strokeWidth="1.2" opacity="0.8" />
-
-      {/* hull */}
+      {/* body */}
       <path d={hull} fill="url(#rk-hull)" />
       <g clipPath="url(#rk-clip)">
-        {/* nose cone */}
-        <rect x="20" y="0" width="80" height="40" fill="url(#rk-nose)" />
-        <path d="M24 40 Q60 48 96 40" stroke="#007a5c" strokeWidth="2.5" fill="none" />
-        {/* stripe bands near the engine */}
-        <rect x="20" y="88" width="80" height="7" fill="url(#rk-nose)" />
-        <rect x="20" y="97" width="80" height="3" fill="#ff4d5e" />
-        {/* panel lines + rivets */}
-        <path d="M60 40 L60 56 M60 96 L60 108" stroke="#a9b3cf" strokeWidth="1.2" />
-        <path d="M30 80 L90 80" stroke="#c4cce0" strokeWidth="1" />
-        {[38, 48, 72, 82].map((x) => (
-          <circle key={x} cx={x} cy="84" r="1.5" fill="#9aa5c4" />
-        ))}
-        {/* soft shadow on the right side + highlight on the left */}
-        <rect x="74" y="0" width="30" height="120" fill="#0d1530" opacity="0.12" />
-        <path d="M40 30 C36 50 36 78 38 100" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" fill="none" opacity="0.7" />
+        <rect x="20" y="0" width="80" height="38" fill="url(#rk-nose)" />
+        <rect x="20" y="98" width="80" height="6" fill="#2ee27d" />
+        <path d="M40 28 C35 50 35 80 37 104" stroke="#ffffff" strokeWidth="4" strokeLinecap="round" fill="none" opacity="0.6" />
       </g>
-      <path d={hull} fill="none" stroke="#a9b3cf" strokeWidth="2" />
+      <path d={hull} fill="none" stroke="#9fb3aa" strokeWidth="1.5" />
 
-      {/* porthole */}
-      <circle cx="60" cy="62" r="17" fill="#8d98b8" />
-      <circle cx="60" cy="62" r="14.5" fill="#dfe4f2" stroke="#6b7699" strokeWidth="1" />
-      <circle cx="60" cy="62" r="11.5" fill="url(#rk-glass)" />
-      <path d="M52 58 Q55 52 62 52" stroke="#ffffff" strokeWidth="2.6" strokeLinecap="round" fill="none" opacity="0.85" />
-      {[0, 60, 120, 180, 240, 300].map((deg) => (
-        <circle key={deg} cx={60 + 16 * Math.cos((deg * Math.PI) / 180)} cy={62 + 16 * Math.sin((deg * Math.PI) / 180)} r="1.1" fill="#6b7699" />
-      ))}
-
-      {/* little star badge */}
-      <path d="M60 24 L62.2 29 L67.5 29.4 L63.4 32.8 L64.8 38 L60 35.2 L55.2 38 L56.6 32.8 L52.5 29.4 L57.8 29 Z" fill="#ffffff" opacity="0.9" />
+      {/* window */}
+      <circle cx="60" cy="66" r="17" fill="#ffffff" stroke="#9fb3aa" strokeWidth="1.5" />
+      <circle cx="60" cy="66" r="12.5" fill="url(#rk-glass)" />
+      <path d="M53 61 Q56 55 62 55" stroke="#ffffff" strokeWidth="2.6" strokeLinecap="round" fill="none" opacity="0.9" />
     </svg>
   );
 }
@@ -431,7 +395,7 @@ export default function CrashPage({ state, offset, loggedIn, busy, onLogin, onBe
             life: 0.45 + Math.random() * 0.4,
             max: 0.85,
             r: 3 + Math.random() * 5,
-            color: Math.random() < 0.5 ? "255,160,60" : "255,224,120",
+            color: Math.random() < 0.5 ? "46,226,125" : "170,255,205",
           });
         }
       }
