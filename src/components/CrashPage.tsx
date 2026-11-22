@@ -110,6 +110,61 @@ function Rocket({ w = ASTRO_W, h = ASTRO_H, size = 150 }: { w?: number; h?: numb
   );
 }
 
+/* the flying monkey: side view, drawn facing right (used from the launch until the crash) */
+function FlyingMonkey({ w = ASTRO_W, h = ASTRO_H }: { w?: number; h?: number }) {
+  const W = 150;
+  const H = (W * 70) / 120;
+  return (
+    <svg
+      viewBox="0 0 120 70"
+      width={W}
+      height={H}
+      aria-hidden="true"
+      style={{ position: "absolute", left: (w - W) / 2, top: (h - H) / 2, overflow: "visible" }}
+    >
+      {/* jet flame, streaming back from the jetpack */}
+      <g className="astro__flame" style={{ transformOrigin: "30px 21px" }}>
+        <path d="M30 15 Q8 19 -8 21 Q8 23 30 27 Z" fill="#ff7a2f" />
+        <path d="M30 17.5 Q14 20 0 21 Q14 22 30 24.5 Z" fill="#ffd54a" />
+        <path d="M30 19.5 Q18 20.6 8 21 Q18 21.4 30 22.5 Z" fill="#fff6d0" />
+      </g>
+      {/* legs trailing behind + boots */}
+      <rect x="16" y="33" width="28" height="9" rx="4.5" fill="#cfd6ea" />
+      <rect x="14" y="40" width="30" height="9" rx="4.5" fill="#f4f6fc" />
+      <rect x="9" y="32" width="9" height="11" rx="4" fill="#dfe4f2" />
+      <rect x="7" y="39" width="9" height="11" rx="4" fill="#dfe4f2" />
+      {/* body */}
+      <rect x="38" y="22" width="44" height="28" rx="13" fill="#f4f6fc" />
+      <rect x="38" y="43" width="44" height="7" rx="3.5" fill="#cfd6ea" opacity="0.55" />
+      <rect x="55" y="22" width="5" height="28" fill="#141a2c" opacity="0.9" />
+      <rect x="53.5" y="32" width="8" height="8" rx="2" fill="#c6cde0" stroke="#141a2c" strokeWidth="1.2" />
+      {/* jetpack on the back */}
+      <rect x="36" y="12" width="26" height="14" rx="5" fill="#9aa3c0" />
+      <rect x="29" y="15" width="9" height="5" rx="2" fill="#2b3350" />
+      <rect x="29" y="21" width="9" height="5" rx="2" fill="#2b3350" />
+      <rect x="27" y="16" width="4" height="3" rx="1" fill="#ffcf4a" />
+      <rect x="27" y="22" width="4" height="3" rx="1" fill="#ffcf4a" />
+      {/* helmet, monkey face looking forward */}
+      <circle cx="94" cy="24" r="19" fill="#f4f6fc" stroke="#cfd6ea" strokeWidth="2" />
+      <circle cx="87" cy="24" r="5" fill="#b5652f" />
+      <circle cx="87" cy="24" r="2.6" fill="#f0b98a" />
+      <circle cx="97" cy="24" r="14" fill="#c8743a" />
+      <path d="M86 13 Q92 7 99 11 Q92 10 86 13 Z" fill="#a85a26" />
+      <ellipse cx="101" cy="27" rx="9.5" ry="9" fill="#f6d3a8" />
+      <circle cx="103" cy="22.5" r="2.5" fill="#141a2c" />
+      <circle cx="103.8" cy="21.6" r="0.9" fill="#ffffff" />
+      <path d="M98 18.5 Q103 16 108 19.5" stroke="#8a4a1f" strokeWidth="1.6" strokeLinecap="round" fill="none" />
+      <circle cx="109.5" cy="27.5" r="1.2" fill="#8a4a1f" />
+      <path d="M99 31 Q105 38 111 30.5 Z" fill="#ffffff" stroke="#6b3516" strokeWidth="1.5" strokeLinejoin="round" />
+      <circle cx="96" cy="24" r="16" fill="none" stroke="#3aa0ff" strokeWidth="3.5" />
+      <path d="M82 15 Q87 8 97 7" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.75" />
+      {/* arm reaching forward */}
+      <rect x="70" y="39" width="28" height="9" rx="4.5" fill="#f4f6fc" stroke="#cfd6ea" strokeWidth="1.5" />
+      <circle cx="100" cy="43.5" r="5.5" fill="#dfe4f2" />
+    </svg>
+  );
+}
+
 /* ---------- the page ---------- */
 
 export default function CrashPage({ state, offset, loggedIn, busy, onLogin, onBet, onCashout, autoBet, onToggleAutoBet, onRefresh, onRoundEnd }: Props) {
@@ -122,6 +177,8 @@ export default function CrashPage({ state, offset, loggedIn, busy, onLogin, onBe
   const stageRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const astroRef = useRef<HTMLDivElement>(null);
+  const waitRef = useRef<HTMLDivElement>(null); // the waiting GIF (betting)
+  const flyRef = useRef<HTMLDivElement>(null); // the side-view monkey (flying / crashed)
   const counterRef = useRef<HTMLDivElement>(null);
   const subRef = useRef<HTMLDivElement>(null);
   const barRef = useRef<HTMLDivElement>(null);
@@ -223,7 +280,12 @@ export default function CrashPage({ state, offset, loggedIn, busy, onLogin, onBe
       const { x: px, y: py } = posRef.current;
       // leans into the flight: nearly sideways at first, more upright as it climbs
       const tilt = ph === "betting" ? 4 : flightTilt;
-      astro.style.transform = `translate(${px - ASTRO_W / 2}px, ${py - ASTRO_H / 2}px) rotate(${tilt}deg)`;
+      // betting: the waiting GIF, upright. From the launch on: the side-view monkey, turned along the flight path.
+      const waiting = ph === "betting" || ph === "loading";
+      if (waitRef.current) waitRef.current.style.display = waiting ? "" : "none";
+      if (flyRef.current) flyRef.current.style.display = waiting ? "none" : "";
+      const rot = waiting ? 4 : tilt - 90;
+      astro.style.transform = `translate(${px - ASTRO_W / 2}px, ${py - ASTRO_H / 2}px) rotate(${rot}deg)`;
 
       // phase changes
       if (ph !== prev) {
@@ -346,8 +408,8 @@ export default function CrashPage({ state, offset, loggedIn, busy, onLogin, onBe
       // flame trail while flying
       if (ph === "flying") {
         const th = (tilt * Math.PI) / 180;
-        const fx = px - Math.sin(th) * 40;
-        const fy = py + Math.cos(th) * 40;
+        const fx = px - Math.sin(th) * 46;
+        const fy = py + Math.cos(th) * 46;
         for (let i = 0; i < 3; i++) {
           const away = 110 + Math.random() * 120; // opposite to the direction of flight
           parts.push({
@@ -525,7 +587,12 @@ export default function CrashPage({ state, offset, loggedIn, busy, onLogin, onBe
 
           <div className="astro" ref={astroRef}>
             <div className="astro__body">
-              <Rocket />
+              <div ref={waitRef} style={{ position: "absolute", left: 0, top: 0 }}>
+                <Rocket />
+              </div>
+              <div ref={flyRef} style={{ position: "absolute", left: 0, top: 0, display: "none" }}>
+                <FlyingMonkey />
+              </div>
             </div>
           </div>
 
