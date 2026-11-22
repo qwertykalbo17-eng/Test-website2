@@ -1926,8 +1926,8 @@ html, body { overflow-x: clip; }
 /* Crash history: 10x and above is yellow instead of purple */
 .chist--big { background: #4a3d0c; color: #ffd54a; border-color: #6e5a16; }
 
-/* The two 2x segments: both grey, one with a white number and one with a black number */
-.whist--2x { background: #6a7186; color: #e8ebf2; border-color: #858ca1; }
-.wtile--2x { background: #6a7186; color: #e8ebf2; border-color: rgba(255, 255, 255, 0.22); }
-.whist--3x { background: #6a7186; color: #15171e; border-color: #858ca1; }
-.wtile--3x { background: #6a7186; color: #15171e; border-color: rgba(255, 255, 255, 0.22); }
+/* The two 2x segments: old grey with a white number, and silver with a black number */
+.whist--2x { background: #2a3142; color: #e4e7ef; border-color: #394158; }
+.wtile--2x { background: #2a3142; color: #e4e7ef; }
+.whist--3x { background: #9aa2b8; color: #12151c; border-color: #b3bacb; }
+.wtile--3x { background: #9aa2b8; color: #12151c; border-color: rgba(255, 255, 255, 0.25); }
