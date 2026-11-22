@@ -1470,6 +1470,8 @@ export default function WheelPage({
               <div
                 key={t}
                 className={`wbet wbet--${t} ${isBoosted ? `wbet--boost-${boostMult}` : ""} ${
+                  state?.best_target === t ? "wbet--burn" : ""
+                } ${
                   win ? "is-win" : ""
                 } ${spun && !win ? "is-dim" : ""}`}
               >

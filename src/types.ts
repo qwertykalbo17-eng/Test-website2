@@ -114,6 +114,8 @@ export interface WheelState {
   ends_at: number;
   /** Highest multiplier seen in the last 100 rounds */
   best_mult?: number | null;
+  /** The segment that produced that highest multiplier (it gets the burning border) */
+  best_target?: WheelTarget | null;
   /** Random segment boosted this round (null when no event occurs) */
   boost_target: WheelTarget | null;
   /** 1 = normal, or boost multiplier (e.g. 2, 3, 5, 10, 50) */

@@ -1931,3 +1931,56 @@ html, body { overflow-x: clip; }
 .wtile--2x { background: #2a3142; color: #e4e7ef; }
 .whist--3x { background: #9aa2b8; color: #12151c; border-color: #b3bacb; }
 .wtile--3x { background: #9aa2b8; color: #12151c; border-color: rgba(255, 255, 255, 0.25); }
+
+/* The segment with the highest multiplier of the last 100 rounds is on fire */
+@property --burn-ang { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+
+.wbet--burn {
+  position: relative;
+  border-color: rgba(255, 140, 40, 0.9);
+  box-shadow: 0 0 14px rgba(255, 110, 20, 0.45), inset 0 0 14px rgba(255, 90, 0, 0.12);
+  animation: burnPulse 0.9s ease-in-out infinite alternate;
+}
+/* a streak of fire running around the border */
+.wbet--burn::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  padding: 2px;
+  pointer-events: none;
+  background: conic-gradient(from var(--burn-ang), transparent 0 52%, #ff3d00 66%, #ff9a1f 80%, #ffe27a 90%, #fff6c4 94%, transparent 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  animation: burnSpin 1.8s linear infinite;
+}
+/* flames licking up from the top edge */
+.wbet--burn::before {
+  content: "";
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  top: -11px;
+  height: 14px;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 7px 12px at 50% 100%, #ffd24a 0%, #ff8a1f 45%, rgba(255, 60, 0, 0) 75%) 0 0 / 17px 14px repeat-x,
+    radial-gradient(ellipse 5px 9px at 50% 100%, #fff0a0 0%, #ff9a2f 50%, rgba(255, 60, 0, 0) 80%) 8px 0 / 23px 14px repeat-x;
+  filter: blur(0.4px);
+  transform-origin: 50% 100%;
+  animation: burnFlicker 0.38s ease-in-out infinite alternate;
+}
+@keyframes burnSpin { to { --burn-ang: 360deg; } }
+@keyframes burnPulse {
+  from { box-shadow: 0 0 10px rgba(255, 110, 20, 0.35), inset 0 0 10px rgba(255, 90, 0, 0.1); }
+  to   { box-shadow: 0 0 20px rgba(255, 150, 40, 0.65), inset 0 0 16px rgba(255, 90, 0, 0.2); }
+}
+@keyframes burnFlicker {
+  0%   { transform: scaleY(0.75) skewX(-3deg); opacity: 0.8; background-position: 0 0, 8px 0; }
+  100% { transform: scaleY(1.15) skewX(3deg); opacity: 1; background-position: 3px 0, 5px 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wbet--burn, .wbet--burn::before, .wbet--burn::after { animation: none; }
+}
