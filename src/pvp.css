@@ -355,23 +355,11 @@
   border-top: 1px dashed var(--border);
   background: rgba(0, 245, 180, 0.06);
 }
-.tag--crazy { background: rgba(255, 90, 90, 0.14); color: #ff7a7a; }
-.tag--normal { background: rgba(0, 245, 180, 0.12); color: var(--accent); }
 
 .seg { display: inline-flex; gap: 4px; padding: 4px; background: var(--surface-2); border-radius: 10px; }
-.seg__btn {
-  font: inherit; font-weight: 700; font-size: 14px;
-  padding: 8px 14px; border: 0; border-radius: 8px;
-  background: transparent; color: var(--muted); cursor: pointer;
-}
-.seg__btn.is-active { background: var(--surface-3); color: var(--accent); }
 
 .odds { width: 100%; font-size: 12px; text-align: left; }
 .odds summary { cursor: pointer; color: var(--muted); text-align: center; }
-.odds__list { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
-.odds__list li { display: grid; grid-template-columns: 22px 1fr auto auto; gap: 6px; align-items: center; }
-.odds__list img { width: 22px; height: 22px; object-fit: contain; }
-.odds__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* admin */
 .admin-row {
@@ -879,8 +867,6 @@
   border: 1px solid var(--border);
   color: var(--muted);
 }
-.whist--2x { background: #2a3142; color: #8a94b0; border-color: #394158; }
-.whist--3x { background: #5a3412; color: #ffa34d; border-color: #7a4a1e; }
 .whist--5x { background: #1b3a66; color: #5aa9ff; border-color: #25508c; }
 .whist--10x { background: #3c2a66; color: #b08cff; border-color: #523a8a; }
 .whist--bonus { background: #14452c; color: #3de0a0; border-color: #1b6642; }
@@ -1152,46 +1138,6 @@
   color: var(--muted);
 }
 .wcrazy__caption.is-double { color: #f0c64a; text-shadow: 0 0 14px rgba(240, 198, 74, 0.5); }
-.crazy-wheel-wrap { width: min(100%, 340px); margin: 6px auto 0; }
-.crazy-wheel { display: block; width: 100%; height: auto; filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.45)); }
-.crazy-wheel__bg { fill: #0b0e16; stroke: rgba(255, 59, 71, 0.45); stroke-width: 1.5; }
-.crazy-slot { stroke: rgba(0, 0, 0, 0.55); stroke-width: 1; transition: filter 0.2s; }
-.crazy-slot--10 { fill: #2b4a7a; }
-.crazy-slot--20 { fill: #2f6b4f; }
-.crazy-slot--30 { fill: #6b3f8f; }
-.crazy-slot--50 { fill: #9a5f1a; }
-.crazy-slot--100 { fill: #b02a45; }
-.crazy-slot--double { fill: #d4a017; }
-.crazy-slot.is-hit { filter: brightness(1.35); }
-.crazy-slot__ring {
-  fill: none;
-  stroke-width: 3.5;
-  stroke-linejoin: round;
-  pointer-events: none;
-  animation: crazyHit 0.5s ease-out;
-}
-@keyframes crazyHit { from { stroke-width: 10; opacity: 0.35; } to { stroke-width: 3.5; opacity: 1; } }
-.crazy-slot__label {
-  fill: #fff;
-  font-weight: 900;
-  font-variant-numeric: tabular-nums;
-  pointer-events: none;
-  paint-order: stroke;
-  stroke: rgba(0, 0, 0, 0.5);
-  stroke-width: 2px;
-}
-.crazy-slot__label--double { fill: #1b1300; stroke: none; }
-.crazy-wheel__hub { fill: #121722; stroke: rgba(255, 59, 71, 0.6); stroke-width: 2; }
-.crazy-wheel__hub-text {
-  fill: #ff6b74;
-  font-size: 11px;
-  font-weight: 900;
-  text-anchor: middle;
-  dominant-baseline: central;
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: wheelPop 0.4s ease-out;
-}
 
 .wheel__outcome { margin-top: 14px; text-align: center; font-weight: 700; padding: 10px 14px; border-radius: 12px; background: var(--surface-2); }
 .wheel__outcome.is-win { color: #3de0a0; background: rgba(61, 224, 160, 0.1); }
@@ -1268,7 +1214,7 @@
 .wbet__bar:disabled { opacity: 0.8; }
 .wbet__mine { display: inline-flex; align-items: center; gap: 5px; color: #9aa3b8; }
 
-/* Flashing boost on the boosted segment card */
+/* Boost on a segment card: pill + steady coloured border */
 .wbet__title-row {
   display: inline-flex;
   align-items: center;
@@ -1296,34 +1242,6 @@
   color: #ffd54a;
   font-weight: 800;
 }
-.wbet--boost-2 {
-  border-width: 2px;
-  animation: flashBorderDouble 0.95s ease-in-out infinite;
-}
-.wbet--boost-3 {
-  border-width: 2px;
-  animation: flashBorderTriple 0.95s ease-in-out infinite;
-}
-@keyframes flashBorderDouble {
-  0%, 100% {
-    border-color: #38bdf8;
-    box-shadow: 0 0 18px rgba(56, 189, 248, 0.65), inset 0 0 10px rgba(56, 189, 248, 0.2);
-  }
-  50% {
-    border-color: rgba(56, 189, 248, 0.25);
-    box-shadow: 0 0 4px rgba(56, 189, 248, 0.15);
-  }
-}
-@keyframes flashBorderTriple {
-  0%, 100% {
-    border-color: #f472b6;
-    box-shadow: 0 0 22px rgba(244, 114, 182, 0.75), inset 0 0 12px rgba(244, 114, 182, 0.25);
-  }
-  50% {
-    border-color: #ffd54a;
-    box-shadow: 0 0 10px rgba(255, 213, 74, 0.45);
-  }
-}
 
 /* Extra boost tiers */
 .wbet__boost-pill--4  { background: rgba(52, 211, 153, 0.2);  color: #34d399; border: 1px solid rgba(52, 211, 153, 0.6); }
@@ -1332,48 +1250,14 @@
 .wbet__boost-pill--10 { background: rgba(248, 113, 113, 0.22); color: #f87171; border: 1px solid rgba(248, 113, 113, 0.65); }
 .wbet__boost-pill--15 { background: rgba(192, 132, 252, 0.22); color: #c084fc; border: 1px solid rgba(192, 132, 252, 0.65); }
 .wbet__boost-pill--25 { background: rgba(232, 121, 249, 0.24); color: #e879f9; border: 1px solid rgba(232, 121, 249, 0.7); }
-.wbet__boost-pill--50 { background: #fff; color: #11141c; border: 1px solid #fff; box-shadow: 0 0 10px rgba(255, 255, 255, 0.8); }
 
-.wbet--boost-4, .wbet--boost-5, .wbet--boost-7, .wbet--boost-10,
-.wbet--boost-15, .wbet--boost-25, .wbet--boost-50 {
-  border-width: 2px;
-  animation: flashBorderTier var(--spd, 0.7s) ease-in-out infinite;
-}
-.wbet--boost-4  { --bc: #34d399; --bc2: #38bdf8; --bcg: 52, 211, 153;  --spd: 0.95s; }
-.wbet--boost-5  { --bc: #facc15; --bc2: #34d399; --bcg: 250, 204, 21;  --spd: 0.95s; }
-.wbet--boost-7  { --bc: #fb923c; --bc2: #facc15; --bcg: 251, 146, 60;  --spd: 0.95s; }
-.wbet--boost-10 { --bc: #f87171; --bc2: #fb923c; --bcg: 248, 113, 113; --spd: 0.95s; }
-.wbet--boost-15 { --bc: #c084fc; --bc2: #f472b6; --bcg: 192, 132, 252; --spd: 0.95s; }
-.wbet--boost-25 { --bc: #e879f9; --bc2: #ffd54a; --bcg: 232, 121, 249; --spd: 0.95s; }
-.wbet--boost-50 { --bc: #ffffff; --bc2: rgba(255, 255, 255, 0.3); --bcg: 255, 255, 255; --spd: 0.6s; }
-.wbet--boost-50 .wbet__name small.is-boosted-mult { color: #fff; text-shadow: 0 0 8px rgba(255, 255, 255, 0.8); }
-@keyframes flashBorderTier {
-  0%, 100% {
-    border-color: var(--bc);
-    box-shadow: 0 0 24px rgba(var(--bcg), 0.8), inset 0 0 12px rgba(var(--bcg), 0.25);
-  }
-  50% {
-    border-color: var(--bc2);
-    box-shadow: 0 0 8px rgba(var(--bcg), 0.35);
-  }
-}
+.wbet--boost-4  { --bc: #34d399; }
+.wbet--boost-5  { --bc: #facc15; }
+.wbet--boost-7  { --bc: #fb923c; }
+.wbet--boost-10 { --bc: #f87171; }
+.wbet--boost-15 { --bc: #c084fc; }
+.wbet--boost-25 { --bc: #e879f9; }
 
-/* 50x special effect: wheel, strip and the whole bet table flash white */
-.wheel.is-mega, .wheel-bet.is-mega, .wstrip.is-mega {
-  border-width: 2px;
-  border-style: solid;
-  animation: flashBorderMega 0.6s ease-in-out infinite;
-}
-@keyframes flashBorderMega {
-  0%, 100% {
-    border-color: #ffffff;
-    box-shadow: 0 0 28px rgba(255, 255, 255, 0.85), inset 0 0 14px rgba(255, 255, 255, 0.25);
-  }
-  50% {
-    border-color: rgba(255, 255, 255, 0.6);
-    box-shadow: 0 0 8px rgba(255, 255, 255, 0.35);
-  }
-}
 
 @media (max-width: 800px) {
   .wheel { padding: 12px; }
@@ -1432,7 +1316,6 @@
 .crash-totals { font-size: 13px; font-weight: 700; color: var(--muted); }
 .chist { padding: 5px 9px; border-radius: 8px; font-size: 12px; font-weight: 800; border: 1px solid var(--border); background: var(--surface-2); color: var(--muted); }
 .chist--mid { background: #143a2c; color: #3de0a0; border-color: #1b5440; }
-.chist--big { background: #33264d; color: #b79bf2; border-color: #43326a; }
 
 .crash { padding: 12px 14px; margin-bottom: 10px; }
 .crash-stage {
@@ -1932,6 +1815,7 @@ html, body { overflow-x: clip; }
 .whist--3x { background: #9aa2b8; color: #12151c; border-color: #b3bacb; }
 .wtile--3x { background: #9aa2b8; color: #12151c; border-color: rgba(255, 255, 255, 0.25); }
 
+
 /* Boosted cards: no flashing or glow any more, just a steady coloured border (the "xN" pill still shows the boost) */
 .wbet--boost-2, .wbet--boost-3,
 .wbet--boost-4, .wbet--boost-5, .wbet--boost-7, .wbet--boost-10,
@@ -1976,12 +1860,12 @@ html, body { overflow-x: clip; }
   to   { box-shadow: 0 0 20px rgba(255, 150, 40, 0.65), inset 0 0 16px rgba(255, 90, 0, 0.2); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .wbet--burn, .wbet--burn::after, .wbet--boost-50::after { animation: none; }
+  .wbet--burn, .wbet--burn::after, .wheel.is-mega, .wheel.is-mega::after { animation: none; }
 }
 
 /* 50x boost: no more white. The wheel spins orange (above); the strip and the bet table stay calm, the 50x card is orange */
 .wstrip.is-mega, .wheel-bet.is-mega { animation: none; border-width: 1px; box-shadow: none; }
 .wheel.is-mega { border-width: 2px; border-style: solid; }
 .wbet__boost-pill--50 { background: rgba(255, 150, 40, 0.22); color: #ffa13a; border: 1px solid rgba(255, 150, 40, 0.7); box-shadow: none; }
-.wbet--boost-50 { --bc: #ff9a1f; --bc2: rgba(255, 154, 31, 0.3); --bcg: 255, 140, 30; }
+.wbet--boost-50 { --bc: #ff9a1f; }
 .wbet--boost-50 .wbet__name small.is-boosted-mult { color: #ffa13a; text-shadow: 0 0 8px rgba(255, 140, 30, 0.6); }
