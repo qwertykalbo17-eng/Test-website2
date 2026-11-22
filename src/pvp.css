@@ -1497,7 +1497,7 @@
 .astro { position: absolute; left: 0; top: 0; width: 84px; height: 98px; z-index: 2; will-change: transform; }
 .astro__body { width: 100%; height: 100%; animation: astroIdle 2.6s ease-in-out infinite; }
 .astro svg { display: block; overflow: visible; }
-.astro__flame { transform-origin: 112px 120px; opacity: 0; }
+.astro__flame { transform-origin: 60px 112px; opacity: 0; }
 
 /* waiting on the pad: small idle flame */
 .crash-stage[data-phase="betting"] .astro__flame { opacity: 0.6; animation: flameIdle 0.5s ease-in-out infinite alternate; }

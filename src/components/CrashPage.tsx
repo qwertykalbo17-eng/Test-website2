@@ -34,8 +34,8 @@ const BETTING_SECONDS = 10;
  * counter never passes the crash point, so the crash lands exactly where the counter is.
  */
 const DISPLAY_LAG_MS = 1000;
-const ASTRO_W = 96;
-const ASTRO_H = 120;
+const ASTRO_W = 84;
+const ASTRO_H = 98;
 
 const multAt = (sec: number) => Math.floor(Math.exp(RATE * Math.max(0, sec)) * 100) / 100;
 const fmt = (n: number) => Math.floor(n).toLocaleString("en-US");
@@ -84,64 +84,42 @@ interface Particle {
   color: string;
 }
 
-/* ---------- the rocket (original design, drawn in code, points up) ---------- */
+/* ---------- the rocket (original design, drawn in code) ---------- */
 
 function Rocket() {
-  const hull = "M60 6 C88 28 94 70 88 114 L32 114 C26 70 32 28 60 6 Z";
   return (
-    <svg viewBox="0 0 120 150" width={ASTRO_W} height={ASTRO_H} aria-hidden="true" style={{ overflow: "visible" }}>
+    <svg viewBox="0 0 120 140" width={ASTRO_W} height={ASTRO_H} aria-hidden="true">
       <defs>
-        <linearGradient id="rk-hull" x1="0" x2="1" y1="0" y2="0">
-          <stop offset="0" stopColor="#d9e6e0" />
-          <stop offset="0.4" stopColor="#ffffff" />
-          <stop offset="1" stopColor="#aebfb8" />
-        </linearGradient>
-        <linearGradient id="rk-nose" x1="0" x2="1" y1="0" y2="0">
-          <stop offset="0" stopColor="#2ee27d" />
-          <stop offset="0.45" stopColor="#7dffb0" />
-          <stop offset="1" stopColor="#16a85a" />
-        </linearGradient>
-        <linearGradient id="rk-fin" x1="0" x2="1" y1="0" y2="0">
-          <stop offset="0" stopColor="#2ee27d" />
-          <stop offset="1" stopColor="#12924d" />
-        </linearGradient>
-        <radialGradient id="rk-glass" cx="0.35" cy="0.3" r="0.85">
-          <stop offset="0" stopColor="#a6ffd0" />
-          <stop offset="0.5" stopColor="#1aa85f" />
-          <stop offset="1" stopColor="#0a2a1a" />
-        </radialGradient>
-        <clipPath id="rk-clip">
-          <path d={hull} />
+        <clipPath id="rocket-body">
+          <path d="M60 4 C86 22 92 60 88 112 L32 112 C28 60 34 22 60 4 Z" />
         </clipPath>
       </defs>
-
       {/* flame */}
       <g className="astro__flame">
-        <path d="M44 116 Q60 184 76 116 Z" fill="#22c55e" />
-        <path d="M50 116 Q60 160 70 116 Z" fill="#8dffb8" />
-        <path d="M55 116 Q60 140 65 116 Z" fill="#eafff3" />
+        <path d="M42 114 Q60 178 78 114 Z" fill="#ff7a2f" />
+        <path d="M49 114 Q60 154 71 114 Z" fill="#ffd54a" />
+        <path d="M55 114 Q60 136 65 114 Z" fill="#fff6d0" />
       </g>
-
       {/* fins */}
-      <path d="M32 80 C14 92 10 110 12 128 C22 124 30 120 36 112 Z" fill="url(#rk-fin)" />
-      <path d="M88 80 C106 92 110 110 108 128 C98 124 90 120 84 112 Z" fill="url(#rk-fin)" />
-
-      {/* nozzle */}
-      <path d="M46 112 L42 124 Q60 130 78 124 L74 112 Z" fill="#1b2a24" />
-
+      <path d="M33 74 L10 116 L35 106 Z" fill="#00d89d" />
+      <path d="M87 74 L110 116 L85 106 Z" fill="#00d89d" />
+      {/* engine */}
+      <rect x="42" y="108" width="36" height="10" rx="4" fill="#2b3350" />
       {/* body */}
-      <path d={hull} fill="url(#rk-hull)" />
-      <g clipPath="url(#rk-clip)">
-        <rect x="20" y="0" width="80" height="38" fill="url(#rk-nose)" />
-        <rect x="20" y="98" width="80" height="6" fill="#2ee27d" />
-        <path d="M40 28 C35 50 35 80 37 104" stroke="#ffffff" strokeWidth="4" strokeLinecap="round" fill="none" opacity="0.6" />
+      <path d="M60 4 C86 22 92 60 88 112 L32 112 C28 60 34 22 60 4 Z" fill="#f4f6fc" />
+      <g clipPath="url(#rocket-body)">
+        {/* nose cone */}
+        <rect x="20" y="0" width="80" height="36" fill="#00f5b4" />
+        {/* bands */}
+        <rect x="20" y="92" width="80" height="9" fill="#00f5b4" opacity="0.9" />
+        {/* shading */}
+        <rect x="68" y="0" width="30" height="120" fill="#cfd6ea" opacity="0.45" />
       </g>
-      <path d={hull} fill="none" stroke="#9fb3aa" strokeWidth="1.5" />
-
-      {/* window */}
-      <circle cx="60" cy="66" r="17" fill="#ffffff" stroke="#9fb3aa" strokeWidth="1.5" />
-      <circle cx="60" cy="66" r="12.5" fill="url(#rk-glass)" />
-      <path d="M53 61 Q56 55 62 55" stroke="#ffffff" strokeWidth="2.6" strokeLinecap="round" fill="none" opacity="0.9" />
+      <path d="M60 4 C86 22 92 60 88 112 L32 112 C28 60 34 22 60 4 Z" fill="none" stroke="#cfd6ea" strokeWidth="2" />
+      {/* porthole */}
+      <circle cx="60" cy="64" r="15" fill="#cfd6ea" />
+      <circle cx="60" cy="64" r="11.5" fill="#141a2c" />
+      <path d="M52 60 Q55 55 61 55" stroke="#7fe9ff" strokeWidth="3" strokeLinecap="round" fill="none" opacity="0.85" />
     </svg>
   );
 }
@@ -259,8 +237,7 @@ export default function CrashPage({ state, offset, loggedIn, busy, onLogin, onBe
       const { x: px, y: py } = posRef.current;
       // leans into the flight: nearly sideways at first, more upright as it climbs
       const tilt = ph === "betting" ? 4 : flightTilt;
-      const rot = ph === "betting" || ph === "loading" ? 4 : tilt; // the rocket points up, so it turns by the flight angle
-      astro.style.transform = `translate(${px - ASTRO_W / 2}px, ${py - ASTRO_H / 2}px) rotate(${rot}deg)`;
+      astro.style.transform = `translate(${px - ASTRO_W / 2}px, ${py - ASTRO_H / 2}px) rotate(${tilt}deg)`;
 
       // phase changes
       if (ph !== prev) {
@@ -383,8 +360,8 @@ export default function CrashPage({ state, offset, loggedIn, busy, onLogin, onBe
       // flame trail while flying
       if (ph === "flying") {
         const th = (tilt * Math.PI) / 180;
-        const fx = px - Math.sin(th) * (ASTRO_H * 0.42);
-        const fy = py + Math.cos(th) * (ASTRO_H * 0.42);
+        const fx = px - Math.sin(th) * 62;
+        const fy = py + Math.cos(th) * 62;
         for (let i = 0; i < 3; i++) {
           const away = 110 + Math.random() * 120; // opposite to the direction of flight
           parts.push({
@@ -395,7 +372,7 @@ export default function CrashPage({ state, offset, loggedIn, busy, onLogin, onBe
             life: 0.45 + Math.random() * 0.4,
             max: 0.85,
             r: 3 + Math.random() * 5,
-            color: Math.random() < 0.5 ? "46,226,125" : "170,255,205",
+            color: Math.random() < 0.5 ? "255,160,60" : "255,224,120",
           });
         }
       }
@@ -560,7 +537,7 @@ export default function CrashPage({ state, offset, loggedIn, busy, onLogin, onBe
             </div>
           </div>
 
-          <div className="astro" ref={astroRef} style={{ width: ASTRO_W, height: ASTRO_H }}>
+          <div className="astro" ref={astroRef}>
             <div className="astro__body">
               <Rocket />
             </div>
