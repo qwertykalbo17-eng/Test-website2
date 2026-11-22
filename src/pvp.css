@@ -1932,6 +1932,18 @@ html, body { overflow-x: clip; }
 .whist--3x { background: #9aa2b8; color: #12151c; border-color: #b3bacb; }
 .wtile--3x { background: #9aa2b8; color: #12151c; border-color: rgba(255, 255, 255, 0.25); }
 
+/* Boosted cards: no flashing or glow any more, just a steady coloured border (the "xN" pill still shows the boost) */
+.wbet--boost-2, .wbet--boost-3,
+.wbet--boost-4, .wbet--boost-5, .wbet--boost-7, .wbet--boost-10,
+.wbet--boost-15, .wbet--boost-25, .wbet--boost-50 {
+  animation: none;
+  box-shadow: none;
+  border-width: 1px;
+  border-color: var(--bc, #38bdf8);
+}
+.wbet--boost-2 { --bc: #38bdf8; }
+.wbet--boost-3 { --bc: #f472b6; }
+
 /* Orange glow + spinning fire streak: the segment with the highest multiplier of the last 100 rounds, and the whole wheel while a 50x boost is on */
 @property --burn-ang { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
 
